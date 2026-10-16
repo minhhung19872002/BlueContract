@@ -352,7 +352,48 @@ public sealed class Contract : Entity, ISupplierScoped
             ExpiryDate = expiry;
         }
 
+        foreach (var change in appendix.InfoFields)
+        {
+            ApplyInfo(change.Field, change.NewValue);
+        }
+
         RecalculateTotals();
+    }
+
+    private void ApplyInfo(ContractInfoField field, string? value)
+    {
+        switch (field)
+        {
+            case ContractInfoField.Name:
+                Name = Guard.Required(value, "APPENDIX_INFO_VALUE_INVALID");
+                break;
+            case ContractInfoField.Duration:
+                Duration = value;
+                break;
+            case ContractInfoField.PaymentTerms:
+                PaymentTerms = value;
+                break;
+            case ContractInfoField.DeliveryTerms:
+                DeliveryTerms = value;
+                break;
+            case ContractInfoField.WarrantyTerms:
+                WarrantyTerms = value;
+                break;
+            case ContractInfoField.GuaranteeNumber:
+                GuaranteeNumber = value;
+                break;
+            case ContractInfoField.GuaranteeBank:
+                GuaranteeBank = value;
+                break;
+            case ContractInfoField.GuaranteeAmount:
+                GuaranteeAmount = ContractInfo.Amount(value);
+                break;
+            case ContractInfoField.GuaranteeExpiry:
+                GuaranteeExpiry = ContractInfo.Date(value);
+                break;
+            default:
+                throw new DomainException("APPENDIX_INFO_FIELD_INVALID");
+        }
     }
 
     public void RecalculateTotals()

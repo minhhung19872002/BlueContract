@@ -9230,6 +9230,17 @@ export interface components {
             /** Format: double */
             amount: number;
         };
+        /** @description One changed field, old → new, as text in the invariant formats of AppendixInfoDraft. */
+        AppendixInfoChange: {
+            field: components["schemas"]["ContractInfoField"];
+            oldValue: null | string;
+            newValue: null | string;
+        };
+        /** @description Requested new value of a contract field (amount: invariant number, date: yyyy-MM-dd, empty = remove). */
+        AppendixInfoDraft: {
+            field: components["schemas"]["ContractInfoField"];
+            newValue: null | string;
+        };
         AppendixLineDto: {
             /** Format: uuid */
             contractItemId: string;
@@ -9630,6 +9641,7 @@ export interface components {
             /** Format: date-time */
             appliedAt: null | string;
             lines: components["schemas"]["AppendixLineDto"][];
+            infoFields: components["schemas"]["AppendixInfoChange"][];
         };
         ContractDto: {
             /** Format: uuid */
@@ -9727,6 +9739,11 @@ export interface components {
             note: null | string;
             details: null | string;
         };
+        /**
+         * @description Contract fields a "thay đổi thông tin" appendix may change (spec §5 "nội dung thay đổi có cấu trúc").
+         * @enum {unknown}
+         */
+        ContractInfoField: "Name" | "Duration" | "PaymentTerms" | "DeliveryTerms" | "WarrantyTerms" | "GuaranteeNumber" | "GuaranteeBank" | "GuaranteeAmount" | "GuaranteeExpiry";
         ContractItemDto: {
             /** Format: uuid */
             id: string;
@@ -11292,6 +11309,7 @@ export interface components {
             /** Format: uuid */
             templateId: null | string;
             lines: components["schemas"]["AppendixLineRequest"][];
+            infoFields?: null | components["schemas"]["AppendixInfoDraft"][];
         };
         SaveBidDecisionRequest: {
             number: string;

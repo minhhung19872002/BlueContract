@@ -166,7 +166,8 @@ public sealed class ContractService(
             i.ReceivedQuantity, i.AcceptedQuantity, i.PaidQuantity, i.RemainingQuantity)).ToList();
         var appendixDtos = appendices.Select(a => new ContractAppendixDto(a.Id, a.Number, a.Type, a.Reason, a.InfoChanges, a.OldExpiryDate, a.NewExpiryDate,
             a.ValueChange, a.Status, a.DocumentId, a.AppliedAt,
-            [.. a.Lines.Select(l => new AppendixLineDto(l.ContractItemId, l.ItemName, l.OldQuantity, l.NewQuantity, l.OldUnitPrice, l.NewUnitPrice, l.ValueChange))]))
+            [.. a.Lines.Select(l => new AppendixLineDto(l.ContractItemId, l.ItemName, l.OldQuantity, l.NewQuantity, l.OldUnitPrice, l.NewUnitPrice, l.ValueChange))],
+            a.InfoFields))
             .ToList();
 
         return new ContractDto(c.Id, c.Number, c.Name, c.ProcurementType, c.Kind, c.RequiresWarehouseReceipt, c.BidDecisionId, bidNumber, c.SupplierId,
@@ -491,7 +492,8 @@ public sealed class ContractService(
         }
 
         var appendix = new ContractAppendix(contract, number, r.Type, r.Reason);
-        appendix.SetContent(contract, r.Reason, r.InfoChanges, r.NewExpiryDate, [.. r.Lines.Select(l => new AppendixLineDraft(l.ContractItemId, l.NewQuantity, l.NewUnitPrice))]);
+        appendix.SetContent(contract, r.Reason, r.InfoChanges, r.NewExpiryDate, [.. r.Lines.Select(l => new AppendixLineDraft(l.ContractItemId, l.NewQuantity, l.NewUnitPrice))],
+            r.InfoFields);
         db.ContractAppendices.Add(appendix);
 
         var generated = await GenerateAppendixDocumentAsync(contract, appendix, r.TemplateId, ct);
@@ -518,7 +520,8 @@ public sealed class ContractService(
             return Result.Failure(overBid);
         }
 
-        appendix.SetContent(contract, r.Reason, r.InfoChanges, r.NewExpiryDate, [.. r.Lines.Select(l => new AppendixLineDraft(l.ContractItemId, l.NewQuantity, l.NewUnitPrice))]);
+        appendix.SetContent(contract, r.Reason, r.InfoChanges, r.NewExpiryDate, [.. r.Lines.Select(l => new AppendixLineDraft(l.ContractItemId, l.NewQuantity, l.NewUnitPrice))],
+            r.InfoFields);
         var generated = await GenerateAppendixDocumentAsync(contract, appendix, r.TemplateId, ct);
         if (!generated.IsSuccess)
         {

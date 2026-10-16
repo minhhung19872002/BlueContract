@@ -62,7 +62,8 @@ internal sealed class AppendixWorkflowObserver(IAppDbContext db, NotificationSer
 
         var contract = await db.Contracts.Include(c => c.Items).FirstAsync(c => c.Id == appendix.ContractId, ct);
         appendix.Apply(contract, clock.UtcNow);
-        audit.Log("AppendixApplied", nameof(Contract), contract.Id.ToString(), new { appendix.Number, appendix.Type, appendix.ValueChange, contract.TotalAmount });
+        audit.Log("AppendixApplied", nameof(Contract), contract.Id.ToString(),
+            new { appendix.Number, appendix.Type, appendix.ValueChange, contract.TotalAmount, appendix.InfoFields });
         await notifications.NotifyAsync([change.Workflow.StartedBy], NotificationTypes.ContractEffective,
             $"Phụ lục {appendix.Number} của hợp đồng {contract.Number} đã có hiệu lực", appendix.Reason, $"/hop-dong/{contract.Id}", email: true, ct);
     }

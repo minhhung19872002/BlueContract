@@ -47,16 +47,24 @@ const LABELS: Record<string, string> = {
   rejected: 'Từ chối',
   reason: 'Lý do',
   comment: 'Ý kiến',
+  duration: 'Thời gian thực hiện',
+  paymentterms: 'Điều khoản thanh toán',
+  deliveryterms: 'Điều khoản giao hàng',
+  warrantyterms: 'Điều khoản bảo hành',
+  guaranteenumber: 'Số bảo lãnh',
+  guaranteebank: 'Ngân hàng bảo lãnh',
+  guaranteeamount: 'Giá trị bảo lãnh',
+  guaranteeexpiry: 'Hạn bảo lãnh',
   currentversionid: '',
 };
 
-const MONEY = new Set(['totalamount', 'amountbeforevat', 'vatamount']);
+const MONEY = new Set(['totalamount', 'amountbeforevat', 'vatamount', 'guaranteeamount']);
 
 /**
  * Readable summary of an audit entry's JSON (contract "Lịch sử" tab): technical keys (ids, enum numbers, internal
  * flags) are hidden or translated, so users never see raw JSON. Returns at most <c>max</c> "Nhãn: giá trị" parts.
  */
-export function describeAuditDetails(subject: string, json: string | null | undefined, max = 4): string[] {
+export function describeAuditDetails(subject: string, json: string | null | undefined, max = 5): string[] {
   if (!json) return [];
   let data: unknown;
   try {

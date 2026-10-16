@@ -194,6 +194,50 @@ public class ContractTests
     }
 
     [Fact]
+    public void Info_change_appendix_records_old_values_and_writes_the_new_ones_when_applied()
+    {
+        var c = NewContract(Line(1_000, 450));
+        c.UpdateTerms(null, new DateOnly(2026, 3, 1), new DateOnly(2027, 2, 28), "12 tháng", "Thanh toán 90 ngày", null, null, null, null, null, null);
+        c.ApplyWorkflow(WorkflowStatus.Completed, null, null, T0);
+
+        var info = new ContractAppendix(c, "01", AppendixType.InfoChange, "Đổi điều khoản");
+        Should.Throw<DomainException>(() => info.SetContent(c, "x", null, null, [], [new AppendixInfoDraft(ContractInfoField.PaymentTerms, " Thanh toán 90 ngày ")]))
+            .Code.ShouldBe("APPENDIX_INFO_UNCHANGED");
+        Should.Throw<DomainException>(() => info.SetContent(c, "x", null, null, [],
+            [new AppendixInfoDraft(ContractInfoField.GuaranteeBank, "A"), new AppendixInfoDraft(ContractInfoField.GuaranteeBank, "B")])).Code.ShouldBe("APPENDIX_INFO_DUPLICATE");
+        Should.Throw<DomainException>(() => info.SetContent(c, "x", null, null, [], [new AppendixInfoDraft(ContractInfoField.GuaranteeAmount, "-5")]))
+            .Code.ShouldBe("APPENDIX_INFO_VALUE_INVALID");
+        Should.Throw<DomainException>(() => info.SetContent(c, "x", null, null, [], [new AppendixInfoDraft(ContractInfoField.Name, "  ")]))
+            .Code.ShouldBe("APPENDIX_INFO_VALUE_INVALID");
+        Should.Throw<DomainException>(() => info.SetContent(c, "x", null, null, [])).Code.ShouldBe("APPENDIX_INFO_REQUIRED");
+
+        info.SetContent(c, "Đổi điều khoản", null, null, [],
+        [
+            new AppendixInfoDraft(ContractInfoField.PaymentTerms, "Thanh toán 30 ngày"),
+            new AppendixInfoDraft(ContractInfoField.GuaranteeAmount, "150000000.00"),
+            new AppendixInfoDraft(ContractInfoField.GuaranteeExpiry, "2027-03-31"),
+            new AppendixInfoDraft(ContractInfoField.Duration, null),
+        ]);
+        info.InfoFields.ShouldBe(
+        [
+            new AppendixInfoChange(ContractInfoField.PaymentTerms, "Thanh toán 90 ngày", "Thanh toán 30 ngày"),
+            new AppendixInfoChange(ContractInfoField.GuaranteeAmount, null, "150000000"),
+            new AppendixInfoChange(ContractInfoField.GuaranteeExpiry, null, "2027-03-31"),
+            new AppendixInfoChange(ContractInfoField.Duration, "12 tháng", null),
+        ]);
+
+        info.Apply(c, T0);
+        c.PaymentTerms.ShouldBe("Thanh toán 30 ngày");
+        c.GuaranteeAmount.ShouldBe(150_000_000m);
+        c.GuaranteeExpiry.ShouldBe(new DateOnly(2027, 3, 31));
+        c.Duration.ShouldBeNull();
+
+        var quantity = new ContractAppendix(c, "02", AppendixType.AddQuantity, "Tăng");
+        Should.Throw<DomainException>(() => quantity.SetContent(c, "x", null, null, [new AppendixLineDraft(c.Items.Single().Id, 2_000, null)],
+            [new AppendixInfoDraft(ContractInfoField.GuaranteeBank, "A")])).Code.ShouldBe("APPENDIX_INFO_NOT_ALLOWED");
+    }
+
+    [Fact]
     public void Appendix_requires_an_effective_contract_and_cannot_go_below_received()
     {
         var draft = NewContract();

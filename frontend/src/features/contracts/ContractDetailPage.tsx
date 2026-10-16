@@ -51,6 +51,7 @@ import { ContractReceipts } from '../receipts/ContractReceipts';
 import { ContractPayments } from '../payments/ContractPayments';
 import { AppendixDialog } from './AppendixDialog';
 import { ContractCalls, ContractHistory } from './ContractTabs';
+import { contractInfoLabel, formatContractInfo } from '../../utils/contractInfo';
 import { AccountantReviewPanel, SupplierReviewPanel } from './ContractReviewPanels';
 
 const pct = (part: number, whole: number) => (whole > 0 ? Math.round((part * 1000) / whole) / 10 : 0);
@@ -434,40 +435,68 @@ export function ContractDetailPage() {
                   dataSource={c.appendices}
                   locale={{ emptyText: <Empty description="Chưa có phụ lục" /> }}
                   expandable={{
-                    rowExpandable: (r) => r.lines.length > 0,
-                    expandedRowRender: (r) => (
-                      <Table
-                        rowKey="contractItemId"
-                        size="small"
-                        pagination={false}
-                        dataSource={r.lines}
-                        columns={[
-                          { title: 'Mặt hàng', dataIndex: 'itemName' },
-                          {
-                            title: 'Số lượng',
-                            key: 'qty',
-                            render: (_: unknown, l: ContractAppendixDto['lines'][number]) =>
-                              l.newQuantity != null
-                                ? `${formatQuantity(l.oldQuantity)} → ${formatQuantity(l.newQuantity)}`
-                                : formatQuantity(l.oldQuantity),
-                          },
-                          {
-                            title: 'Đơn giá',
-                            key: 'price',
-                            render: (_: unknown, l: ContractAppendixDto['lines'][number]) =>
-                              l.newUnitPrice != null
-                                ? `${formatMoney(l.oldUnitPrice)} → ${formatMoney(l.newUnitPrice)}`
-                                : formatMoney(l.oldUnitPrice),
-                          },
-                          {
-                            title: 'Giá trị tăng/giảm',
-                            dataIndex: 'valueChange',
-                            align: 'right' as const,
-                            render: (v: number) => formatMoney(v),
-                          },
-                        ]}
-                      />
-                    ),
+                    rowExpandable: (r) => r.lines.length > 0 || r.infoFields.length > 0,
+                    expandedRowRender: (r) =>
+                      r.infoFields.length > 0 ? (
+                        <Table
+                          rowKey="field"
+                          size="small"
+                          pagination={false}
+                          dataSource={r.infoFields}
+                          columns={[
+                            {
+                              title: 'Thông tin',
+                              dataIndex: 'field',
+                              width: 200,
+                              render: (v: string) => contractInfoLabel(v),
+                            },
+                            {
+                              title: 'Giá trị cũ',
+                              dataIndex: 'oldValue',
+                              render: (v: string | null, f) => formatContractInfo(f.field, v),
+                            },
+                            {
+                              title: 'Giá trị mới',
+                              dataIndex: 'newValue',
+                              render: (v: string | null, f) => (
+                                <strong>{formatContractInfo(f.field, v)}</strong>
+                              ),
+                            },
+                          ]}
+                        />
+                      ) : (
+                        <Table
+                          rowKey="contractItemId"
+                          size="small"
+                          pagination={false}
+                          dataSource={r.lines}
+                          columns={[
+                            { title: 'Mặt hàng', dataIndex: 'itemName' },
+                            {
+                              title: 'Số lượng',
+                              key: 'qty',
+                              render: (_: unknown, l: ContractAppendixDto['lines'][number]) =>
+                                l.newQuantity != null
+                                  ? `${formatQuantity(l.oldQuantity)} → ${formatQuantity(l.newQuantity)}`
+                                  : formatQuantity(l.oldQuantity),
+                            },
+                            {
+                              title: 'Đơn giá',
+                              key: 'price',
+                              render: (_: unknown, l: ContractAppendixDto['lines'][number]) =>
+                                l.newUnitPrice != null
+                                  ? `${formatMoney(l.oldUnitPrice)} → ${formatMoney(l.newUnitPrice)}`
+                                  : formatMoney(l.oldUnitPrice),
+                            },
+                            {
+                              title: 'Giá trị tăng/giảm',
+                              dataIndex: 'valueChange',
+                              align: 'right' as const,
+                              render: (v: number) => formatMoney(v),
+                            },
+                          ]}
+                        />
+                      ),
                   }}
                   columns={[
                     { title: 'Số', dataIndex: 'number', width: 70 },

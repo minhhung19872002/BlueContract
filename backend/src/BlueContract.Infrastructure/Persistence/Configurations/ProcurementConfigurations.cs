@@ -1,3 +1,6 @@
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using System.Text.Json.Serialization;
+using System.Text.Json;
 using BlueContract.Domain.Bids;
 using BlueContract.Domain.Catalog;
 using BlueContract.Domain.Contracts;
@@ -152,12 +155,25 @@ internal sealed class ContractItemConfiguration : IEntityTypeConfiguration<Contr
 
 internal sealed class ContractAppendixConfiguration : IEntityTypeConfiguration<ContractAppendix>
 {
+    private static readonly JsonSerializerOptions InfoJson = new(JsonSerializerDefaults.Web) { Converters = { new JsonStringEnumConverter() } };
+
     public void Configure(EntityTypeBuilder<ContractAppendix> b)
     {
         b.ToTable("contract_appendices");
         b.Property(x => x.Number).HasMaxLength(100).IsRequired();
         b.Property(x => x.Reason).HasMaxLength(2000).IsRequired();
         b.Property(x => x.InfoChanges).HasMaxLength(4000);
+
+        // "Thay đổi thông tin": field changes old → new, read with the appendix, never queried by content.
+        b.Property(x => x.InfoFields)
+            .HasColumnName("info_fields")
+            .HasColumnType("jsonb")
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, InfoJson),
+                v => JsonSerializer.Deserialize<List<AppendixInfoChange>>(v, InfoJson) ?? new List<AppendixInfoChange>(),
+                new ValueComparer<IReadOnlyList<AppendixInfoChange>>((a, c) => JsonSerializer.Serialize(a, InfoJson) == JsonSerializer.Serialize(c, InfoJson),
+                    v => JsonSerializer.Serialize(v, InfoJson).GetHashCode(StringComparison.Ordinal), v => v.ToList()))
+            .IsRequired();
         b.HasIndex(x => new { x.ContractId, x.Number }).IsUnique().HasFilter("is_deleted = false");
         b.HasIndex(x => x.ContractId, "ux_contract_appendices_contract_open").IsUnique().HasDatabaseName("ux_contract_appendices_contract_open").HasFilter("status IN ('Draft', 'InWorkflow') AND is_deleted = false");
         b.HasIndex(x => x.DocumentId);

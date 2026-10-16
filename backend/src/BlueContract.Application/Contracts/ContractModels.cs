@@ -67,7 +67,8 @@ public sealed record ContractAppendixDto(
     AppendixStatus Status,
     Guid? DocumentId,
     DateTimeOffset? AppliedAt,
-    IReadOnlyList<AppendixLineDto> Lines);
+    IReadOnlyList<AppendixLineDto> Lines,
+    IReadOnlyList<AppendixInfoChange> InfoFields);
 
 public sealed record AppendixLineDto(Guid ContractItemId, string ItemName, decimal OldQuantity, decimal? NewQuantity, decimal OldUnitPrice, decimal? NewUnitPrice, decimal ValueChange);
 
@@ -177,7 +178,8 @@ public sealed record SaveAppendixRequest(
     string? InfoChanges,
     DateOnly? NewExpiryDate,
     Guid? TemplateId,
-    IReadOnlyList<AppendixLineRequest> Lines);
+    IReadOnlyList<AppendixLineRequest> Lines,
+    IReadOnlyList<AppendixInfoDraft>? InfoFields = null);
 
 public sealed record AppendixLineRequest(Guid ContractItemId, decimal? NewQuantity, decimal? NewUnitPrice);
 
@@ -215,7 +217,8 @@ internal sealed class SaveAppendixRequestValidator : AbstractValidator<SaveAppen
         RuleFor(x => x.Reason).NotEmpty().WithName("Lý do điều chỉnh").MaximumLength(2000);
         RuleFor(x => x.Type).IsInEnum();
         RuleFor(x => x.NewExpiryDate).NotEmpty().When(x => x.Type == AppendixType.Extension).WithName("Ngày hết hạn mới");
-        RuleFor(x => x.InfoChanges).NotEmpty().When(x => x.Type == AppendixType.InfoChange).WithName("Nội dung thay đổi");
+        RuleFor(x => x.InfoChanges).NotEmpty().When(x => x.Type == AppendixType.InfoChange && (x.InfoFields is null || x.InfoFields.Count == 0))
+            .WithName("Nội dung thay đổi").WithMessage("Nhập nội dung thay đổi hoặc chọn ít nhất một thông tin hợp đồng cần đổi.");
         RuleFor(x => x.Lines).NotEmpty().When(x => x.Type is AppendixType.AddQuantity or AppendixType.PriceReduction)
             .WithMessage("Chọn ít nhất một mặt hàng điều chỉnh.");
     }

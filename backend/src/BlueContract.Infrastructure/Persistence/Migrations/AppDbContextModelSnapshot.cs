@@ -966,6 +966,11 @@ namespace BlueContract.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(4000)")
                         .HasColumnName("info_changes");
 
+                    b.Property<string>("InfoFields")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("info_fields");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean")
                         .HasColumnName("is_deleted");

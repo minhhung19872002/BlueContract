@@ -101,6 +101,17 @@ public sealed class ContractDocumentData(IAppDbContext db, IClock clock)
             });
         }
 
+        foreach (var field in appendix.InfoFields)
+        {
+            changes.Add(new JsonObject
+            {
+                ["ItemName"] = "Thông tin hợp đồng",
+                ["Field"] = InfoFieldText(field.Field),
+                ["OldValue"] = InfoValueText(field.Field, field.OldValue),
+                ["NewValue"] = InfoValueText(field.Field, field.NewValue),
+            });
+        }
+
         if (appendix.InfoChanges is { } info)
         {
             changes.Add(new JsonObject { ["ItemName"] = "Thông tin hợp đồng", ["Field"] = "Nội dung thay đổi", ["OldValue"] = string.Empty, ["NewValue"] = info });
@@ -109,6 +120,29 @@ public sealed class ContractDocumentData(IAppDbContext db, IClock clock)
         data["Changes"] = changes;
         return data;
     }
+
+    public static string InfoFieldText(ContractInfoField field) => field switch
+    {
+        ContractInfoField.Name => "Tên hợp đồng",
+        ContractInfoField.Duration => "Thời gian thực hiện",
+        ContractInfoField.PaymentTerms => "Điều khoản thanh toán",
+        ContractInfoField.DeliveryTerms => "Điều khoản giao hàng",
+        ContractInfoField.WarrantyTerms => "Điều khoản bảo hành",
+        ContractInfoField.GuaranteeNumber => "Số bảo lãnh thực hiện",
+        ContractInfoField.GuaranteeBank => "Ngân hàng bảo lãnh",
+        ContractInfoField.GuaranteeAmount => "Giá trị bảo lãnh",
+        _ => "Hạn bảo lãnh",
+    };
+
+    /// <summary>Invariant stored value → document text ("150.000.000 đồng", "31/12/2026", "(không có)").</summary>
+    private static string InfoValueText(ContractInfoField field, string? value) => value is null
+        ? "(không có)"
+        : field switch
+        {
+            ContractInfoField.GuaranteeAmount => decimal.Parse(value, CultureInfo.InvariantCulture).ToString("#,##0", CultureInfo.GetCultureInfo("vi-VN")) + " đồng",
+            ContractInfoField.GuaranteeExpiry => DateOnly.ParseExact(value, "yyyy-MM-dd", CultureInfo.InvariantCulture).ToString("dd/MM/yyyy", CultureInfo.InvariantCulture),
+            _ => value,
+        };
 
     public static string TypeText(AppendixType type) => type switch
     {

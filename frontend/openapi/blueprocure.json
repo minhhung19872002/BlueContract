@@ -11179,6 +11179,51 @@
           }
         }
       },
+      "AppendixInfoChange": {
+        "required": [
+          "field",
+          "oldValue",
+          "newValue"
+        ],
+        "type": "object",
+        "properties": {
+          "field": {
+            "$ref": "#/components/schemas/ContractInfoField"
+          },
+          "oldValue": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "newValue": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "description": "One changed field, old → new, as text in the invariant formats of AppendixInfoDraft."
+      },
+      "AppendixInfoDraft": {
+        "required": [
+          "field",
+          "newValue"
+        ],
+        "type": "object",
+        "properties": {
+          "field": {
+            "$ref": "#/components/schemas/ContractInfoField"
+          },
+          "newValue": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "description": "Requested new value of a contract field (amount: invariant number, date: yyyy-MM-dd, empty = remove)."
+      },
       "AppendixLineDto": {
         "required": [
           "contractItemId",
@@ -12655,7 +12700,8 @@
           "status",
           "documentId",
           "appliedAt",
-          "lines"
+          "lines",
+          "infoFields"
         ],
         "type": "object",
         "properties": {
@@ -12717,6 +12763,12 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/AppendixLineDto"
+            }
+          },
+          "infoFields": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AppendixInfoChange"
             }
           }
         }
@@ -13085,6 +13137,20 @@
           }
         },
         "description": "One line of the contract \"Lịch sử\" tab (spec §9.1-5): an audit entry of the contract, one of its documents or\r\nappendices. `Subject` is the audited type (Contract, ContractAppendix, Document); `Details` the JSON of the\r\nchange or business action."
+      },
+      "ContractInfoField": {
+        "enum": [
+          "Name",
+          "Duration",
+          "PaymentTerms",
+          "DeliveryTerms",
+          "WarrantyTerms",
+          "GuaranteeNumber",
+          "GuaranteeBank",
+          "GuaranteeAmount",
+          "GuaranteeExpiry"
+        ],
+        "description": "Contract fields a \"thay đổi thông tin\" appendix may change (spec §5 \"nội dung thay đổi có cấu trúc\")."
       },
       "ContractItemDto": {
         "required": [
@@ -18872,6 +18938,15 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/AppendixLineRequest"
+            }
+          },
+          "infoFields": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/AppendixInfoDraft"
             }
           }
         }

@@ -215,7 +215,60 @@ public class ContractFlowTests(ApiFactory factory)
         applied.Appendices.Single().Status.ShouldBe(AppendixStatus.Effective);
         applied.Items.Single(i => i.Id == item.Id).Quantity.ShouldBe(item.Quantity + 100);
         applied.TotalAmount.ShouldBe(effective.TotalAmount + (100 * item.UnitPrice));
+
+        // AUDIT-1 §11.8: "thay đổi thông tin" lists the contract fields it changes (old → new); once the appendix is
+        // signed they are written into the contract and the change shows in its history.
+        using (var infoCreated = await procurement.PostAsJsonAsync($"/api/contracts/{contractId}/appendices", new
+        {
+            type = "InfoChange",
+            reason = "Cập nhật điều khoản thanh toán và bảo lãnh",
+            lines = Array.Empty<object>(),
+            infoFields = new object[]
+                   {
+                       new { field = "PaymentTerms", newValue = "Thanh toán trong 30 ngày kể từ ngày nhận đủ hồ sơ." },
+                       new { field = "GuaranteeNumber", newValue = "BL-99/2026" },
+                       new { field = "GuaranteeAmount", newValue = "150000000" },
+                   },
+        }, JsonDefaults.Options))
+        {
+            infoCreated.StatusCode.ShouldBe(HttpStatusCode.OK, await infoCreated.Content.ReadAsStringAsync());
+            appendixId = await infoCreated.Content.ReadFromJsonAsync<Guid>();
+        }
+
+        var infoAppendix = (await procurement.GetFromJsonAsync<InfoContractView>($"/api/contracts/{contractId}", JsonDefaults.Options))!
+            .Appendices.Single(a => a.Id == appendixId);
+        infoAppendix.InfoFields.Select(f => (f.Field, f.OldValue, f.NewValue)).ShouldBe(
+        [
+            ("PaymentTerms", applied.PaymentTerms, "Thanh toán trong 30 ngày kể từ ngày nhận đủ hồ sơ."),
+            ("GuaranteeNumber", applied.GuaranteeNumber, "BL-99/2026"),
+            ("GuaranteeAmount", applied.GuaranteeAmount?.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture), "150000000"),
+        ]);
+        var infoDoc = infoAppendix.DocumentId!.Value;
+        (await procurement.PostAsync(new Uri($"/api/contracts/appendices/{appendixId}/submit", UriKind.Relative), null)).StatusCode.ShouldBe(HttpStatusCode.NoContent);
+        await ApproveAsync(reviewer, infoDoc, "OK");
+        await ApproveAsync(supplier, infoDoc, "Đồng ý", skipNextOptional: true);
+        await SignAsync(supplier, infoDoc);
+        await SignAsync(accountant, infoDoc);
+        await SignAsync(director, infoDoc);
+        await SignAsync(clerk, infoDoc);
+
+        var changed = await GetContractAsync(procurement, contractId);
+        changed.PaymentTerms.ShouldBe("Thanh toán trong 30 ngày kể từ ngày nhận đủ hồ sơ.");
+        changed.GuaranteeNumber.ShouldBe("BL-99/2026");
+        changed.GuaranteeAmount.ShouldBe(150_000_000m);
+        changed.TotalAmount.ShouldBe(applied.TotalAmount);
+        var history = await procurement.GetFromJsonAsync<List<ContractHistoryEntryDto>>($"/api/contracts/{contractId}/history", JsonDefaults.Options);
+        history!.ShouldContain(h => h.Action == "AppendixApplied" && h.Details!.Contains("BL-99/2026"));
     }
+
+    private sealed record InfoFieldView(string Field, string? OldValue, string? NewValue);
+
+    private sealed record InfoAppendixView(Guid Id, Guid? DocumentId, List<InfoFieldView>? InfoFields)
+    {
+        public List<InfoFieldView> InfoFields { get; init; } = InfoFields ?? [];
+    }
+
+    private sealed record InfoContractView(List<InfoAppendixView> Appendices);
 
     [Fact]
     public async Task Non_bidding_contract_creates_supplier_account_and_items_inline()
