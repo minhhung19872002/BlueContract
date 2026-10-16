@@ -126,7 +126,7 @@ public sealed class ProposalSummaryService(
             query = query.Where(s => s.Status == ProposalSummaryStatus.Approved && s.Lines.Any(l => l.ApprovedQuantity > l.CalledQuantity));
         }
 
-        return query.OrderByDescending(s => s.CreatedAt)
+        return query.OrderByDescending(s => s.CreatedAt).ThenByDescending(s => s.Id)
             .Select(s => new SummaryListItemDto(
                 s.Id, s.Number, s.Domain, s.PeriodText, s.Status, s.AggregatorName, s.Sources.Count, s.Lines.Count,
                 s.Lines.Sum(l => l.ApprovedQuantity * l.UnitPrice),

@@ -48,7 +48,7 @@ internal sealed class CreateDelegationRequestValidator : AbstractValidator<Creat
 
 public sealed class DelegationService(IAppDbContext db, ICurrentUser current, IClock clock)
 {
-    public async Task<List<DelegationDto>> ListAsync(bool onlyEffective, CancellationToken ct)
+    public async Task<PagedResult<DelegationDto>> ListAsync(PageQuery q, bool onlyEffective, CancellationToken ct)
     {
         var now = clock.UtcNow;
         var query = db.SigningDelegations.AsNoTracking();
@@ -64,8 +64,16 @@ public sealed class DelegationService(IAppDbContext db, ICurrentUser current, IC
             query = query.Where(d => d.DelegatorUserId == me || d.DelegateUserId == me);
         }
 
+        if (!string.IsNullOrWhiteSpace(q.Search))
+        {
+            var p = PagingExtensions.LikePattern(q.Search);
+            query = query.Where(d => db.Users.Any(u => (u.Id == d.DelegatorUserId || u.Id == d.DelegateUserId) && EF.Functions.ILike(u.FullName, p))
+                || (d.Reason != null && EF.Functions.ILike(d.Reason, p)));
+        }
+
         return await query
             .OrderByDescending(d => d.ValidFrom)
+            .ThenByDescending(d => d.Id)
             .Select(d => new DelegationDto(
                 d.Id,
                 d.DelegatorUserId,
@@ -79,7 +87,7 @@ public sealed class DelegationService(IAppDbContext db, ICurrentUser current, IC
                 d.Reason,
                 d.RevokedAt,
                 d.RevokedAt == null && d.ValidFrom <= now && d.ValidTo > now))
-            .ToListAsync(ct);
+            .ToPagedAsync(q, ct);
     }
 
     public async Task<Result<Guid>> CreateAsync(CreateDelegationRequest r, CancellationToken ct)
@@ -259,7 +267,7 @@ public sealed class AuditLogService(IAppDbContext db)
             query = query.Where(a => EF.Functions.ILike(a.UserName!, p) || EF.Functions.ILike(a.Note!, p) || EF.Functions.ILike(a.EntityId!, p));
         }
 
-        return query.OrderByDescending(a => a.OccurredAt)
+        return query.OrderByDescending(a => a.OccurredAt).ThenByDescending(a => a.Id)
             .Select(a => new AuditLogDto(a.Id, a.OccurredAt, a.UserId, a.UserName, a.IpAddress, a.UserAgent, a.Action, a.EntityType,
                 a.EntityId, a.OldValues, a.NewValues, a.Note, a.CorrelationId))
             .ToPagedAsync(q, ct);

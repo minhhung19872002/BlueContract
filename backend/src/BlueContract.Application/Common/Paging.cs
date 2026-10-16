@@ -62,7 +62,26 @@ public static class PagingExtensions
         var key = useDefault ? defaultSort : page.SortBy!;
         var desc = useDefault ? defaultDesc : page.SortDesc;
         var selector = sorts[key];
-        return desc ? query.OrderByDescending(selector) : query.OrderBy(selector);
+        var ordered = desc ? query.OrderByDescending(selector) : query.OrderBy(selector);
+        return ThenById(ordered);
+    }
+
+    /// <summary>
+    /// Ends every ordering on the unique <c>Id</c> so rows with equal sort values keep one order across pages: walking
+    /// page by page never repeats or skips a row (spec §9.3 server paging).
+    /// </summary>
+    public static IOrderedQueryable<T> ThenById<T>(IOrderedQueryable<T> query)
+    {
+        var id = typeof(T).GetProperty("Id");
+        if (id is null)
+        {
+            return query;
+        }
+
+        var row = Expression.Parameter(typeof(T), "x");
+        var key = Expression.Lambda(Expression.Property(row, id), row);
+        var call = Expression.Call(typeof(Queryable), nameof(Queryable.ThenBy), [typeof(T), id.PropertyType], query.Expression, Expression.Quote(key));
+        return (IOrderedQueryable<T>)query.Provider.CreateQuery<T>(call);
     }
 
     /// <summary>Case-insensitive "contains" pattern for ILIKE with escaped wildcards.</summary>

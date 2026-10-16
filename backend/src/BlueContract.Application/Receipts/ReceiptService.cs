@@ -53,7 +53,7 @@ public sealed class ReceiptService(
         query = f.HasInvoice is { } hasInvoice ? query.Where(r => (r.InvoiceNumber != null) == hasInvoice) : query;
         query = f.Accepted is { } accepted ? query.Where(r => r.IsIncludedInAcceptance == accepted) : query;
 
-        return await query.OrderByDescending(r => r.ReceiptDate).ThenByDescending(r => r.CreatedAt)
+        return await query.OrderByDescending(r => r.ReceiptDate).ThenByDescending(r => r.CreatedAt).ThenByDescending(r => r.Id)
             .Select(r => new ReceiptListItemDto(
                 r.Id, r.Number, r.Type, r.Source, r.ReceiptDate,
                 db.Warehouses.Where(w => w.Id == r.WarehouseId).Select(w => w.Name).FirstOrDefault() ?? r.WarehouseCode,

@@ -299,7 +299,8 @@ public sealed class DelegationsController(DelegationService service) : ApiContro
 {
     [HttpGet]
     [HasPermission(P.DelegationManage, P.UserManage)]
-    public Task<List<DelegationDto>> List([FromQuery] bool onlyEffective, CancellationToken ct) => service.ListAsync(onlyEffective, ct);
+    public Task<PagedResult<DelegationDto>> List([FromQuery] PageQuery query, [FromQuery] bool onlyEffective, CancellationToken ct) =>
+        service.ListAsync(query, onlyEffective, ct);
 
     [HttpPost]
     [HasPermission(P.DelegationManage, P.UserManage)]

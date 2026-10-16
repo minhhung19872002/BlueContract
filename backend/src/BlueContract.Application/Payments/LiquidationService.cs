@@ -45,7 +45,7 @@ public sealed class LiquidationService(
         query = f.Status is { } status ? query.Where(l => l.Status == status) : query;
         query = f.ContractId is { } contract ? query.Where(l => l.ContractId == contract) : query;
         query = f.SupplierId is { } supplier ? query.Where(l => l.SupplierId == supplier) : query;
-        return await query.OrderByDescending(l => l.CreatedAt)
+        return await query.OrderByDescending(l => l.CreatedAt).ThenByDescending(l => l.Id)
             .Select(l => new LiquidationListItemDto(
                 l.Id, l.Number, l.ContractId,
                 db.Contracts.Where(c => c.Id == l.ContractId).Select(c => c.Number).FirstOrDefault() ?? string.Empty,

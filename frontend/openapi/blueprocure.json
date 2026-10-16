@@ -2071,6 +2071,68 @@
         ],
         "parameters": [
           {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SortBy",
+            "in": "query",
+            "description": "Property name to sort by (whitelisted per endpoint).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SortDesc",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "ForExport",
+            "in": "query",
+            "description": "Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows).",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "SafePage",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "SafePageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
             "name": "onlyEffective",
             "in": "query",
             "schema": {
@@ -2084,10 +2146,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/DelegationDto"
-                  }
+                  "$ref": "#/components/schemas/PagedResultOfDelegationDto"
                 }
               }
             }
@@ -17518,6 +17577,35 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ContractListItemDto"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PagedResultOfDelegationDto": {
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DelegationDto"
             }
           },
           "total": {

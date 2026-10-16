@@ -222,7 +222,7 @@ Tổng quan (spec §9.1-1, §9.2-1).
 
 | Method | Đường dẫn | Quyền | Body → Kết quả | Mô tả |
 |---|---|---|---|---|
-| GET | `/api/admin/delegations` | `admin.delegation` Quản lý ủy quyền ký<br>`admin.user` Quản lý người dùng | List&lt;DelegationDto&gt; |  |
+| GET | `/api/admin/delegations` | `admin.delegation` Quản lý ủy quyền ký<br>`admin.user` Quản lý người dùng | PagedResult&lt;DelegationDto&gt; |  |
 | POST | `/api/admin/delegations` | `admin.delegation` Quản lý ủy quyền ký<br>`admin.user` Quản lý người dùng | CreateDelegationRequest → Guid |  |
 | POST | `/api/admin/delegations/{id:guid}/revoke` | `admin.delegation` Quản lý ủy quyền ký<br>`admin.user` Quản lý người dùng | — |  |
 

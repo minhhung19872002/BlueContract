@@ -49,7 +49,7 @@ public sealed class ValuationService(
         query = f.ContractId is { } contract ? query.Where(v => v.ContractId == contract) : query;
         query = f.SupplierId is { } supplier ? query.Where(v => v.SupplierId == supplier) : query;
 
-        return await query.OrderByDescending(v => v.CreatedAt)
+        return await query.OrderByDescending(v => v.CreatedAt).ThenByDescending(v => v.Id)
             .Select(v => new ValuationListItemDto(
                 v.Id, v.Number, v.PaymentRequestNumber, v.ContractId,
                 db.Contracts.Where(c => c.Id == v.ContractId).Select(c => c.Number).FirstOrDefault() ?? string.Empty,

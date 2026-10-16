@@ -1,26 +1,17 @@
-import {
-  App,
-  Button,
-  Card,
-  DatePicker,
-  Form,
-  Input,
-  Modal,
-  Popconfirm,
-  Select,
-  Switch,
-  Typography,
-} from 'antd';
+import { App, Button, DatePicker, Form, Input, Modal, Popconfirm, Select, Switch, Typography } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { useState } from 'react';
 import dayjs, { type Dayjs } from 'dayjs';
-import { resources, useAction, useGet, useLookup, useSave, type DelegationDto } from '../../api/admin';
+import { resources, useAction, useLookup, usePagedList, useSave, type DelegationDto } from '../../api/admin';
+import { DataTable } from '../../components/DataTable';
+import { useTableUrlState } from '../../hooks/useUrlState';
 import { StatusTag } from '../../components/StatusTag';
 import { PageHeader, useApiError } from '../../components/common';
 import { useAuth } from '../../auth/useAuth';
 import { P } from '../../auth/permissions';
 import { formatDateTime } from '../../utils/format';
-import { ExportableTable } from '../../components/TableExportButton';
+
+const FILTERS = ['onlyEffective'] as const;
 
 function delegationState(d: DelegationDto) {
   if (d.revokedAt) return 'revoked';
@@ -30,11 +21,8 @@ function delegationState(d: DelegationDto) {
 
 /** Ủy quyền ký — documents signed by the delegate show "KT. GIÁM ĐỐC / PHÓ GIÁM ĐỐC". */
 export function DelegationsPage() {
-  const [onlyEffective, setOnlyEffective] = useState(false);
-  const list = useGet<DelegationDto[]>(`${resources.delegations}?onlyEffective=${onlyEffective}`, [
-    resources.delegations,
-    onlyEffective,
-  ]);
+  const { state, update, apiParams } = useTableUrlState(FILTERS);
+  const list = usePagedList<DelegationDto>(resources.delegations, apiParams);
   const users = useLookup('internal-users');
   const create = useSave<object>(resources.delegations);
   const revoke = useAction<string>(resources.delegations, (id) => ({
@@ -71,50 +59,56 @@ export function DelegationsPage() {
           </Button>
         }
       />
-      <Card>
-        <div style={{ marginBottom: 12 }}>
-          <Switch checked={onlyEffective} onChange={setOnlyEffective} />{' '}
-          <Typography.Text>Chỉ hiện ủy quyền đang hiệu lực</Typography.Text>
-        </div>
-        <ExportableTable<DelegationDto>
-          exportTitle="Ủy quyền ký"
-          rowKey="id"
-          size="middle"
-          loading={list.isLoading}
-          dataSource={list.data ?? []}
-          pagination={false}
-          scroll={{ x: 'max-content' }}
-          columns={[
-            { title: 'Người ủy quyền', render: (_, d) => `${d.delegatorName} (${d.delegatorTitle})` },
-            { title: 'Người được ủy quyền', render: (_, d) => `${d.delegateName} (${d.delegateTitle})` },
-            { title: 'Từ', dataIndex: 'validFrom', render: (v: string) => formatDateTime(v) },
-            { title: 'Đến', dataIndex: 'validTo', render: (v: string) => formatDateTime(v) },
-            { title: 'Lý do', dataIndex: 'reason' },
-            {
-              title: 'Trạng thái',
-              render: (_, d) => <StatusTag domain="delegation" value={delegationState(d)} />,
-            },
-            {
-              title: '',
-              render: (_, d) =>
-                !d.revokedAt && dayjs(d.validTo).isAfter(dayjs()) ? (
-                  <Popconfirm
-                    title="Thu hồi ủy quyền này?"
-                    okText="Thu hồi"
-                    cancelText="Hủy"
-                    onConfirm={() =>
-                      revoke.mutateAsync(d.id).then(() => message.success('Đã thu hồi'), onError)
-                    }
-                  >
-                    <Button size="small" danger>
-                      Thu hồi
-                    </Button>
-                  </Popconfirm>
-                ) : null,
-            },
-          ]}
-        />
-      </Card>
+      <DataTable<DelegationDto>
+        exportAs={{ title: 'Ủy quyền ký', url: resources.delegations, params: apiParams }}
+        data={list.data}
+        loading={list.isFetching}
+        error={list.isError}
+        onRetry={() => void list.refetch()}
+        state={state}
+        onChange={update}
+        searchPlaceholder="Tìm theo tên người ủy quyền / được ủy quyền, lý do"
+        filters={
+          <span className="delegations__filter">
+            <Switch
+              checked={state.filters.onlyEffective === 'true'}
+              onChange={(v) => update({ filters: { onlyEffective: v ? 'true' : undefined } })}
+            />{' '}
+            <Typography.Text>Chỉ hiện ủy quyền đang hiệu lực</Typography.Text>
+          </span>
+        }
+        emptyTitle="Chưa có ủy quyền ký"
+        emptyDescription="Ủy quyền ký thay sẽ hiển thị tại đây."
+        columns={[
+          { title: 'Người ủy quyền', render: (_, d) => `${d.delegatorName} (${d.delegatorTitle})` },
+          { title: 'Người được ủy quyền', render: (_, d) => `${d.delegateName} (${d.delegateTitle})` },
+          { title: 'Từ', dataIndex: 'validFrom', render: (v: string) => formatDateTime(v) },
+          { title: 'Đến', dataIndex: 'validTo', render: (v: string) => formatDateTime(v) },
+          { title: 'Lý do', dataIndex: 'reason' },
+          {
+            title: 'Trạng thái',
+            render: (_, d) => <StatusTag domain="delegation" value={delegationState(d)} />,
+          },
+          {
+            title: '',
+            render: (_, d) =>
+              !d.revokedAt && dayjs(d.validTo).isAfter(dayjs()) ? (
+                <Popconfirm
+                  title="Thu hồi ủy quyền này?"
+                  okText="Thu hồi"
+                  cancelText="Hủy"
+                  onConfirm={() =>
+                    revoke.mutateAsync(d.id).then(() => message.success('Đã thu hồi'), onError)
+                  }
+                >
+                  <Button size="small" danger>
+                    Thu hồi
+                  </Button>
+                </Popconfirm>
+              ) : null,
+          },
+        ]}
+      />
       <Modal
         title="Thêm ủy quyền ký"
         open={open}

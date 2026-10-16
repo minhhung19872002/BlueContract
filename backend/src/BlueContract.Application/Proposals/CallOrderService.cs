@@ -143,7 +143,7 @@ public sealed class CallOrderService(
             query = query.Where(o => o.Status == CallOrderStatus.Sent && o.DeliveryDeadline < today);
         }
 
-        return await query.OrderByDescending(o => o.CreatedAt)
+        return await query.OrderByDescending(o => o.CreatedAt).ThenByDescending(o => o.Id)
             .Select(o => new CallOrderListItemDto(
                 o.Id, o.Number, o.SupplierId,
                 db.Suppliers.Where(s => s.Id == o.SupplierId).Select(s => s.Name).FirstOrDefault() ?? string.Empty,

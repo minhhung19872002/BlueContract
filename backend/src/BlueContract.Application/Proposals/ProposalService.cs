@@ -154,7 +154,7 @@ public sealed class ProposalService(
             query = query.Where(x => x.Lines.Any(l => l.ContractId == f.ContractId));
         }
 
-        return await query.OrderByDescending(x => x.CreatedAt)
+        return await query.OrderByDescending(x => x.CreatedAt).ThenByDescending(x => x.Id)
             .Select(x => new ProposalListItemDto(
                 x.Id, x.Number, db.Departments.Where(d => d.Id == x.DepartmentId).Select(d => d.Name).FirstOrDefault() ?? string.Empty,
                 x.Domain, x.PeriodText, x.Status, x.Lines.Count, x.Lines.Sum(l => l.ProposedQuantity), x.CreatedByName, x.CreatedAt, x.SubmittedAt,

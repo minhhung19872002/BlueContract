@@ -107,7 +107,7 @@ public sealed class IntegrityService(
     }
 
     public Task<PagedResult<IntegrityRunListItemDto>> ListAsync(PageQuery q, CancellationToken ct) =>
-        db.IntegrityCheckRuns.AsNoTracking().OrderByDescending(r => r.StartedAt)
+        db.IntegrityCheckRuns.AsNoTracking().OrderByDescending(r => r.StartedAt).ThenByDescending(r => r.Id)
             .Select(r => new IntegrityRunListItemDto(r.Id, r.Trigger, r.StartedAt, r.FinishedAt, r.FilesChecked, r.BytesChecked, r.MismatchCount, r.MissingCount,
                 r.Error, r.FinishedAt != null && r.Error == null && r.MismatchCount == 0 && r.MissingCount == 0))
             .ToPagedAsync(q, ct);

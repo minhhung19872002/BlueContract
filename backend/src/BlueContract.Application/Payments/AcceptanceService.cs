@@ -49,7 +49,7 @@ public sealed class AcceptanceService(
         query = f.SupplierId is { } supplier ? query.Where(a => a.SupplierId == supplier) : query;
         query = f.Available == true ? query.Where(a => a.Status == PaymentRecordStatus.Completed && a.ValuationId == null) : query;
 
-        return await query.OrderByDescending(a => a.CreatedAt)
+        return await query.OrderByDescending(a => a.CreatedAt).ThenByDescending(a => a.Id)
             .Select(a => new AcceptanceListItemDto(
                 a.Id, a.Number, a.ContractId,
                 db.Contracts.Where(c => c.Id == a.ContractId).Select(c => c.Number).FirstOrDefault() ?? string.Empty,

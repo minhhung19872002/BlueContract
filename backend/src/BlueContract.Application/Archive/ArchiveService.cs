@@ -82,7 +82,7 @@ public sealed class ArchiveService(IAppDbContext db, IFileStorage storage, IArch
                 || db.Suppliers.Any(s => s.Id == c.SupplierId && (EF.Functions.ILike(s.Name, p) || EF.Functions.ILike(s.TaxCode, p))));
         }
 
-        return await query.OrderByDescending(c => c.EffectiveAt ?? c.CreatedAt)
+        return await query.OrderByDescending(c => c.EffectiveAt ?? c.CreatedAt).ThenByDescending(c => c.Id)
             .Select(c => new ArchiveSearchItemDto(
                 c.Id, c.Number, c.Name,
                 db.Suppliers.Where(s => s.Id == c.SupplierId).Select(s => s.Name).FirstOrDefault() ?? string.Empty,

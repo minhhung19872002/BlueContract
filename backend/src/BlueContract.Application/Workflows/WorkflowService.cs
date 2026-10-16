@@ -528,6 +528,8 @@ public sealed class WorkflowService(
                 LastActivityAt = db.WorkflowEvents.Where(e => e.InstanceId == x.Instance.Id).Max(e => (DateTimeOffset?)e.At) ?? x.Instance.StartedAt,
             })
             .OrderByDescending(x => x.LastActivityAt)
+            .ThenByDescending(x => x.Instance.Id)
+            .ThenBy(x => x.Step == null ? Guid.Empty : x.Step.Id)
             .Select(x => new InboxItemDto(
             x.Instance.Id,
             x.Document.Id,

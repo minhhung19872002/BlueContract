@@ -110,7 +110,7 @@ public sealed class IntegrationLogService(
         query = f.From is { } from ? query.Where(l => l.StartedAt >= from) : query;
         query = f.To is { } to ? query.Where(l => l.StartedAt < to) : query;
 
-        return query.OrderByDescending(l => l.StartedAt)
+        return query.OrderByDescending(l => l.StartedAt).ThenByDescending(l => l.Id)
             .Select(l => new IntegrationLogListItemDto(l.Id, l.Direction, l.System, l.Operation, l.Method, l.Path, l.ExternalId, l.Status, l.ResponseStatus,
                 l.ErrorCode, l.Attempts, l.RemoteIp, l.ClientName, l.StartedAt, l.LastAttemptAt, l.DurationMs, l.ReceiptId,
                 l.Direction == IntegrationDirection.Inbound && l.Operation == IntegrationLog.Operations.PushWarehouseReceipt && l.RequestBody != null

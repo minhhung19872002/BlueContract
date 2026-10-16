@@ -1609,6 +1609,16 @@ export interface paths {
         get: {
             parameters: {
                 query?: {
+                    Page?: number;
+                    PageSize?: number;
+                    Search?: string;
+                    /** @description Property name to sort by (whitelisted per endpoint). */
+                    SortBy?: string;
+                    SortDesc?: boolean;
+                    /** @description Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows). */
+                    ForExport?: boolean;
+                    SafePage?: number;
+                    SafePageSize?: number;
                     onlyEffective?: boolean;
                 };
                 header?: never;
@@ -1623,7 +1633,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["DelegationDto"][];
+                        "application/json": components["schemas"]["PagedResultOfDelegationDto"];
                     };
                 };
             };
@@ -3653,6 +3663,48 @@ export interface paths {
                     };
                     content: {
                         "application/json": components["schemas"]["EditorSessionDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/export/table": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Workbook of the given columns and rows; reads no data (the export shows only what the user sees). */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["TableExportRequest"];
+                    "text/json": components["schemas"]["TableExportRequest"];
+                    "application/*+json": components["schemas"]["TableExportRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
                     };
                 };
             };
@@ -11221,6 +11273,15 @@ export interface components {
             /** Format: int32 */
             pageSize: number;
         };
+        PagedResultOfDelegationDto: {
+            items: components["schemas"]["DelegationDto"][];
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+        };
         PagedResultOfDepartmentDto: {
             items: components["schemas"]["DepartmentDto"][];
             /** Format: int32 */
@@ -12352,6 +12413,20 @@ export interface components {
             min: null | number;
             /** Format: double */
             max: null | number;
+        };
+        /** @description One column of an exported table: header, cell format (text|number|money|date|datetime) and width. */
+        TableExportColumn: {
+            header: string;
+            format: null | string;
+            /** Format: double */
+            width: null | number;
+        };
+        /** @description A table as the web app shows it: rows of cells (strings, numbers, null; dates as dd/MM/yyyy [HH:mm]). */
+        TableExportRequest: {
+            title: string;
+            fileName: null | string;
+            columns: components["schemas"]["TableExportColumn"][];
+            rows: unknown[][];
         };
         TemplateCollection: {
             name: string;
