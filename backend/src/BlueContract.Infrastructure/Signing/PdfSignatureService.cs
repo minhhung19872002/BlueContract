@@ -266,7 +266,7 @@ internal sealed class PdfSignatureService : IPdfSignatureService
 /// CAdES-detached CMS assembled with iText's PdfPKCS7 from an external signature value: PAdES baseline B, or B-T with an
 /// RFC 3161 signature timestamp when <see cref="SigningOptions.TsaUrl"/> is set (spec §8).
 /// </summary>
-internal sealed class CmsBuilder(IHttpClientFactory http, IOptions<SigningOptions> options) : ICmsBuilder
+internal sealed class CmsBuilder(IHttpClientFactory http, Func<string?> tsaUrlInEffect) : ICmsBuilder
 {
     /// <summary>Named HttpClient used to reach the time-stamp authority.</summary>
     public const string TsaClient = "tsa";
@@ -279,7 +279,8 @@ internal sealed class CmsBuilder(IHttpClientFactory http, IOptions<SigningOption
         var pkcs7 = Create(certificate, signingTime);
         pkcs7.GetAuthenticatedAttributeBytes(documentDigest, PdfSigner.CryptoStandard.CADES, null, null);
         pkcs7.SetExternalSignatureValue(signatureValue, null, "RSA");
-        var tsa = string.IsNullOrWhiteSpace(options.Value.TsaUrl) ? null : new HttpTsaClient(http, options.Value.TsaUrl);
+        var tsaUrl = tsaUrlInEffect();
+        var tsa = string.IsNullOrWhiteSpace(tsaUrl) ? null : new HttpTsaClient(http, tsaUrl);
         try
         {
             return pkcs7.GetEncodedPKCS7(documentDigest, PdfSigner.CryptoStandard.CADES, tsa, null, null);

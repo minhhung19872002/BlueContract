@@ -8,6 +8,8 @@ using BlueContract.Domain.Workflows;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
 
+using BlueContract.Infrastructure.Configuration;
+
 namespace BlueContract.Infrastructure.Signing;
 
 public sealed class SigningOptions
@@ -78,7 +80,7 @@ internal static class ProviderState
 }
 
 /// <summary>Server-side signing with per-user self-signed certificates (spec §8.2 — dev/demo, structurally valid PAdES).</summary>
-internal sealed class MockSigningProvider(CertificateStore certificates, ICmsBuilder cms, IClock clock, IOptions<SigningOptions> options) : ISigningProvider
+internal sealed class MockSigningProvider(CertificateStore certificates, ICmsBuilder cms, IClock clock, RuntimeSettings settings) : ISigningProvider
 {
     public string ProviderCode => "MOCK";
 
@@ -86,7 +88,7 @@ internal sealed class MockSigningProvider(CertificateStore certificates, ICmsBui
 
     public string DisplayName => "Chứng thư thử nghiệm (ký ngay trên máy chủ)";
 
-    public bool IsAvailable => options.Value.EnableMockProviders;
+    public bool IsAvailable => settings.Signing().EnableMockProviders;
 
     public Task<SigningSession> BeginAsync(SignRequest req, CancellationToken ct) => ProviderState.SignLocallyAsync(certificates, cms, clock, req, ct);
 
@@ -168,7 +170,7 @@ internal sealed class MockRemoteSigningProvider(
     ICmsBuilder cms,
     IDistributedCache cache,
     IClock clock,
-    IOptions<SigningOptions> options) : ISigningProvider
+    RuntimeSettings settings) : ISigningProvider
 {
     public string ProviderCode => "MOCK_REMOTE";
 
@@ -176,12 +178,12 @@ internal sealed class MockRemoteSigningProvider(
 
     public string DisplayName => "Ký số từ xa (giả lập xác nhận trên điện thoại)";
 
-    public bool IsAvailable => options.Value.EnableMockProviders;
+    public bool IsAvailable => settings.Signing().EnableMockProviders;
 
     public async Task<SigningSession> BeginAsync(SignRequest req, CancellationToken ct)
     {
         var id = req.SessionId.ToString("N");
-        var state = new RemoteState(req.UserId, req.Kind, req.DocumentDigest, clock.UtcNow.AddSeconds(options.Value.MockRemoteDelaySeconds));
+        var state = new RemoteState(req.UserId, req.Kind, req.DocumentDigest, clock.UtcNow.AddSeconds(settings.Signing().MockRemoteDelaySeconds));
         await cache.SetStringAsync(Key(id), JsonSerializer.Serialize(state), ProviderState.Lifetime, ct);
         return new SigningSession(id, Mode, SigningStatus.Pending, null, null, null, "Vui lòng mở ứng dụng ký số trên điện thoại và xác nhận yêu cầu ký.");
     }
@@ -282,7 +284,7 @@ internal sealed class UsbTokenSigningProvider(ICmsBuilder cms, IDistributedCache
 /// on subscription; until <see cref="SigningOptions"/> holds them the provider reports itself unavailable with a clear
 /// message (see docs/DEPLOY.md). The polling flow is exercised end-to-end by <see cref="MockRemoteSigningProvider"/>.
 /// </summary>
-internal sealed class RemoteCaSigningProvider(string code, string displayName, Func<SigningOptions, RemoteCaOptions> select, IOptions<SigningOptions> options) : ISigningProvider
+internal sealed class RemoteCaSigningProvider(string code, string displayName, Func<SigningOptions, RemoteCaOptions> select, RuntimeSettings settings) : ISigningProvider
 {
     public string ProviderCode => code;
 
@@ -290,7 +292,7 @@ internal sealed class RemoteCaSigningProvider(string code, string displayName, F
 
     public string DisplayName => displayName;
 
-    public bool IsAvailable => select(options.Value).IsConfigured;
+    public bool IsAvailable => select(settings.Signing()).IsConfigured;
 
     public Task<SigningSession> BeginAsync(SignRequest req, CancellationToken ct) =>
         throw new DomainException(IsAvailable ? "SIGNING_PROVIDER_NOT_IMPLEMENTED" : "SIGNING_PROVIDER_NOT_CONFIGURED");

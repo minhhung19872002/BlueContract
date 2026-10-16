@@ -4487,6 +4487,65 @@ namespace BlueContract.Infrastructure.Persistence.Migrations
                     b.ToTable("warehouse_receipt_lines", (string)null);
                 });
 
+            modelBuilder.Entity("BlueContract.Domain.Settings.ConfigOverride", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<bool>("IsSecret")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_secret");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("key");
+
+                    b.Property<uint>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("value");
+
+                    b.HasKey("Id")
+                        .HasName("pk_config_overrides");
+
+                    b.HasIndex("Key")
+                        .IsUnique()
+                        .HasDatabaseName("ix_config_overrides_key")
+                        .HasFilter("is_deleted = false");
+
+                    b.ToTable("config_overrides", (string)null);
+                });
+
             modelBuilder.Entity("BlueContract.Domain.Settings.EmailTemplate", b =>
                 {
                     b.Property<Guid>("Id")

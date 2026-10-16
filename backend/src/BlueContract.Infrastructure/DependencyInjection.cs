@@ -20,6 +20,7 @@ using BlueContract.Infrastructure.Reporting;
 using BlueContract.Infrastructure.Storage;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
+using BlueContract.Infrastructure.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -82,7 +83,8 @@ public static class DependencyInjection
         }
 
         // Messaging & links
-        services.Configure<EmailOptions>(configuration.GetSection(EmailOptions.SectionName));
+        services.AddSingleton<RuntimeSettings>();
+        services.AddScoped<BlueContract.Application.Admin.ISystemConfigAdmin, SystemConfigAdmin>();
         services.Configure<AppOptions>(configuration.GetSection(AppOptions.SectionName));
         services.AddScoped<IEmailSender, SmtpEmailSender>();
         services.AddSingleton<IAppLinkBuilder, AppLinkBuilder>();
@@ -126,14 +128,17 @@ public static class DependencyInjection
         }
 
         // Digital signing (PAdES via iText) and providers
-        services.Configure<SigningOptions>(configuration.GetSection(SigningOptions.SectionName));
-        services.AddSingleton(sp =>
+        services.AddScoped(sp =>
         {
-            var signing = sp.GetRequiredService<IOptions<SigningOptions>>().Value;
+            var signing = sp.GetRequiredService<RuntimeSettings>().Signing();
             return new SigningDefaults(signing.DefaultProvider, signing.InitialRequiresCa);
         });
         services.AddSingleton<IPdfSignatureService, PdfSignatureService>();
-        services.AddSingleton<ICmsBuilder, CmsBuilder>();
+        services.AddSingleton<ICmsBuilder>(sp =>
+        {
+            var settings = sp.GetRequiredService<RuntimeSettings>();
+            return new CmsBuilder(sp.GetRequiredService<IHttpClientFactory>(), () => settings.Signing().TsaUrl);
+        });
         services.AddHttpClient(CmsBuilder.TsaClient, c => c.Timeout = TimeSpan.FromSeconds(20));
         services.AddDistributedMemoryCache();
         services.AddScoped<CertificateStore>();
@@ -143,9 +148,9 @@ public static class DependencyInjection
         services.AddScoped<ISigningProvider, UsbTokenSigningProvider>();
         services.AddScoped<ISigningProvider, InitialStampProvider>();
         services.AddScoped<ISigningProvider, OrganizationSealProvider>();
-        services.AddScoped<ISigningProvider>(sp => new RemoteCaSigningProvider("VNPT_SMARTCA", "VNPT SmartCA (ký số từ xa)", o => o.VnptSmartCa, sp.GetRequiredService<IOptions<SigningOptions>>()));
-        services.AddScoped<ISigningProvider>(sp => new RemoteCaSigningProvider("VIETTEL_MYSIGN", "Viettel MySign (ký số từ xa)", o => o.ViettelMySign, sp.GetRequiredService<IOptions<SigningOptions>>()));
-        services.AddScoped<ISigningProvider>(sp => new RemoteCaSigningProvider("FPT_CA", "FPT CA (ký số từ xa)", o => o.FptCa, sp.GetRequiredService<IOptions<SigningOptions>>()));
+        services.AddScoped<ISigningProvider>(sp => new RemoteCaSigningProvider("VNPT_SMARTCA", "VNPT SmartCA (ký số từ xa)", o => o.VnptSmartCa, sp.GetRequiredService<RuntimeSettings>()));
+        services.AddScoped<ISigningProvider>(sp => new RemoteCaSigningProvider("VIETTEL_MYSIGN", "Viettel MySign (ký số từ xa)", o => o.ViettelMySign, sp.GetRequiredService<RuntimeSettings>()));
+        services.AddScoped<ISigningProvider>(sp => new RemoteCaSigningProvider("FPT_CA", "FPT CA (ký số từ xa)", o => o.FptCa, sp.GetRequiredService<RuntimeSettings>()));
 
         // Background jobs (Hangfire on PostgreSQL)
         services.Configure<HangfireOptions>(configuration.GetSection(HangfireOptions.SectionName));

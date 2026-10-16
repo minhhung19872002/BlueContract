@@ -346,6 +346,50 @@ public sealed class EmailTemplatesController(EmailTemplateService service) : Api
         FromResult(await service.PreviewAsync(eventType, request, ct));
 }
 
+[Route("api/admin/system-config")]
+public sealed class SystemConfigController(ISystemConfigAdmin service) : ApiControllerBase
+{
+    [HttpGet("mail")]
+    [HasPermission(P.SettingManage)]
+    public Task<MailSettingsDto> GetMail(CancellationToken ct) => service.GetMailAsync(ct);
+
+    [HttpPut("mail")]
+    [HasPermission(P.SettingManage)]
+    public async Task<ActionResult<MailSettingsDto>> SaveMail(SaveMailSettingsRequest request, CancellationToken ct) =>
+        FromResult(await service.SaveMailAsync(request, ct));
+
+    /// <summary>"Gửi thư thử" with the values on the form (saved or not).</summary>
+    [HttpPost("mail/test")]
+    [HasPermission(P.SettingManage)]
+    public async Task<IActionResult> TestMail(TestMailRequest request, CancellationToken ct) => FromResult(await service.TestMailAsync(request, ct));
+
+    /// <summary>Back to the server configuration (appsettings / environment).</summary>
+    [HttpDelete("mail")]
+    [HasPermission(P.SettingManage)]
+    public async Task<IActionResult> ResetMail(CancellationToken ct)
+    {
+        await service.ResetMailAsync(ct);
+        return NoContent();
+    }
+
+    [HttpGet("signing")]
+    [HasPermission(P.SettingManage)]
+    public Task<SigningSettingsDto> GetSigning(CancellationToken ct) => service.GetSigningAsync(ct);
+
+    [HttpPut("signing")]
+    [HasPermission(P.SettingManage)]
+    public async Task<ActionResult<SigningSettingsDto>> SaveSigning(SaveSigningSettingsRequest request, CancellationToken ct) =>
+        FromResult(await service.SaveSigningAsync(request, ct));
+
+    [HttpDelete("signing")]
+    [HasPermission(P.SettingManage)]
+    public async Task<IActionResult> ResetSigning(CancellationToken ct)
+    {
+        await service.ResetSigningAsync(ct);
+        return NoContent();
+    }
+}
+
 [Route("api/admin/audit-logs")]
 public sealed class AuditLogsController(AuditLogService service, IExcelExporter excel) : ApiControllerBase
 {

@@ -90,6 +90,7 @@ Mỗi người tải **ảnh chữ ký tay** (và nếu muốn, **chữ ký nhá
 | Cấu hình luồng ký | kéo thả thứ tự bước, chọn vai trò / người / NCC, vị trí chữ ký, SLA nhắc việc |
 | Tham số hệ thống | ngày chạy nghiệm thu tự động, sai số làm tròn hóa đơn, ngưỡng hạn dùng, cảnh báo hết hạn / hết SL hợp đồng, SLA mặc định |
 | Mẫu email | tiêu đề và nội dung email của từng sự kiện (chờ ký, trả lại, gọi hàng, cấp tài khoản…); bấm biến `{{...}}` để chèn, **Xem trước** với dữ liệu mẫu, **Khôi phục mặc định**. Giờ trong email là giờ Việt Nam |
+| Cấu hình email & ký số | máy chủ SMTP (mật khẩu để trống = giữ nguyên), **Gửi thư thử** trước khi lưu; nhà cung cấp chữ ký số mặc định, máy chủ dấu thời gian (TSA), ký nháy có cần CA, thông tin kết nối ký số từ xa (VNPT SmartCA, Viettel MySign, FPT CA). **Dùng cấu hình máy chủ** để quay về cấu hình cài đặt |
 | Tích hợp HIS | cấu hình, nhật ký request/response, **Gửi lại**, **Kéo phiếu từ HIS ngay** |
 | Kiểm tra toàn vẹn | lịch sử kiểm tra SHA-256 hằng ngày của mọi tệp, **Kiểm tra ngay** |
 | Nhật ký hoạt động | lọc theo người, đối tượng, hành động, thời gian; xem dữ liệu trước/sau |

@@ -1838,6 +1838,207 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/system-config/mail": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MailSettingsDto"];
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SaveMailSettingsRequest"];
+                    "text/json": components["schemas"]["SaveMailSettingsRequest"];
+                    "application/*+json": components["schemas"]["SaveMailSettingsRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MailSettingsDto"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        /** Back to the server configuration (appsettings / environment). */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/system-config/mail/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** "Gửi thư thử" with the values on the form (saved or not). */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["TestMailRequest"];
+                    "text/json": components["schemas"]["TestMailRequest"];
+                    "application/*+json": components["schemas"]["TestMailRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/system-config/signing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SigningSettingsDto"];
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SaveSigningSettingsRequest"];
+                    "text/json": components["schemas"]["SaveSigningSettingsRequest"];
+                    "application/*+json": components["schemas"]["SaveSigningSettingsRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SigningSettingsDto"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/audit-logs": {
         parameters: {
             query?: never;
@@ -10810,6 +11011,19 @@ export interface components {
             /** Format: double */
             percent: number;
         };
+        /** @description SMTP settings in effect. The password is never returned, only whether one is set. */
+        MailSettingsDto: {
+            enabled: boolean;
+            host: string;
+            /** Format: int32 */
+            port: number;
+            useStartTls: boolean;
+            userName: null | string;
+            hasPassword: boolean;
+            fromAddress: string;
+            fromName: string;
+            isOverridden: boolean;
+        };
         MonthAmountDto: {
             month: string;
             /** Format: double */
@@ -11403,6 +11617,20 @@ export interface components {
         ReceiptType: "Receipt" | "Return";
         /** @enum {unknown} */
         ReceiptValidationStatus: "Valid" | "Warning" | "Invalid";
+        RemoteCaSettingsDto: {
+            code: string;
+            name: string;
+            baseUrl: null | string;
+            clientId: null | string;
+            hasSecret: boolean;
+        };
+        /** @description ClientSecret: null keeps the saved one, empty removes it. */
+        RemoteCaSettingsRequest: {
+            code: string;
+            baseUrl: null | string;
+            clientId: null | string;
+            clientSecret: null | string;
+        };
         ResetPasswordResponse: {
             temporaryPassword: string;
             emailSent: boolean;
@@ -11571,6 +11799,18 @@ export interface components {
             contractId: string;
             notes: null | string;
         };
+        /** @description Password: null keeps the saved one, empty removes it. */
+        SaveMailSettingsRequest: {
+            enabled: boolean;
+            host: string;
+            /** Format: int32 */
+            port: number;
+            useStartTls: boolean;
+            userName: null | string;
+            password: null | string;
+            fromAddress: string;
+            fromName: string;
+        };
         SaveProposalRequest: {
             /** Format: uuid */
             departmentId: string;
@@ -11615,6 +11855,14 @@ export interface components {
             code: string;
             name: string;
             description: null | string;
+        };
+        SaveSigningSettingsRequest: {
+            defaultProvider: string;
+            tsaUrl: null | string;
+            initialRequiresCa: boolean;
+            /** Format: int32 */
+            mockRemoteDelaySeconds: number;
+            remoteCas: null | components["schemas"]["RemoteCaSettingsRequest"][];
         };
         SaveSummaryRequest: {
             domain: components["schemas"]["ProcurementDomain"];
@@ -11730,6 +11978,10 @@ export interface components {
             mode: components["schemas"]["SigningMode"];
             isDefault: boolean;
         };
+        SigningProviderOptionDto: {
+            code: string;
+            name: string;
+        };
         SigningReportDto: {
             steps: components["schemas"]["SigningStepRowDto"][];
             backlog: components["schemas"]["SigningBacklogRowDto"][];
@@ -11752,6 +12004,18 @@ export interface components {
         };
         /** @enum {unknown} */
         SigningRequestStatus: "Pending" | "Completed" | "Failed" | "Expired" | "Cancelled";
+        /** @description Signing settings in effect. Mock providers are switched on/off by the server configuration only. */
+        SigningSettingsDto: {
+            defaultProvider: string;
+            tsaUrl: null | string;
+            initialRequiresCa: boolean;
+            /** Format: int32 */
+            mockRemoteDelaySeconds: number;
+            enableMockProviders: boolean;
+            providers: components["schemas"]["SigningProviderOptionDto"][];
+            remoteCas: components["schemas"]["RemoteCaSettingsDto"][];
+            isOverridden: boolean;
+        };
         SigningStepRowDto: {
             workflowCode: string;
             stepCode: string;
@@ -12064,6 +12328,10 @@ export interface components {
             uploadedAt: string;
             uploadedByName: null | string;
             isActive: boolean;
+        };
+        TestMailRequest: {
+            to: string;
+            settings: components["schemas"]["SaveMailSettingsRequest"];
         };
         TwoFactorLoginRequest: {
             challenge: string;

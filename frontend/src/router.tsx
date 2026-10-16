@@ -18,6 +18,7 @@ import { RolesPage } from './features/admin/RolesPage';
 import { DelegationsPage } from './features/admin/DelegationsPage';
 import { SettingsPage } from './features/admin/SettingsPage';
 import { EmailTemplatesPage } from './features/admin/EmailTemplatesPage';
+import { SystemConfigPage } from './features/admin/SystemConfigPage';
 import { AuditLogsPage } from './features/admin/AuditLogsPage';
 import { MyAccountPage } from './features/account/MyAccountPage';
 import { CompanyPage } from './features/supplier/CompanyPage';
@@ -92,6 +93,7 @@ export const router = createBrowserRouter([
               },
               { path: '/quan-tri/tham-so', element: guard([P.SettingManage], <SettingsPage />) },
               { path: '/quan-tri/mau-email', element: guard([P.SettingManage], <EmailTemplatesPage />) },
+              { path: '/quan-tri/cau-hinh', element: guard([P.SettingManage], <SystemConfigPage />) },
               { path: '/quan-tri/nhat-ky', element: guard([P.AuditView], <AuditLogsPage />) },
               { path: '/quan-tri/mau-bieu', element: guard([P.TemplateManage], <TemplatesPage />) },
               { path: '/tai-lieu/:id', element: <DocumentPage /> },

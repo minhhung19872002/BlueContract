@@ -1,0 +1,43 @@
+/* "Cấu hình email & ký số" admin page. */
+.sysconfig__test {
+  display: flex;
+  gap: 8px;
+  max-width: 560px;
+  margin-bottom: 16px;
+}
+
+.sysconfig__actions {
+  margin-top: 4px;
+}
+
+.sysconfig__banner {
+  margin-bottom: 16px;
+}
+
+.sysconfig__subtitle {
+  font-weight: 600;
+  margin: 4px 0 12px;
+}
+
+.sysconfig__ca {
+  border: 1px solid var(--bp-border);
+  border-radius: 8px;
+  padding: 4px 16px 0;
+  margin: 0 0 12px;
+  min-width: 0;
+}
+
+.sysconfig__ca legend {
+  width: auto;
+  padding: 0 6px;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  border: 0;
+}
+
+@media (max-width: 640px) {
+  .sysconfig__test {
+    flex-direction: column;
+  }
+}

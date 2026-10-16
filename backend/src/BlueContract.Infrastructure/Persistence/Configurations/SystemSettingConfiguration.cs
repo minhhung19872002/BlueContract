@@ -28,3 +28,14 @@ internal sealed class EmailTemplateConfiguration : IEntityTypeConfiguration<Emai
         builder.HasIndex(x => x.EventType).IsUnique().HasFilter("is_deleted = false");
     }
 }
+
+internal sealed class ConfigOverrideConfiguration : IEntityTypeConfiguration<ConfigOverride>
+{
+    public void Configure(EntityTypeBuilder<ConfigOverride> builder)
+    {
+        builder.ToTable("config_overrides");
+        builder.Property(x => x.Key).HasMaxLength(200).IsRequired();
+        builder.Property(x => x.Value).HasMaxLength(4000).IsRequired();
+        builder.HasIndex(x => x.Key).IsUnique().HasFilter("is_deleted = false");
+    }
+}

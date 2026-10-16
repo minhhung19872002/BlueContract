@@ -22,6 +22,8 @@ public interface IAppDbContext
 
     DbSet<EmailTemplate> EmailTemplates { get; }
 
+    DbSet<ConfigOverride> ConfigOverrides { get; }
+
     DbSet<Organization> Organizations { get; }
 
     DbSet<Facility> Facilities { get; }

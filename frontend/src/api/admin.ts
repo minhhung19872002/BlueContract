@@ -114,3 +114,16 @@ export const emailTemplateUrl = (eventType: string) => `${EMAIL_TEMPLATES}/${enc
 export async function previewEmailTemplate(eventType: string, body: { subject: string; bodyHtml: string }) {
   return (await apiClient.post<EmailPreviewDto>(`${emailTemplateUrl(eventType)}/preview`, body)).data;
 }
+
+// ---- Cấu hình email & ký số ----
+
+export type MailSettingsDto = S['MailSettingsDto'];
+export type SaveMailSettingsRequest = S['SaveMailSettingsRequest'];
+export type SigningSettingsDto = S['SigningSettingsDto'];
+export type SaveSigningSettingsRequest = S['SaveSigningSettingsRequest'];
+export const SYSTEM_CONFIG = '/api/admin/system-config';
+
+/** "Gửi thư thử" with the values on the form (saved or not). */
+export async function sendTestMail(to: string, settings: SaveMailSettingsRequest) {
+  await apiClient.post(`${SYSTEM_CONFIG}/mail/test`, { to, settings });
+}

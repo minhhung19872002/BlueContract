@@ -2308,6 +2308,181 @@
         }
       }
     },
+    "/api/admin/system-config/mail": {
+      "get": {
+        "tags": [
+          "SystemConfig"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MailSettingsDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "SystemConfig"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveMailSettingsRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveMailSettingsRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveMailSettingsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MailSettingsDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "SystemConfig"
+        ],
+        "summary": "Back to the server configuration (appsettings / environment).",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/system-config/mail/test": {
+      "post": {
+        "tags": [
+          "SystemConfig"
+        ],
+        "summary": "\"Gửi thư thử\" with the values on the form (saved or not).",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestMailRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestMailRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestMailRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/system-config/signing": {
+      "get": {
+        "tags": [
+          "SystemConfig"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SigningSettingsDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "SystemConfig"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveSigningSettingsRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveSigningSettingsRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveSigningSettingsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SigningSettingsDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "SystemConfig"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    },
     "/api/admin/audit-logs": {
       "get": {
         "tags": [
@@ -16766,6 +16941,54 @@
           }
         }
       },
+      "MailSettingsDto": {
+        "required": [
+          "enabled",
+          "host",
+          "port",
+          "useStartTls",
+          "userName",
+          "hasPassword",
+          "fromAddress",
+          "fromName",
+          "isOverridden"
+        ],
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "host": {
+            "type": "string"
+          },
+          "port": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "useStartTls": {
+            "type": "boolean"
+          },
+          "userName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "hasPassword": {
+            "type": "boolean"
+          },
+          "fromAddress": {
+            "type": "string"
+          },
+          "fromName": {
+            "type": "string"
+          },
+          "isOverridden": {
+            "type": "boolean"
+          }
+        },
+        "description": "SMTP settings in effect. The password is never returned, only whether one is set."
+      },
       "MonthAmountDto": {
         "required": [
           "month",
@@ -18902,6 +19125,72 @@
           "Invalid"
         ]
       },
+      "RemoteCaSettingsDto": {
+        "required": [
+          "code",
+          "name",
+          "baseUrl",
+          "clientId",
+          "hasSecret"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "baseUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "clientId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "hasSecret": {
+            "type": "boolean"
+          }
+        }
+      },
+      "RemoteCaSettingsRequest": {
+        "required": [
+          "code",
+          "baseUrl",
+          "clientId",
+          "clientSecret"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "baseUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "clientId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "clientSecret": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "description": "ClientSecret: null keeps the saved one, empty removes it."
+      },
       "ResetPasswordResponse": {
         "required": [
           "temporaryPassword",
@@ -19606,6 +19895,53 @@
           }
         }
       },
+      "SaveMailSettingsRequest": {
+        "required": [
+          "enabled",
+          "host",
+          "port",
+          "useStartTls",
+          "userName",
+          "password",
+          "fromAddress",
+          "fromName"
+        ],
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "host": {
+            "type": "string"
+          },
+          "port": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "useStartTls": {
+            "type": "boolean"
+          },
+          "userName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "password": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "fromAddress": {
+            "type": "string"
+          },
+          "fromName": {
+            "type": "string"
+          }
+        },
+        "description": "Password: null keeps the saved one, empty removes it."
+      },
       "SaveProposalRequest": {
         "required": [
           "departmentId",
@@ -19773,6 +20109,43 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "SaveSigningSettingsRequest": {
+        "required": [
+          "defaultProvider",
+          "tsaUrl",
+          "initialRequiresCa",
+          "mockRemoteDelaySeconds",
+          "remoteCas"
+        ],
+        "type": "object",
+        "properties": {
+          "defaultProvider": {
+            "type": "string"
+          },
+          "tsaUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "initialRequiresCa": {
+            "type": "boolean"
+          },
+          "mockRemoteDelaySeconds": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "remoteCas": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/RemoteCaSettingsRequest"
+            }
           }
         }
       },
@@ -20258,6 +20631,21 @@
           }
         }
       },
+      "SigningProviderOptionDto": {
+        "required": [
+          "code",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
       "SigningReportDto": {
         "required": [
           "steps",
@@ -20350,6 +20738,56 @@
           "Expired",
           "Cancelled"
         ]
+      },
+      "SigningSettingsDto": {
+        "required": [
+          "defaultProvider",
+          "tsaUrl",
+          "initialRequiresCa",
+          "mockRemoteDelaySeconds",
+          "enableMockProviders",
+          "providers",
+          "remoteCas",
+          "isOverridden"
+        ],
+        "type": "object",
+        "properties": {
+          "defaultProvider": {
+            "type": "string"
+          },
+          "tsaUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "initialRequiresCa": {
+            "type": "boolean"
+          },
+          "mockRemoteDelaySeconds": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "enableMockProviders": {
+            "type": "boolean"
+          },
+          "providers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SigningProviderOptionDto"
+            }
+          },
+          "remoteCas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RemoteCaSettingsDto"
+            }
+          },
+          "isOverridden": {
+            "type": "boolean"
+          }
+        },
+        "description": "Signing settings in effect. Mock providers are switched on/off by the server configuration only."
       },
       "SigningStepRowDto": {
         "required": [
@@ -21446,6 +21884,21 @@
           },
           "isActive": {
             "type": "boolean"
+          }
+        }
+      },
+      "TestMailRequest": {
+        "required": [
+          "to",
+          "settings"
+        ],
+        "type": "object",
+        "properties": {
+          "to": {
+            "type": "string"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/SaveMailSettingsRequest"
           }
         }
       },
@@ -22863,6 +23316,9 @@
     },
     {
       "name": "EmailTemplates"
+    },
+    {
+      "name": "SystemConfig"
     },
     {
       "name": "AuditLogs"

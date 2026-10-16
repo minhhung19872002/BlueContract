@@ -41,6 +41,7 @@ public static class UniqueConstraints
         ["ix_suppliers_tax_code"] = "SUPPLIER_TAX_CODE_EXISTS",
         ["ix_system_settings_key"] = "CONFLICT",
         ["ix_email_templates_event_type"] = "EMAIL_TEMPLATE_CONCURRENT_EDIT",
+        ["ix_config_overrides_key"] = "CONFLICT",
 
         // Child rows / technical keys: a concurrent edit of the same parent.
         ["ix_bid_decision_items_bid_decision_id_item_id"] = "BID_ITEM_DUPLICATE",
