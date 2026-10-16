@@ -120,11 +120,17 @@ pm run lint/test/build pass (23 test) · Trình duyệt (Docker): thủ kho ký 
 
 **Kiểm chứng:** `dotnet test` 310/310 (Domain 140, Application 46, Integration 124 — luồng thanh toán đầy đủ qua API gồm phiếu ảo, lũy kế, UNC vượt mức bị chặn, chốt công nợ, HĐ thanh lý khóa phiếu mới, cô lập NCC) · `npm run lint/build` pass · **E2E #1 + #2 + #3 pass (1,5 phút)**.
 
-## Phase 8 — Hồ sơ lưu trữ & Báo cáo
-- [ ] Cây hồ sơ, tải ZIP + `muc_luc.pdf`
-- [ ] Dashboard, báo cáo + xuất Excel
+## Phase 8 — Hồ sơ lưu trữ & Báo cáo ✅ (16/10/2026)
+- [x] **Hồ sơ lưu trữ**: tìm theo số hợp đồng, tên, số quyết định thầu hoặc NCC → cây tài liệu 7 nhóm (QĐ thầu → HĐ + phụ lục → Đề xuất/Tổng hợp/Gọi hàng → Phiếu nhập kho (+ XML/PDF hóa đơn) → Nghiệm thu → 08a + đề nghị thanh toán + UNC → Thanh lý + chứng từ chốt công nợ); xem PDF ngay trong trang, tải từng tệp (link ký ngắn hạn, chỉ tệp thuộc cây của hợp đồng), mã SHA-256 từng tệp
+- [x] **Tải toàn bộ hồ sơ ZIP** (mỗi nhóm một thư mục, tên tệp không dấu) kèm **`muc_luc.pdf`** liệt kê tài liệu, dung lượng, SHA-256 tính lại khi đóng gói và kết quả đối chiếu với SHA-256 lưu lúc tải lên ("Khớp"/"LỆCH"); ghi nhật ký xem/tải
+- [x] Đánh dấu hồ sơ **"đã đầy đủ"** (người, thời điểm)
+- [x] **Tổng quan nội bộ**: tài liệu chờ tôi xử lý theo loại (quá hạn), HĐ sắp hết hạn (≤ tham số ngày), mặt hàng sắp hết SL HĐ (≤ tham số %), phiếu nhập kho cảnh báo / không hợp lệ, gọi hàng chưa NCC xác nhận / quá hạn, đã thanh toán / còn phải trả + **biểu đồ thanh toán 12 tháng**; **Tổng quan Cổng NCC**: tài liệu chờ ký, đơn gọi hàng chờ xác nhận, HĐ hiệu lực, phiếu cần bổ sung hóa đơn, công nợ bệnh viện còn phải trả
+- [x] **Báo cáo** (đều xuất Excel): tình hình thực hiện HĐ (gọi / nhập / nghiệm thu / thanh toán / còn lại / %), công nợ theo NCC, giá trị thanh toán theo tháng / quý / năm × mảng / cơ sở / NCC, tiến độ ký (thời gian trung bình / lâu nhất mỗi bước, quá SLA; tồn đọng theo người / vai trò)
 - [x] Xác minh chữ ký (làm sớm ở Phase 3)
-- [ ] E2E #4
+- [x] **E2E #4**: tìm HĐ đã thanh lý → cây hồ sơ → tải ZIP → kiểm tra `muc_luc.pdf`, thư mục, SHA-256 tệp thanh lý trùng mã hiển thị → đánh dấu đầy đủ
+- [x] Sửa giao diện: thanh menu trái cố định, cuộn được (menu dài không còn nằm dưới nút thu gọn)
+
+**Kiểm chứng:** `dotnet test` 317/317 (Domain 140, Application 50, Integration 127 — cây hồ sơ, ZIP + mục lục + đối chiếu hash, chặn NCC, dashboard hai cổng có cô lập NCC, 4 báo cáo + xuất Excel, phân quyền báo cáo) · `npm run lint/build` pass · **E2E #1–#4 pass (1,6 phút)**.
 
 ## Phase 9 — Hoàn thiện
 - [ ] Bảo mật: rate limit, lockout, 2FA, upload checks (magic bytes), HTTPS nginx

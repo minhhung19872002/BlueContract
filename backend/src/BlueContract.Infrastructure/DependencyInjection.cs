@@ -92,6 +92,7 @@ public static class DependencyInjection
         // Documents: template engine, PDF conversion, online editor
         services.AddSingleton<IDocumentGenerator, DocxTemplateEngine>();
         services.AddScoped<IPdfConverter, GotenbergPdfConverter>();
+        services.AddScoped<BlueContract.Application.Archive.IArchiveIndexRenderer, ArchiveIndexRenderer>();
         services.Configure<OnlyOfficeOptions>(configuration.GetSection(OnlyOfficeOptions.SectionName));
         services.AddScoped<IDocumentEditorService, OnlyOfficeEditorService>();
         services.AddSingleton<IDocxRevisions, DocxRevisions>();

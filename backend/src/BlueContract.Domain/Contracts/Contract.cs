@@ -292,6 +292,25 @@ public sealed class Contract : Entity, ISupplierScoped
 
     public DateTimeOffset? LiquidatedAt { get; private set; }
 
+    /// <summary>Hồ sơ lưu trữ được xác nhận "đã đầy đủ" (spec §9.1-12).</summary>
+    public bool IsArchiveComplete { get; private set; }
+
+    public DateTimeOffset? ArchiveCompletedAt { get; private set; }
+
+    public string? ArchiveCompletedByName { get; private set; }
+
+    public void SetArchiveComplete(bool complete, string? userName, DateTimeOffset now)
+    {
+        if (complete && Status is ContractStatus.Draft or ContractStatus.Cancelled)
+        {
+            throw new DomainException("ARCHIVE_CONTRACT_NOT_SIGNED");
+        }
+
+        IsArchiveComplete = complete;
+        ArchiveCompletedAt = complete ? now : null;
+        ArchiveCompletedByName = complete ? userName : null;
+    }
+
     /// <summary>Biên bản thanh lý đã ký xong: the contract is closed and no new business may arise (spec §5.6).</summary>
     public void Liquidate(DateTimeOffset now)
     {

@@ -77,6 +77,9 @@ public static class DependencyInjection
         services.AddScoped<IntegrationLogService>();
         services.AddScoped<HisSimulator>();
         services.AddSingleton<IMockHisReceiptQueue, MockHisReceiptQueue>();
+        services.AddScoped<BlueContract.Application.Archive.ArchiveService>();
+        services.AddScoped<BlueContract.Application.Reports.DashboardService>();
+        services.AddScoped<BlueContract.Application.Reports.ReportService>();
         services.AddScoped<PaymentDocumentData>();
         services.AddScoped<PaymentDocuments>();
         services.AddScoped<AcceptanceService>();

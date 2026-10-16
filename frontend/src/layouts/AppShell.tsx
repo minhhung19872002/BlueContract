@@ -77,7 +77,14 @@ export function AppShell({ brand, subtitle, nav }: { brand: string; subtitle: st
         onCollapse={setCollapsed}
         theme="light"
         width={248}
-        style={{ borderRight: '1px solid #f0f0f0' }}
+        // Sticky, scrollable sider: long menus never slide under the collapse trigger fixed at the bottom.
+        style={{
+          borderRight: '1px solid #f0f0f0',
+          position: 'sticky',
+          top: 0,
+          height: '100vh',
+          overflowY: 'auto',
+        }}
       >
         <div
           style={{
@@ -100,7 +107,7 @@ export function AppShell({ brand, subtitle, nav }: { brand: string; subtitle: st
             navigate(key);
             if (screens.xs) setCollapsed(true);
           }}
-          style={{ borderInlineEnd: 'none' }}
+          style={{ borderInlineEnd: 'none', paddingBottom: 56 }}
         />
       </Layout.Sider>
       <Layout>

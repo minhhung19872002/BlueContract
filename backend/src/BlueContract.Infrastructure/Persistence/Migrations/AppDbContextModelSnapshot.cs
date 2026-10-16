@@ -689,6 +689,14 @@ namespace BlueContract.Infrastructure.Persistence.Migrations
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("amount_before_vat");
 
+                    b.Property<DateTimeOffset?>("ArchiveCompletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("archive_completed_at");
+
+                    b.Property<string>("ArchiveCompletedByName")
+                        .HasColumnType("text")
+                        .HasColumnName("archive_completed_by_name");
+
                     b.Property<Guid?>("BidDecisionId")
                         .HasColumnType("uuid")
                         .HasColumnName("bid_decision_id");
@@ -757,6 +765,10 @@ namespace BlueContract.Infrastructure.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("guarantee_number");
+
+                    b.Property<bool>("IsArchiveComplete")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_archive_complete");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean")

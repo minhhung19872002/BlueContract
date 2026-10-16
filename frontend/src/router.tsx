@@ -41,6 +41,8 @@ import { ReceiptDetailPage } from './features/receipts/ReceiptDetailPage';
 import { ReceiptCreatePage } from './features/receipts/ReceiptCreatePage';
 import { IntegrationPage } from './features/admin/IntegrationPage';
 import { PaymentsPage } from './features/payments/PaymentsPage';
+import { ArchivePage } from './features/archive/ArchivePage';
+import { ReportsPage } from './features/reports/ReportsPage';
 import { AcceptanceDetailPage, AcceptanceEditorPage } from './features/payments/AcceptancePages';
 import { ValuationCreatePage, ValuationDetailPage } from './features/payments/ValuationPages';
 import { LiquidationCreatePage, LiquidationDetailPage } from './features/payments/LiquidationPages';
@@ -111,6 +113,8 @@ export const router = createBrowserRouter([
           { path: '/nhap-kho/:id/sua', element: guard([P.ReceiptManage], <ReceiptCreatePage />) },
           { path: '/quan-tri/tich-hop-his', element: guard([P.IntegrationManage], <IntegrationPage />) },
           { path: '/thanh-toan', element: guard([P.PaymentView], <PaymentsPage />) },
+          { path: '/ho-so-luu-tru', element: guard([P.ArchiveView], <ArchivePage />) },
+          { path: '/bao-cao', element: guard([P.ReportView], <ReportsPage />) },
           {
             path: '/thanh-toan/nghiem-thu/tao-moi',
             element: guard([P.PaymentManage], <AcceptanceEditorPage />),

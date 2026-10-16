@@ -349,6 +349,9 @@ public static class ErrorMessages
         ["SETTLEMENT_DESCRIPTION_REQUIRED"] = "Nhập nội dung khoản chốt công nợ.",
         ["SETTLEMENT_NOT_FOUND"] = "Không tìm thấy khoản chốt công nợ.",
 
+        // Archive
+        ["ARCHIVE_CONTRACT_NOT_SIGNED"] = "Chỉ xác nhận hồ sơ đầy đủ cho hợp đồng đã ký.",
+
         // HIS integration
         ["HIS_AUTH_API_KEY_INVALID"] = "API key không hợp lệ.",
         ["HIS_AUTH_SIGNATURE_INVALID"] = "Chữ ký HMAC của request không hợp lệ.",

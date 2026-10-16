@@ -180,3 +180,13 @@ Mỗi mục là một ADR ngắn: **Bối cảnh → Quyết định → Hệ qu
 
 ## ADR-048 — Thanh lý và chốt công nợ
 - **Quyết định:** Chỉ lập thanh lý khi hợp đồng còn hiệu lực, có ít nhất một 08a đã ký và không còn 08a đang lập/trình ký; phiếu hoặc nghiệm thu chưa xử lý chỉ là cảnh báo (người dùng quyết định thanh lý phần đã thực hiện). Giá trị thực hiện = tổng giá trị kỳ này các 08a đã ký; đã thanh toán = UNC + thu hồi tạm ứng. Khoản còn lại được "đánh dấu đã thanh toán" bằng một dòng chốt công nợ (nội dung, số tiền, chứng từ, file, người đánh dấu, thời điểm) — không sửa số liệu 08a. Khi biên bản thanh lý ký xong: hợp đồng `Liquidated` (`Contract.Liquidate`), các 08a có dòng chốt công nợ chuyển "Đã thanh toán", và mọi phiếu nhập mới của hợp đồng bị đánh giá Không hợp lệ (`CONTRACT_CLOSED`).
+
+## ADR-049 — Hồ sơ lưu trữ dựng từ dữ liệu nghiệp vụ, ZIP kèm mục lục và đối chiếu hash
+- **Quyết định:** Cây hồ sơ không lưu riêng mà dựng lại mỗi lần từ hợp đồng: tài liệu có `ContractId`, cộng phiếu đề xuất / tổng hợp / đơn gọi hàng có dòng thuộc hợp đồng (tài liệu dùng chung nhiều hợp đồng), phiếu nhập kho, biên bản thanh toán và các tệp đính kèm (hóa đơn XML/PDF, UNC, chứng từ chốt công nợ, văn bản QĐ thầu). Mỗi tài liệu đưa vào bản PDF hiện hành (bản đã ký nếu có). Mã tệp gửi ra trình duyệt là token mờ, và API chỉ trả link cho token thuộc đúng cây của hợp đồng (không thể dùng để đọc tệp khác).
+- ZIP được tạo theo yêu cầu (đủ cho quy mô một hợp đồng); khi chép từng tệp, SHA-256 được tính lại và so với giá trị ghi lúc tải lên — kết quả "Khớp/LỆCH" in trong `muc_luc.pdf` (mẫu dựng bằng DocxBuilder + template engine + Gotenberg). Việc xem/tải hồ sơ được ghi nhật ký (spec §5.7). Hồ sơ lưu trữ chỉ dành cho bệnh viện (quyền `archive.*`).
+
+## ADR-050 — Biểu đồ dashboard không dùng thư viện
+- **Quyết định:** Spec không chỉ định thư viện biểu đồ; dashboard chỉ cần biểu đồ cột theo tháng nên dùng component SVG nhỏ `BarChart` (tooltip số tiền định dạng VN) thay vì thêm một thư viện biểu đồ vài trăm KB. Có thể thay bằng thư viện khác sau mà không đổi API.
+
+## ADR-051 — Định nghĩa số liệu báo cáo
+- **Quyết định:** Thực hiện HĐ tính theo các cột theo dõi của mặt hàng × đơn giá (đã gọi / đã nhập / đã nghiệm thu / đã thanh toán); % thực hiện = đã nhập kho / giá trị HĐ. Công nợ NCC: còn phải trả = đã nghiệm thu (biên bản đã ký) − đã thanh toán (UNC + chốt công nợ khi thanh lý) − thu hồi tạm ứng. Giá trị thanh toán theo kỳ tính theo ngày ủy nhiệm chi. Tiến độ ký: thời gian một bước = lúc xử lý − lúc bước được kích hoạt; tồn đọng nhóm theo đối tượng được giao (vai trò, người dùng, NCC, người lập).

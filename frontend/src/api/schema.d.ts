@@ -7206,6 +7206,581 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Tìm hồ sơ theo số hợp đồng, tên, số quyết định thầu hoặc nhà cung cấp. */
+        get: {
+            parameters: {
+                query?: {
+                    Page?: number;
+                    PageSize?: number;
+                    Search?: string;
+                    /** @description Property name to sort by (whitelisted per endpoint). */
+                    SortBy?: string;
+                    SortDesc?: boolean;
+                    /** @description Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows). */
+                    ForExport?: boolean;
+                    SafePage?: number;
+                    SafePageSize?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PagedResultOfArchiveSearchItemDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/archive/{contractId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    contractId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ArchiveTreeDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/archive/{contractId}/files/{fileId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    contractId: string;
+                    fileId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["FileLinkDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/archive/{contractId}/zip": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Tải toàn bộ hồ sơ (ZIP) kèm muc_luc.pdf liệt kê tài liệu + SHA-256. */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    contractId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/archive/{contractId}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    contractId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ArchiveCompleteRequest"];
+                    "text/json": components["schemas"]["ArchiveCompleteRequest"];
+                    "application/*+json": components["schemas"]["ArchiveCompleteRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ArchiveTreeDto"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["InternalDashboardDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/dashboard/supplier": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SupplierDashboardDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reports/contract-execution": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    SupplierId?: string;
+                    CategoryId?: string;
+                    Status?: components["schemas"]["ContractStatus"];
+                    Domain?: components["schemas"]["ProcurementDomain"];
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ContractExecutionRowDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reports/contract-execution/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    SupplierId?: string;
+                    CategoryId?: string;
+                    Status?: components["schemas"]["ContractStatus"];
+                    Domain?: components["schemas"]["ProcurementDomain"];
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reports/supplier-debt": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SupplierDebtRowDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reports/supplier-debt/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reports/payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    Year?: number;
+                    Period?: components["schemas"]["PaymentPeriod"];
+                    Dimension?: components["schemas"]["PaymentDimension"];
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PaymentReportRowDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reports/payments/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    Year?: number;
+                    Period?: components["schemas"]["PaymentPeriod"];
+                    Dimension?: components["schemas"]["PaymentDimension"];
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reports/signing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SigningReportDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reports/signing/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/system/info": {
         parameters: {
             query?: never;
@@ -8245,6 +8820,59 @@ export interface components {
             comment: null | string;
             skipNextOptional: boolean;
         };
+        ArchiveCompleteRequest: {
+            complete: boolean;
+        };
+        /** @description A downloadable file of the dossier; string ArchiveFileDto.Id is an opaque token valid only inside its contract's tree. */
+        ArchiveFileDto: {
+            id: string;
+            fileName: string;
+            kind: string;
+            sha256: null | string;
+            /** Format: int64 */
+            size: null | number;
+        };
+        ArchiveNodeDto: {
+            key: string;
+            title: string;
+            kind: string;
+            /** Format: uuid */
+            documentId: null | string;
+            status: null | string;
+            /** Format: date */
+            date: null | string;
+            link: null | string;
+            files: components["schemas"]["ArchiveFileDto"][];
+            children: components["schemas"]["ArchiveNodeDto"][];
+        };
+        ArchiveSearchItemDto: {
+            /** Format: uuid */
+            contractId: string;
+            contractNumber: string;
+            contractName: string;
+            supplierName: string;
+            bidDecisionNumber: null | string;
+            status: components["schemas"]["ContractStatus"];
+            isArchiveComplete: boolean;
+            /** Format: int32 */
+            documentCount: number;
+        };
+        ArchiveTreeDto: {
+            /** Format: uuid */
+            contractId: string;
+            contractNumber: string;
+            contractName: string;
+            supplierName: string;
+            bidDecisionNumber: null | string;
+            status: components["schemas"]["ContractStatus"];
+            isArchiveComplete: boolean;
+            /** Format: date-time */
+            archiveCompletedAt: null | string;
+            archiveCompletedByName: null | string;
+            /** Format: int32 */
+            fileCount: number;
+            folders: components["schemas"]["ArchiveNodeDto"][];
+        };
         /**
          * @description How the step's actor is determined.
          * @enum {unknown}
@@ -8613,6 +9241,31 @@ export interface components {
             appendices: components["schemas"]["ContractAppendixDto"][];
             actions: components["schemas"]["ContractActionsDto"];
         };
+        ContractExecutionRowDto: {
+            /** Format: uuid */
+            contractId: string;
+            contractNumber: string;
+            contractName: string;
+            supplierName: string;
+            categoryName: string;
+            status: components["schemas"]["ContractStatus"];
+            /** Format: date */
+            expiryDate: null | string;
+            /** Format: double */
+            contractValue: number;
+            /** Format: double */
+            calledValue: number;
+            /** Format: double */
+            receivedValue: number;
+            /** Format: double */
+            acceptedValue: number;
+            /** Format: double */
+            paidValue: number;
+            /** Format: double */
+            remainingValue: number;
+            /** Format: double */
+            executionPercent: number;
+        };
         ContractItemDto: {
             /** Format: uuid */
             id: string;
@@ -8882,6 +9535,16 @@ export interface components {
         };
         EnableTwoFactorRequest: {
             code: string;
+        };
+        ExpiringContractDto: {
+            /** Format: uuid */
+            id: string;
+            number: string;
+            supplierName: string;
+            /** Format: date */
+            expiryDate: string;
+            /** Format: int32 */
+            daysLeft: number;
         };
         FacilityDto: {
             /** Format: uuid */
@@ -9222,6 +9885,32 @@ export interface components {
         };
         /** @enum {unknown} */
         IntegrationLogStatus: "Success" | "Failed" | "Duplicate" | "Rejected";
+        InternalDashboardDto: {
+            /** Format: int32 */
+            pendingTotal: number;
+            /** Format: int32 */
+            pendingOverdue: number;
+            pendingByType: components["schemas"]["PendingTypeDto"][];
+            /** Format: int32 */
+            expiryWarningDays: number;
+            expiringContracts: components["schemas"]["ExpiringContractDto"][];
+            /** Format: double */
+            lowQuantityPercent: number;
+            lowQuantityItems: components["schemas"]["LowQuantityDto"][];
+            /** Format: int32 */
+            warningReceipts: number;
+            /** Format: int32 */
+            invalidReceipts: number;
+            /** Format: int32 */
+            overdueCallOrders: number;
+            /** Format: int32 */
+            pendingCallOrders: number;
+            /** Format: double */
+            paidTotal: number;
+            /** Format: double */
+            unpaidTotal: number;
+            payments: components["schemas"]["MonthAmountDto"][];
+        };
         InvoiceRequest: {
             symbol: string;
             number: string;
@@ -9416,6 +10105,27 @@ export interface components {
             code: string;
             name: string;
         };
+        LowQuantityDto: {
+            /** Format: uuid */
+            contractId: string;
+            contractNumber: string;
+            supplierName: string;
+            itemName: string;
+            unit: string;
+            /** Format: double */
+            quantity: number;
+            /** Format: double */
+            remaining: number;
+            /** Format: double */
+            percent: number;
+        };
+        MonthAmountDto: {
+            month: string;
+            /** Format: double */
+            paid: number;
+            /** Format: double */
+            unpaid: number;
+        };
         NewItemRequest: {
             code: string;
             name: string;
@@ -9462,6 +10172,15 @@ export interface components {
         };
         PagedResultOfAcceptanceListItemDto: {
             items: components["schemas"]["AcceptanceListItemDto"][];
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+        };
+        PagedResultOfArchiveSearchItemDto: {
+            items: components["schemas"]["ArchiveSearchItemDto"][];
             /** Format: int32 */
             total: number;
             /** Format: int32 */
@@ -9629,6 +10348,8 @@ export interface components {
             buyerTaxCode: null | string;
             buyerName: null | string;
         };
+        /** @enum {unknown} */
+        PaymentDimension: "None" | "Domain" | "Facility" | "Supplier";
         PaymentOrderDto: {
             /** Format: uuid */
             id: string;
@@ -9643,11 +10364,21 @@ export interface components {
             /** Format: date-time */
             addedAt: string;
         };
+        /** @enum {unknown} */
+        PaymentPeriod: "Month" | "Quarter" | "Year";
         /**
          * @description Trạng thái chung của biên bản nghiệm thu / 08a / thanh lý (theo luồng ký).
          * @enum {unknown}
          */
         PaymentRecordStatus: "Draft" | "Signing" | "Returned" | "Completed" | "Cancelled";
+        PaymentReportRowDto: {
+            period: string;
+            group: string;
+            /** Format: int32 */
+            paymentCount: number;
+            /** Format: double */
+            paidAmount: number;
+        };
         /** @enum {unknown} */
         PaymentStatus: "Unpaid" | "Paid";
         PdfSignatureInfo: {
@@ -9668,6 +10399,13 @@ export interface components {
             hasTimestamp: boolean;
             reason: null | string;
             location: null | string;
+        };
+        PendingTypeDto: {
+            type: components["schemas"]["DocumentType"];
+            /** Format: int32 */
+            count: number;
+            /** Format: int32 */
+            overdue: number;
         };
         PermissionDto: {
             code: string;
@@ -10256,6 +10994,16 @@ export interface components {
         };
         /** @enum {unknown} */
         SignatureKind: "Personal" | "Organization" | "Initial";
+        SigningBacklogRowDto: {
+            assignee: string;
+            assigneeType: string;
+            /** Format: int32 */
+            pending: number;
+            /** Format: int32 */
+            overdue: number;
+            /** Format: date-time */
+            oldestSince: null | string;
+        };
         /**
          * @description How a provider produces the signature (spec §8.1).
          * @enum {unknown}
@@ -10266,6 +11014,10 @@ export interface components {
             displayName: string;
             mode: components["schemas"]["SigningMode"];
             isDefault: boolean;
+        };
+        SigningReportDto: {
+            steps: components["schemas"]["SigningStepRowDto"][];
+            backlog: components["schemas"]["SigningBacklogRowDto"][];
         };
         SigningRequestDto: {
             /** Format: uuid */
@@ -10285,6 +11037,19 @@ export interface components {
         };
         /** @enum {unknown} */
         SigningRequestStatus: "Pending" | "Completed" | "Failed" | "Expired" | "Cancelled";
+        SigningStepRowDto: {
+            workflowCode: string;
+            stepCode: string;
+            stepName: string;
+            /** Format: int32 */
+            completed: number;
+            /** Format: double */
+            averageHours: number;
+            /** Format: double */
+            maxHours: number;
+            /** Format: int32 */
+            overdue: number;
+        };
         SimulateReceiptRequest: {
             /** Format: uuid */
             contractId: null | string;
@@ -10423,6 +11188,43 @@ export interface components {
             userName: string;
             fullName: string;
             email: string;
+        };
+        SupplierDashboardDto: {
+            /** Format: int32 */
+            pendingSigning: number;
+            /** Format: int32 */
+            callOrdersAwaiting: number;
+            /** Format: int32 */
+            callOrdersOverdue: number;
+            /** Format: int32 */
+            effectiveContracts: number;
+            /** Format: int32 */
+            receiptsWithoutInvoice: number;
+            /** Format: double */
+            acceptedNotValued: number;
+            /** Format: double */
+            valuedUnpaid: number;
+            /** Format: double */
+            paidTotal: number;
+            payments: components["schemas"]["MonthAmountDto"][];
+        };
+        SupplierDebtRowDto: {
+            /** Format: uuid */
+            supplierId: string;
+            supplierName: string;
+            taxCode: string;
+            /** Format: int32 */
+            contractCount: number;
+            /** Format: double */
+            contractValue: number;
+            /** Format: double */
+            acceptedValue: number;
+            /** Format: double */
+            valuedValue: number;
+            /** Format: double */
+            paidValue: number;
+            /** Format: double */
+            debtValue: number;
         };
         SupplierDto: {
             /** Format: uuid */

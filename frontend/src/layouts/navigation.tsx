@@ -1,6 +1,8 @@
 import {
   ApiOutlined,
   ApartmentOutlined,
+  BarChartOutlined,
+  FolderOpenOutlined,
   AuditOutlined,
   BankOutlined,
   ContainerOutlined,
@@ -58,6 +60,13 @@ export const internalNav: NavItem[] = [
   { key: '/goi-hang', label: 'Gọi hàng', icon: <PhoneOutlined />, permissions: [P.CallOrderView] },
   { key: '/nhap-kho', label: 'Phiếu nhập kho', icon: <InboxOutlined />, permissions: [P.ReceiptView] },
   { key: '/thanh-toan', label: 'Thanh toán', icon: <DollarOutlined />, permissions: [P.PaymentView] },
+  {
+    key: '/ho-so-luu-tru',
+    label: 'Hồ sơ lưu trữ',
+    icon: <FolderOpenOutlined />,
+    permissions: [P.ArchiveView],
+  },
+  { key: '/bao-cao', label: 'Báo cáo', icon: <BarChartOutlined />, permissions: [P.ReportView] },
   { key: '/xac-minh-chu-ky', label: 'Xác minh chữ ký', icon: <SafetyCertificateOutlined /> },
   {
     key: '/quan-tri',

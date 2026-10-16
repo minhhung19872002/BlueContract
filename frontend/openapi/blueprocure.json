@@ -8925,6 +8925,550 @@
         }
       }
     },
+    "/api/archive": {
+      "get": {
+        "tags": [
+          "Archive"
+        ],
+        "summary": "Tìm hồ sơ theo số hợp đồng, tên, số quyết định thầu hoặc nhà cung cấp.",
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SortBy",
+            "in": "query",
+            "description": "Property name to sort by (whitelisted per endpoint).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SortDesc",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "ForExport",
+            "in": "query",
+            "description": "Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows).",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "SafePage",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "SafePageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResultOfArchiveSearchItemDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/archive/{contractId}": {
+      "get": {
+        "tags": [
+          "Archive"
+        ],
+        "parameters": [
+          {
+            "name": "contractId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArchiveTreeDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/archive/{contractId}/files/{fileId}": {
+      "get": {
+        "tags": [
+          "Archive"
+        ],
+        "parameters": [
+          {
+            "name": "contractId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "fileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileLinkDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/archive/{contractId}/zip": {
+      "get": {
+        "tags": [
+          "Archive"
+        ],
+        "summary": "Tải toàn bộ hồ sơ (ZIP) kèm muc_luc.pdf liệt kê tài liệu + SHA-256.",
+        "parameters": [
+          {
+            "name": "contractId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    },
+    "/api/archive/{contractId}/complete": {
+      "put": {
+        "tags": [
+          "Archive"
+        ],
+        "parameters": [
+          {
+            "name": "contractId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ArchiveCompleteRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ArchiveCompleteRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ArchiveCompleteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArchiveTreeDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dashboard": {
+      "get": {
+        "tags": [
+          "Dashboard"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalDashboardDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dashboard/supplier": {
+      "get": {
+        "tags": [
+          "Dashboard"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplierDashboardDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reports/contract-execution": {
+      "get": {
+        "tags": [
+          "Reports"
+        ],
+        "parameters": [
+          {
+            "name": "SupplierId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "CategoryId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/ContractStatus"
+            }
+          },
+          {
+            "name": "Domain",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/ProcurementDomain"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContractExecutionRowDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reports/contract-execution/export": {
+      "get": {
+        "tags": [
+          "Reports"
+        ],
+        "parameters": [
+          {
+            "name": "SupplierId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "CategoryId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/ContractStatus"
+            }
+          },
+          {
+            "name": "Domain",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/ProcurementDomain"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    },
+    "/api/reports/supplier-debt": {
+      "get": {
+        "tags": [
+          "Reports"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SupplierDebtRowDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reports/supplier-debt/export": {
+      "get": {
+        "tags": [
+          "Reports"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    },
+    "/api/reports/payments": {
+      "get": {
+        "tags": [
+          "Reports"
+        ],
+        "parameters": [
+          {
+            "name": "Year",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Period",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/PaymentPeriod"
+            }
+          },
+          {
+            "name": "Dimension",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/PaymentDimension"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PaymentReportRowDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reports/payments/export": {
+      "get": {
+        "tags": [
+          "Reports"
+        ],
+        "parameters": [
+          {
+            "name": "Year",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Period",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/PaymentPeriod"
+            }
+          },
+          {
+            "name": "Dimension",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/PaymentDimension"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    },
+    "/api/reports/signing": {
+      "get": {
+        "tags": [
+          "Reports"
+        ],
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SigningReportDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reports/signing/export": {
+      "get": {
+        "tags": [
+          "Reports"
+        ],
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    },
     "/api/system/info": {
       "get": {
         "tags": [
@@ -10294,6 +10838,225 @@
           },
           "skipNextOptional": {
             "type": "boolean"
+          }
+        }
+      },
+      "ArchiveCompleteRequest": {
+        "required": [
+          "complete"
+        ],
+        "type": "object",
+        "properties": {
+          "complete": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ArchiveFileDto": {
+        "required": [
+          "id",
+          "fileName",
+          "kind",
+          "sha256",
+          "size"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "size": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          }
+        },
+        "description": "A downloadable file of the dossier; string ArchiveFileDto.Id is an opaque token valid only inside its contract's tree."
+      },
+      "ArchiveNodeDto": {
+        "required": [
+          "key",
+          "title",
+          "kind",
+          "documentId",
+          "status",
+          "date",
+          "link",
+          "files",
+          "children"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "documentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "status": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "date": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "link": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ArchiveFileDto"
+            }
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ArchiveNodeDto"
+            }
+          }
+        }
+      },
+      "ArchiveSearchItemDto": {
+        "required": [
+          "contractId",
+          "contractNumber",
+          "contractName",
+          "supplierName",
+          "bidDecisionNumber",
+          "status",
+          "isArchiveComplete",
+          "documentCount"
+        ],
+        "type": "object",
+        "properties": {
+          "contractId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "contractNumber": {
+            "type": "string"
+          },
+          "contractName": {
+            "type": "string"
+          },
+          "supplierName": {
+            "type": "string"
+          },
+          "bidDecisionNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/ContractStatus"
+          },
+          "isArchiveComplete": {
+            "type": "boolean"
+          },
+          "documentCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ArchiveTreeDto": {
+        "required": [
+          "contractId",
+          "contractNumber",
+          "contractName",
+          "supplierName",
+          "bidDecisionNumber",
+          "status",
+          "isArchiveComplete",
+          "archiveCompletedAt",
+          "archiveCompletedByName",
+          "fileCount",
+          "folders"
+        ],
+        "type": "object",
+        "properties": {
+          "contractId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "contractNumber": {
+            "type": "string"
+          },
+          "contractName": {
+            "type": "string"
+          },
+          "supplierName": {
+            "type": "string"
+          },
+          "bidDecisionNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/ContractStatus"
+          },
+          "isArchiveComplete": {
+            "type": "boolean"
+          },
+          "archiveCompletedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "archiveCompletedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "fileCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "folders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ArchiveNodeDto"
+            }
           }
         }
       },
@@ -11742,6 +12505,81 @@
           }
         }
       },
+      "ContractExecutionRowDto": {
+        "required": [
+          "contractId",
+          "contractNumber",
+          "contractName",
+          "supplierName",
+          "categoryName",
+          "status",
+          "expiryDate",
+          "contractValue",
+          "calledValue",
+          "receivedValue",
+          "acceptedValue",
+          "paidValue",
+          "remainingValue",
+          "executionPercent"
+        ],
+        "type": "object",
+        "properties": {
+          "contractId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "contractNumber": {
+            "type": "string"
+          },
+          "contractName": {
+            "type": "string"
+          },
+          "supplierName": {
+            "type": "string"
+          },
+          "categoryName": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ContractStatus"
+          },
+          "expiryDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "contractValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "calledValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "receivedValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "acceptedValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "paidValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "remainingValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "executionPercent": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
       "ContractItemDto": {
         "required": [
           "id",
@@ -12759,6 +13597,36 @@
         "properties": {
           "code": {
             "type": "string"
+          }
+        }
+      },
+      "ExpiringContractDto": {
+        "required": [
+          "id",
+          "number",
+          "supplierName",
+          "expiryDate",
+          "daysLeft"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "supplierName": {
+            "type": "string"
+          },
+          "expiryDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "daysLeft": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -14100,6 +14968,91 @@
           "Rejected"
         ]
       },
+      "InternalDashboardDto": {
+        "required": [
+          "pendingTotal",
+          "pendingOverdue",
+          "pendingByType",
+          "expiryWarningDays",
+          "expiringContracts",
+          "lowQuantityPercent",
+          "lowQuantityItems",
+          "warningReceipts",
+          "invalidReceipts",
+          "overdueCallOrders",
+          "pendingCallOrders",
+          "paidTotal",
+          "unpaidTotal",
+          "payments"
+        ],
+        "type": "object",
+        "properties": {
+          "pendingTotal": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pendingOverdue": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pendingByType": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PendingTypeDto"
+            }
+          },
+          "expiryWarningDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "expiringContracts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExpiringContractDto"
+            }
+          },
+          "lowQuantityPercent": {
+            "type": "number",
+            "format": "double"
+          },
+          "lowQuantityItems": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LowQuantityDto"
+            }
+          },
+          "warningReceipts": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "invalidReceipts": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "overdueCallOrders": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pendingCallOrders": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "paidTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "unpaidTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "payments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MonthAmountDto"
+            }
+          }
+        }
+      },
       "InvoiceRequest": {
         "required": [
           "symbol",
@@ -14800,6 +15753,70 @@
           }
         }
       },
+      "LowQuantityDto": {
+        "required": [
+          "contractId",
+          "contractNumber",
+          "supplierName",
+          "itemName",
+          "unit",
+          "quantity",
+          "remaining",
+          "percent"
+        ],
+        "type": "object",
+        "properties": {
+          "contractId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "contractNumber": {
+            "type": "string"
+          },
+          "supplierName": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "remaining": {
+            "type": "number",
+            "format": "double"
+          },
+          "percent": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "MonthAmountDto": {
+        "required": [
+          "month",
+          "paid",
+          "unpaid"
+        ],
+        "type": "object",
+        "properties": {
+          "month": {
+            "type": "string"
+          },
+          "paid": {
+            "type": "number",
+            "format": "double"
+          },
+          "unpaid": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
       "NewItemRequest": {
         "required": [
           "code",
@@ -15027,6 +16044,35 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/AcceptanceListItemDto"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PagedResultOfArchiveSearchItemDto": {
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ArchiveSearchItemDto"
             }
           },
           "total": {
@@ -15569,6 +16615,14 @@
         },
         "description": "Kết quả đọc file XML hóa đơn điện tử (điền sẵn form)."
       },
+      "PaymentDimension": {
+        "enum": [
+          "None",
+          "Domain",
+          "Facility",
+          "Supplier"
+        ]
+      },
       "PaymentOrderDto": {
         "required": [
           "id",
@@ -15618,6 +16672,13 @@
           }
         }
       },
+      "PaymentPeriod": {
+        "enum": [
+          "Month",
+          "Quarter",
+          "Year"
+        ]
+      },
       "PaymentRecordStatus": {
         "enum": [
           "Draft",
@@ -15627,6 +16688,31 @@
           "Cancelled"
         ],
         "description": "Trạng thái chung của biên bản nghiệm thu / 08a / thanh lý (theo luồng ký)."
+      },
+      "PaymentReportRowDto": {
+        "required": [
+          "period",
+          "group",
+          "paymentCount",
+          "paidAmount"
+        ],
+        "type": "object",
+        "properties": {
+          "period": {
+            "type": "string"
+          },
+          "group": {
+            "type": "string"
+          },
+          "paymentCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "paidAmount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
       },
       "PaymentStatus": {
         "enum": [
@@ -15709,6 +16795,27 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "PendingTypeDto": {
+        "required": [
+          "type",
+          "count",
+          "overdue"
+        ],
+        "type": "object",
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/DocumentType"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "overdue": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -18027,6 +19134,39 @@
           "Initial"
         ]
       },
+      "SigningBacklogRowDto": {
+        "required": [
+          "assignee",
+          "assigneeType",
+          "pending",
+          "overdue",
+          "oldestSince"
+        ],
+        "type": "object",
+        "properties": {
+          "assignee": {
+            "type": "string"
+          },
+          "assigneeType": {
+            "type": "string"
+          },
+          "pending": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "overdue": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "oldestSince": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
       "SigningMode": {
         "enum": [
           "ServerSide",
@@ -18055,6 +19195,27 @@
           },
           "isDefault": {
             "type": "boolean"
+          }
+        }
+      },
+      "SigningReportDto": {
+        "required": [
+          "steps",
+          "backlog"
+        ],
+        "type": "object",
+        "properties": {
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SigningStepRowDto"
+            }
+          },
+          "backlog": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SigningBacklogRowDto"
+            }
           }
         }
       },
@@ -18129,6 +19290,45 @@
           "Expired",
           "Cancelled"
         ]
+      },
+      "SigningStepRowDto": {
+        "required": [
+          "workflowCode",
+          "stepCode",
+          "stepName",
+          "completed",
+          "averageHours",
+          "maxHours",
+          "overdue"
+        ],
+        "type": "object",
+        "properties": {
+          "workflowCode": {
+            "type": "string"
+          },
+          "stepCode": {
+            "type": "string"
+          },
+          "stepName": {
+            "type": "string"
+          },
+          "completed": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "averageHours": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxHours": {
+            "type": "number",
+            "format": "double"
+          },
+          "overdue": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
       },
       "SimulateReceiptRequest": {
         "required": [
@@ -18577,6 +19777,110 @@
           },
           "email": {
             "type": "string"
+          }
+        }
+      },
+      "SupplierDashboardDto": {
+        "required": [
+          "pendingSigning",
+          "callOrdersAwaiting",
+          "callOrdersOverdue",
+          "effectiveContracts",
+          "receiptsWithoutInvoice",
+          "acceptedNotValued",
+          "valuedUnpaid",
+          "paidTotal",
+          "payments"
+        ],
+        "type": "object",
+        "properties": {
+          "pendingSigning": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "callOrdersAwaiting": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "callOrdersOverdue": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "effectiveContracts": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "receiptsWithoutInvoice": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "acceptedNotValued": {
+            "type": "number",
+            "format": "double"
+          },
+          "valuedUnpaid": {
+            "type": "number",
+            "format": "double"
+          },
+          "paidTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "payments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MonthAmountDto"
+            }
+          }
+        }
+      },
+      "SupplierDebtRowDto": {
+        "required": [
+          "supplierId",
+          "supplierName",
+          "taxCode",
+          "contractCount",
+          "contractValue",
+          "acceptedValue",
+          "valuedValue",
+          "paidValue",
+          "debtValue"
+        ],
+        "type": "object",
+        "properties": {
+          "supplierId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "supplierName": {
+            "type": "string"
+          },
+          "taxCode": {
+            "type": "string"
+          },
+          "contractCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "contractValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "acceptedValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "valuedValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "paidValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "debtValue": {
+            "type": "number",
+            "format": "double"
           }
         }
       },
@@ -20550,6 +21854,15 @@
     },
     {
       "name": "DevHis"
+    },
+    {
+      "name": "Archive"
+    },
+    {
+      "name": "Dashboard"
+    },
+    {
+      "name": "Reports"
     },
     {
       "name": "System"

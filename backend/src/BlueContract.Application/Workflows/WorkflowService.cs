@@ -484,6 +484,20 @@ public sealed class WorkflowService(
         return await projected.ToPagedAsync(q, ct);
     }
 
+    /// <summary>Số tài liệu chờ tôi xử lý theo loại (dashboard).</summary>
+    public async Task<List<(DocumentType Type, int Count, int Overdue)>> PendingByTypeAsync(CancellationToken ct)
+    {
+        var steps = await PendingStepsQueryAsync(ct);
+        var now = clock.UtcNow;
+        var rows = await (from s in steps
+                          join w in db.WorkflowInstances.AsNoTracking() on s.InstanceId equals w.Id
+                          join d in db.Documents.AsNoTracking() on w.DocumentId equals d.Id
+                          group s by d.Type into g
+                          select new { g.Key, Count = g.Count(), Overdue = g.Count(x => x.DueAt != null && x.DueAt < now) })
+            .ToListAsync(ct);
+        return [.. rows.Select(r => (r.Key, r.Count, r.Overdue))];
+    }
+
     public async Task<InboxCountDto> InboxCountAsync(CancellationToken ct)
     {
         var steps = await PendingStepsQueryAsync(ct);
