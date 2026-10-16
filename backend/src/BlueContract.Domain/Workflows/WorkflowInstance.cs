@@ -43,7 +43,9 @@ public sealed class WorkflowInstance : Entity
         TemplateCode = string.Empty;
     }
 
-    public WorkflowInstance(Guid documentId, WorkflowTemplate template, Guid startedBy, string? startedByName, Guid? supplierId, DateTimeOffset now)
+    /// <summary>Starts the workflow; steps whose template sets no SLA get <paramref name="defaultSlaHours"/> (0 or null = none).</summary>
+    public WorkflowInstance(Guid documentId, WorkflowTemplate template, Guid startedBy, string? startedByName, Guid? supplierId, DateTimeOffset now,
+        int? defaultSlaHours = null)
     {
         if (!template.IsActive)
         {
@@ -60,7 +62,7 @@ public sealed class WorkflowInstance : Entity
         Status = WorkflowStatus.Running;
         foreach (var s in template.Steps)
         {
-            _steps.Add(new WorkflowStepInstance(Id, s));
+            _steps.Add(new WorkflowStepInstance(Id, s, defaultSlaHours is > 0 ? defaultSlaHours : null));
         }
 
         if (_steps.Count == 0)
@@ -285,7 +287,7 @@ public sealed class WorkflowStepInstance
         ReturnTo = string.Empty;
     }
 
-    internal WorkflowStepInstance(Guid instanceId, WorkflowStepTemplate t)
+    internal WorkflowStepInstance(Guid instanceId, WorkflowStepTemplate t, int? defaultSlaHours = null)
     {
         Id = Guid.CreateVersion7();
         InstanceId = instanceId;
@@ -300,7 +302,7 @@ public sealed class WorkflowStepInstance
         IsOptional = t.IsOptional;
         ReturnTo = t.ReturnTo;
         SignatureAnchor = t.SignatureAnchor;
-        SlaHours = t.SlaHours;
+        SlaHours = t.SlaHours ?? defaultSlaHours;
         Status = StepStatus.Pending;
     }
 

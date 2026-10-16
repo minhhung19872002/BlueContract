@@ -14,10 +14,9 @@ public sealed record RegisteredCertificateDto(string? Serial, string? Subject, s
 /// remote-signing account they sign with. A supplier user's certificate must carry the company's tax code when it names
 /// one (organisation certificates of Vietnamese CAs put "MST:…" in the subject).
 /// </summary>
-public sealed partial class CertificateRegistrationService(IAppDbContext db, ICurrentUser current, IClock clock, IAuditLogger audit)
+public sealed partial class CertificateRegistrationService(IAppDbContext db, ICurrentUser current, IClock clock, IAuditLogger audit, Admin.SettingService settings)
 {
     private const int MaxCertificateBytes = 64 * 1024;
-    private static readonly TimeSpan ExpiryWarning = TimeSpan.FromDays(30);
 
     [GeneratedRegex(@"MST\s*[:=]?\s*(\d{10}(?:-\d{3})?)", RegexOptions.IgnoreCase)]
     private static partial Regex TaxCodeInSubject();
@@ -28,8 +27,9 @@ public sealed partial class CertificateRegistrationService(IAppDbContext db, ICu
         var u = await db.Users.AsNoTracking().Where(x => x.Id == me)
             .Select(x => new { x.CertificateSerial, x.CertificateSubject, x.CertificateIssuer, x.CertificateValidTo }).FirstAsync(ct);
         var now = clock.UtcNow;
+        var warning = TimeSpan.FromDays(await settings.GetIntAsync(Domain.Settings.SystemSettingKeys.CertificateExpiryWarningDays, 30, ct));
         return new RegisteredCertificateDto(u.CertificateSerial, u.CertificateSubject, u.CertificateIssuer, u.CertificateValidTo,
-            u.CertificateValidTo < now, u.CertificateValidTo >= now && u.CertificateValidTo < now + ExpiryWarning);
+            u.CertificateValidTo < now, u.CertificateValidTo >= now && u.CertificateValidTo < now + warning);
     }
 
     public async Task<Result<RegisteredCertificateDto>> RegisterMineAsync(UploadedFile file, CancellationToken ct)

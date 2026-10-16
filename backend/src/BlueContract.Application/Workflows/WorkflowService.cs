@@ -1,6 +1,7 @@
 using BlueContract.Application.Common;
 using BlueContract.Application.Documents;
 using BlueContract.Application.Notifications;
+using BlueContract.Domain.Settings;
 using BlueContract.Domain.Common;
 using BlueContract.Domain.Documents;
 using BlueContract.Domain.Identity;
@@ -23,7 +24,8 @@ public sealed class WorkflowService(
     IClock clock,
     IEnumerable<IWorkflowObserver> observers,
     IEnumerable<IWorkflowGuard> guards,
-    DataScope dataScope)
+    DataScope dataScope,
+    Admin.SettingService settings)
 {
     // ---------------- Templates (Cấu hình luồng ký) ----------------
 
@@ -274,7 +276,8 @@ public sealed class WorkflowService(
 
     private async Task<WorkflowInstance> BeginAsync(Document document, WorkflowTemplate template, Guid startedBy, string? startedByName, Guid? facilityId, string? domain, CancellationToken ct)
     {
-        var wf = new WorkflowInstance(document.Id, template, startedBy, startedByName, document.SupplierId, clock.UtcNow);
+        var defaultSla = await settings.GetIntAsync(SystemSettingKeys.WorkflowDefaultSlaHours, 24, ct);
+        var wf = new WorkflowInstance(document.Id, template, startedBy, startedByName, document.SupplierId, clock.UtcNow, defaultSla);
         wf.SetScope(facilityId, domain);
         db.WorkflowInstances.Add(wf);
         document.MarkInWorkflow();

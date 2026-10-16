@@ -3,6 +3,7 @@ using BlueContract.Application.Admin;
 using BlueContract.Application.Common;
 using BlueContract.Application.Documents;
 using BlueContract.Application.Workflows;
+using BlueContract.Domain.Settings;
 using BlueContract.Domain.Bids;
 using BlueContract.Domain.Catalog;
 using BlueContract.Domain.Contracts;
@@ -31,11 +32,11 @@ public sealed class ContractService(
     IAuditLogger audit,
     ICurrentUser current,
     IClock clock,
-    DataScope dataScope)
+    DataScope dataScope,
+    Admin.SettingService settings)
 {
     public const string OwnerType = "Contract";
     public const string AppendixOwnerType = "ContractAppendix";
-    private const int ExpiringSoonDays = 30;
 
     private static readonly Dictionary<string, Expression<Func<Contract, object?>>> Sorts = new()
     {
@@ -91,7 +92,7 @@ public sealed class ContractService(
 
         if (f.ExpiringSoon == true)
         {
-            var limit = today.AddDays(ExpiringSoonDays);
+            var limit = today.AddDays(await settings.GetIntAsync(SystemSettingKeys.ContractExpiryWarningDays, 30, ct));
             query = query.Where(c => c.Status == ContractStatus.Effective && c.ExpiryDate != null && c.ExpiryDate >= today && c.ExpiryDate <= limit);
         }
 

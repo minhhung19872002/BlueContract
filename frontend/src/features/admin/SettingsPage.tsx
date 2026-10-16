@@ -3,7 +3,7 @@ import { SaveOutlined } from '@ant-design/icons';
 import { useState } from 'react';
 import { resources, useAction, useGet, type SystemSettingDto } from '../../api/admin';
 import { PageHeader, useApiError } from '../../components/common';
-import { omitKey } from '../../utils/format';
+import { formatQuantity, omitKey } from '../../utils/format';
 
 /** Tham số hệ thống: every threshold in spec §11 is editable here. */
 export function SettingsPage() {
@@ -26,6 +26,8 @@ export function SettingsPage() {
           <InputNumber
             value={Number(value)}
             precision={0}
+            min={s.min ?? undefined}
+            max={s.max ?? undefined}
             onChange={(v) => set(String(v ?? 0))}
             style={{ width: 180 }}
           />
@@ -34,6 +36,8 @@ export function SettingsPage() {
         return (
           <InputNumber
             value={Number(value)}
+            min={s.min ?? undefined}
+            max={s.max ?? undefined}
             onChange={(v) => set(String(v ?? 0))}
             style={{ width: 180 }}
             decimalSeparator=","
@@ -66,6 +70,11 @@ export function SettingsPage() {
                   <Typography.Text type="secondary" code style={{ fontSize: 12 }}>
                     {s.key}
                   </Typography.Text>
+                  {s.min !== null && s.max !== null && (
+                    <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                      Từ {formatQuantity(s.min)} đến {formatQuantity(s.max)}
+                    </Typography.Text>
+                  )}
                 </Space>
               ),
             },

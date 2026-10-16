@@ -175,18 +175,12 @@ try
 
     if (hangfire.ServerEnabled && !isOpenApiGeneration)
     {
-        app.Services.GetRequiredService<IRecurringJobManager>().AddOrUpdate<BlueContract.Infrastructure.Jobs.WorkflowReminderJob>(
-            BlueContract.Infrastructure.Jobs.WorkflowReminderJob.Id, job => job.RunAsync(CancellationToken.None), Cron.Hourly());
-
-        // Spec §6.5: monthly acceptance drafts (daily check at 01:00 Vietnam time against the configured day).
-        app.Services.GetRequiredService<IRecurringJobManager>().AddOrUpdate<BlueContract.Infrastructure.Jobs.AcceptanceJob>(
-            BlueContract.Infrastructure.Jobs.AcceptanceJob.Id, job => job.RunAsync(CancellationToken.None), "0 1 * * *",
-            new RecurringJobOptions { TimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh") });
-
-        // Spec §11: daily integrity check of stored files (SHA-256).
-        app.Services.GetRequiredService<IRecurringJobManager>().AddOrUpdate<BlueContract.Infrastructure.Jobs.IntegrityCheckJob>(
-            BlueContract.Infrastructure.Jobs.IntegrityCheckJob.Id, job => job.RunAsync(CancellationToken.None), "0 2 * * *",
-            new RecurringJobOptions { TimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh") });
+        // SLA reminders, monthly acceptance drafts (spec §6.5) and the daily integrity check (spec §11), on the schedules of
+        // the system settings; saving one of those settings re-registers them at once.
+        using (var scope = app.Services.CreateScope())
+        {
+            await scope.ServiceProvider.GetRequiredService<BlueContract.Application.Admin.IRecurringJobScheduler>().ApplyAsync(CancellationToken.None);
+        }
 
         // Spec §6.4 B1: optional periodic pull of warehouse receipts from the HIS.
         var hisOptions = app.Configuration.GetSection(BlueContract.Infrastructure.Integration.HisOptions.SectionName).Get<BlueContract.Infrastructure.Integration.HisOptions>()

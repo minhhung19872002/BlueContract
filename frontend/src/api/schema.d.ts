@@ -12348,6 +12348,10 @@ export interface components {
             value: string;
             valueType: components["schemas"]["SettingValueType"];
             description: string;
+            /** Format: double */
+            min: null | number;
+            /** Format: double */
+            max: null | number;
         };
         TemplateCollection: {
             name: string;

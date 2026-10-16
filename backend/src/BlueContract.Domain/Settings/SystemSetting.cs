@@ -37,6 +37,9 @@ public sealed class SystemSetting : Entity
 
     public string Description { get; private set; }
 
+    /// <summary>Descriptions follow the code (seeding refreshes them); values stay as the admin set them.</summary>
+    public void RefreshDescription(string description) => Description = description;
+
     public void UpdateValue(string value)
     {
         var ok = ValueType switch

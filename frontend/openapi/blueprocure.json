@@ -21696,7 +21696,9 @@
           "key",
           "value",
           "valueType",
-          "description"
+          "description",
+          "min",
+          "max"
         ],
         "type": "object",
         "properties": {
@@ -21715,6 +21717,20 @@
           },
           "description": {
             "type": "string"
+          },
+          "min": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "max": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           }
         }
       },

@@ -121,3 +121,35 @@ public sealed class IntegrityCheckJob(BlueContract.Application.Admin.IntegritySe
     [AutomaticRetry(Attempts = 0)]
     public Task RunAsync(CancellationToken ct) => integrity.RunAsync("Lịch định kỳ", ct);
 }
+
+/// <summary>
+/// Registers the recurring jobs with the schedules of the system settings (spec §11). Called at start-up and whenever
+/// one of <see cref="BlueContract.Domain.Settings.SystemSettingKeys.ScheduleKeys"/> is saved, so a new schedule applies
+/// at once without a restart.
+/// </summary>
+internal sealed class HangfireJobScheduler(IRecurringJobManager jobs, AppDbContext db) : BlueContract.Application.Admin.IRecurringJobScheduler
+{
+    private static readonly TimeZoneInfo Vietnam = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
+
+    public async Task ApplyAsync(CancellationToken ct)
+    {
+        var keys = BlueContract.Domain.Settings.SystemSettingKeys.ScheduleKeys.ToList();
+        var values = await db.SystemSettings.AsNoTracking().Where(s => keys.Contains(s.Key)).ToDictionaryAsync(s => s.Key, s => s.Value, ct);
+        int Get(string key, int fallback, int min, int max) =>
+            int.TryParse(values.GetValueOrDefault(key), System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var v)
+                ? Math.Clamp(v, min, max)
+                : fallback;
+
+        var options = new RecurringJobOptions { TimeZone = Vietnam };
+        jobs.AddOrUpdate<WorkflowReminderJob>(WorkflowReminderJob.Id, job => job.RunAsync(CancellationToken.None),
+            BlueContract.Domain.Settings.SystemSettingKeys.ReminderCron(Get(BlueContract.Domain.Settings.SystemSettingKeys.WorkflowReminderMinutes, 60, 5, 60)), options);
+
+        // Daily check against the configured day of month (spec §6.5).
+        jobs.AddOrUpdate<AcceptanceJob>(AcceptanceJob.Id, job => job.RunAsync(CancellationToken.None),
+            BlueContract.Domain.Settings.SystemSettingKeys.DailyCron(Get(BlueContract.Domain.Settings.SystemSettingKeys.AcceptanceJobHour, 1, 0, 23)), options);
+
+        // Daily integrity check of stored files, SHA-256 (spec §11).
+        jobs.AddOrUpdate<IntegrityCheckJob>(IntegrityCheckJob.Id, job => job.RunAsync(CancellationToken.None),
+            BlueContract.Domain.Settings.SystemSettingKeys.DailyCron(Get(BlueContract.Domain.Settings.SystemSettingKeys.IntegrityCheckHour, 2, 0, 23)), options);
+    }
+}

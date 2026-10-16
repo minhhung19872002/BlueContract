@@ -165,6 +165,7 @@ public static class DependencyInjection
         services.AddScoped<HisReceiptPullJob>();
         services.AddScoped<AcceptanceJob>();
         services.AddScoped<IntegrityCheckJob>();
+        services.AddScoped<BlueContract.Application.Admin.IRecurringJobScheduler, HangfireJobScheduler>();
 
         // Storage
         services.Configure<StorageOptions>(configuration.GetSection(StorageOptions.SectionName));

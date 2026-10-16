@@ -81,13 +81,14 @@ public sealed class DatabaseInitializer(
 
     private async Task SeedSettingsAsync(CancellationToken ct)
     {
-        var existing = await db.SystemSettings.IgnoreQueryFilters().Select(s => s.Key).ToListAsync(ct);
-        var missing = SystemSettingKeys.Defaults().Where(s => !existing.Contains(s.Key)).ToList();
-        if (missing.Count == 0)
+        var existing = await db.SystemSettings.IgnoreQueryFilters().ToDictionaryAsync(s => s.Key, ct);
+        var defaults = SystemSettingKeys.Defaults();
+        foreach (var d in defaults.Where(d => existing.TryGetValue(d.Key, out var s) && s.Description != d.Description))
         {
-            return;
+            existing[d.Key].RefreshDescription(d.Description);
         }
 
+        var missing = defaults.Where(s => !existing.ContainsKey(s.Key)).ToList();
         db.SystemSettings.AddRange(missing);
         await db.SaveChangesAsync(ct);
         logger.LogInformation("Seeded {Count} system settings", missing.Count);

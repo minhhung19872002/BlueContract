@@ -91,7 +91,7 @@ Tại **Tài khoản → Chứng thư số dùng để ký**, tải lên tệp c
 | Ủy quyền ký | khoảng thời gian, vai trò được ủy quyền |
 | Mẫu biểu | tải DOCX, kiểm tra placeholder, xem trước với dữ liệu mẫu, quản lý phiên bản |
 | Cấu hình luồng ký | kéo thả thứ tự bước, chọn vai trò / người / NCC, vị trí chữ ký, SLA nhắc việc |
-| Tham số hệ thống | ngày chạy nghiệm thu tự động, sai số làm tròn hóa đơn, ngưỡng hạn dùng, cảnh báo hết hạn / hết SL hợp đồng, SLA mặc định |
+| Tham số hệ thống | ngày và giờ chạy nghiệm thu tự động, giờ kiểm tra toàn vẹn, chu kỳ nhắc việc quá hạn (đổi là áp dụng ngay), sai số làm tròn hóa đơn, ngưỡng hạn dùng, cảnh báo hết hạn / hết SL hợp đồng, cảnh báo chứng thư sắp hết hạn, SLA mặc định cho bước ký chưa đặt SLA. Mỗi tham số số có khoảng cho phép ghi ngay dưới tên |
 | Mẫu email | tiêu đề và nội dung email của từng sự kiện (chờ ký, trả lại, gọi hàng, cấp tài khoản…); bấm biến `{{...}}` để chèn, **Xem trước** với dữ liệu mẫu, **Khôi phục mặc định**. Giờ trong email là giờ Việt Nam |
 | Cấu hình email & ký số | máy chủ SMTP (mật khẩu để trống = giữ nguyên), **Gửi thư thử** trước khi lưu; nhà cung cấp chữ ký số mặc định, máy chủ dấu thời gian (TSA), ký nháy có cần CA, thông tin kết nối ký số từ xa (VNPT SmartCA, Viettel MySign, FPT CA). **Dùng cấu hình máy chủ** để quay về cấu hình cài đặt |
 | Tích hợp HIS | cấu hình, nhật ký request/response, **Gửi lại**, **Kéo phiếu từ HIS ngay** |

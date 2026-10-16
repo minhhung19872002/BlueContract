@@ -31,6 +31,7 @@ public static class ErrorMessages
         // Settings
         ["SETTING_KEY_REQUIRED"] = "Mã cấu hình không được để trống.",
         ["SETTING_VALUE_INVALID"] = "Giá trị cấu hình không đúng kiểu dữ liệu.",
+        ["SETTING_VALUE_OUT_OF_RANGE"] = "Giá trị cấu hình nằm ngoài khoảng cho phép.",
 
         // Auth
         ["INVALID_CREDENTIALS"] = "Tên đăng nhập hoặc mật khẩu không đúng.",

@@ -131,16 +131,20 @@ public sealed class DelegationService(IAppDbContext db, ICurrentUser current, IC
 
 // ---------- System settings ----------
 
-public sealed record SystemSettingDto(Guid Id, string Key, string Value, SettingValueType ValueType, string Description);
+public sealed record SystemSettingDto(Guid Id, string Key, string Value, SettingValueType ValueType, string Description, decimal? Min, decimal? Max);
 
 public sealed record UpdateSettingRequest(string Value);
 
-public sealed class SettingService(IAppDbContext db)
+/// <summary>Registers the recurring jobs (Hangfire) with the schedules of the settings in effect.</summary>
+public interface IRecurringJobScheduler
 {
-    public Task<List<SystemSettingDto>> ListAsync(CancellationToken ct) =>
-        db.SystemSettings.AsNoTracking().OrderBy(s => s.Key)
-            .Select(s => new SystemSettingDto(s.Id, s.Key, s.Value, s.ValueType, s.Description))
-            .ToListAsync(ct);
+    Task ApplyAsync(CancellationToken ct);
+}
+
+public sealed class SettingService(IAppDbContext db, IRecurringJobScheduler scheduler, IAuditLogger audit)
+{
+    public async Task<List<SystemSettingDto>> ListAsync(CancellationToken ct) =>
+        [.. (await db.SystemSettings.AsNoTracking().OrderBy(s => s.Key).ToListAsync(ct)).Select(ToDto)];
 
     public async Task<Result<SystemSettingDto>> UpdateAsync(string key, UpdateSettingRequest r, CancellationToken ct)
     {
@@ -150,10 +154,31 @@ public sealed class SettingService(IAppDbContext db)
             return Error.NotFound();
         }
 
-        setting.UpdateValue(r.Value?.Trim() ?? string.Empty);
+        var value = r.Value?.Trim() ?? string.Empty;
+        if (SystemSettingKeys.RangeOf(key) is { } range
+            && decimal.TryParse(value, NumberStyles.Number, CultureInfo.InvariantCulture, out var number)
+            && (number < range.Min || number > range.Max))
+        {
+            return Error.Validation("SETTING_VALUE_OUT_OF_RANGE") with
+            {
+                Detail = string.Create(CultureInfo.GetCultureInfo("vi-VN"), $"Giá trị phải từ {range.Min:#,##0.##} đến {range.Max:#,##0.##}."),
+            };
+        }
+
+        var old = setting.Value;
+        setting.UpdateValue(value);
+        audit.Log("SettingUpdate", "SystemSetting", key, new { Old = old, New = setting.Value });
         await db.SaveChangesAsync(ct);
-        return new SystemSettingDto(setting.Id, setting.Key, setting.Value, setting.ValueType, setting.Description);
+        if (SystemSettingKeys.ScheduleKeys.Contains(key))
+        {
+            await scheduler.ApplyAsync(ct);
+        }
+
+        return ToDto(setting);
     }
+
+    private static SystemSettingDto ToDto(SystemSetting s) =>
+        new(s.Id, s.Key, s.Value, s.ValueType, s.Description, SystemSettingKeys.RangeOf(s.Key)?.Min, SystemSettingKeys.RangeOf(s.Key)?.Max);
 
     public async Task<int> GetIntAsync(string key, int fallback, CancellationToken ct)
     {
