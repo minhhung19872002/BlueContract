@@ -1,22 +1,58 @@
-import { Alert, App, Button, Card, Form, Input, Typography } from 'antd';
+import { Alert, App, Button, Form, Input } from 'antd';
+import { Circle, CircleCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useChangePassword } from '../../api/auth';
 import { toApiProblem } from '../../api/http';
 import { useAuth } from '../../auth/useAuth';
 import { authStore } from '../../auth/authStore';
-import { PASSWORD_RULE } from '../../utils/validation';
+import { PASSWORD_RULE, PASSWORD_STRENGTH, passwordChecks } from '../../utils/validation';
+import './auth.css';
+
+/** Checklist of the 5 rules and the strength bar (design/Doi mat khau.dc.html). */
+function PasswordStrength({ value }: { value: string }) {
+  const checks = passwordChecks(value);
+  const ok = checks.filter((c) => c.ok).length;
+  const tone = ok <= 2 ? 'danger' : ok <= 4 ? 'warning' : 'success';
+  return (
+    <div className="pw-panel">
+      <div className="pw-panel__head">
+        <span>Độ mạnh mật khẩu</span>
+        <span style={{ color: `var(--bp-${tone}-fg)` }}>{value ? PASSWORD_STRENGTH[ok] : '—'}</span>
+      </div>
+      <div className="pw-panel__bars" aria-hidden>
+        {checks.map((_, i) => (
+          <span key={i} style={{ background: i < ok ? `var(--bp-${tone}-solid)` : 'var(--bp-border)' }} />
+        ))}
+      </div>
+      <ul className="pw-panel__rules" aria-label="Quy tắc mật khẩu">
+        {checks.map((c) => (
+          <li key={c.label} className={c.ok ? 'is-ok' : undefined}>
+            {c.ok ? <CircleCheck size={14} aria-hidden /> : <Circle size={14} aria-hidden />}
+            {c.label}
+            <span className="sr-only">{c.ok ? ' — đạt' : ' — chưa đạt'}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 /** Password change form. After success the session is closed and the user signs in again with the new password. */
-export function ChangePasswordForm({ onDone }: { onDone: () => void }) {
+export function ChangePasswordForm({ onDone, footer }: { onDone: () => void; footer?: React.ReactNode }) {
   const change = useChangePassword();
   const { message } = App.useApp();
   const [form] = Form.useForm();
+  const newPassword = Form.useWatch('newPassword', form) ?? '';
+  const confirm = Form.useWatch('confirm', form) ?? '';
+  const current = Form.useWatch('currentPassword', form) ?? '';
+  const valid = !!current && passwordChecks(newPassword).every((c) => c.ok) && confirm === newPassword;
 
   return (
     <Form
       form={form}
       layout="vertical"
-      style={{ maxWidth: 420 }}
+      requiredMark
+      className="pw-form"
       onFinish={async (v: { currentPassword: string; newPassword: string }) => {
         try {
           await change.mutateAsync({ currentPassword: v.currentPassword, newPassword: v.newPassword });
@@ -58,33 +94,39 @@ export function ChangePasswordForm({ onDone }: { onDone: () => void }) {
       >
         <Input.Password autoComplete="new-password" />
       </Form.Item>
-      <Button type="primary" htmlType="submit" loading={change.isPending}>
-        Đổi mật khẩu
-      </Button>
+      <PasswordStrength value={newPassword} />
+      <div className="pw-form__actions">
+        {footer}
+        <Button type="primary" htmlType="submit" loading={change.isPending} disabled={!valid}>
+          Đổi mật khẩu
+        </Button>
+      </div>
     </Form>
   );
 }
 
 export function ChangePasswordPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        display: 'grid',
-        placeItems: 'center',
-        padding: 16,
-        background: '#f5f7fa',
-      }}
-    >
-      <Card style={{ width: '100%', maxWidth: 480 }}>
-        <Typography.Title level={4}>Đổi mật khẩu</Typography.Title>
+    <div className="pw-page">
+      <div className="pw-page__brand">
+        <img src="/favicon.svg" width={32} height={32} alt="" />
+        <span>BlueProcure</span>
+      </div>
+      <section className="pw-page__card">
+        <div>
+          <h1 className="pw-page__title">Đổi mật khẩu</h1>
+          {user && (
+            <p className="pw-page__lead">
+              Tài khoản <span className="mono">{user.userName}</span> · {user.fullName}
+            </p>
+          )}
+        </div>
         {user?.mustChangePassword && (
           <Alert
             type="warning"
             showIcon
-            style={{ marginBottom: 16 }}
             message="Bạn đang dùng mật khẩu tạm thời. Vui lòng đặt mật khẩu mới trước khi sử dụng hệ thống."
           />
         )}
@@ -93,8 +135,21 @@ export function ChangePasswordPage() {
             authStore.clear();
             navigate('/dang-nhap', { replace: true });
           }}
+          footer={
+            <Button
+              onClick={async () => {
+                await logout();
+                navigate('/dang-nhap', { replace: true });
+              }}
+            >
+              Đăng xuất
+            </Button>
+          }
         />
-      </Card>
+        <p className="pw-page__note">
+          Sau khi đổi thành công, phiên hiện tại sẽ đóng và bạn đăng nhập lại bằng mật khẩu mới.
+        </p>
+      </section>
     </div>
   );
 }

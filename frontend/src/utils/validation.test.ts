@@ -1,4 +1,4 @@
-import { passwordSchema, taxCodeSchema } from './validation';
+import { passwordChecks, PASSWORD_STRENGTH, passwordSchema, taxCodeSchema } from './validation';
 import { omitKey } from './format';
 import { statusLabel, statusOptions } from '../components/StatusTag';
 
@@ -40,5 +40,16 @@ describe('omitKey', () => {
     const input = { a: 1, b: 2 };
     expect(omitKey(input, 'a')).toEqual({ b: 2 });
     expect(input).toEqual({ a: 1, b: 2 });
+  });
+});
+
+describe('password checklist', () => {
+  it('ticks each rule and agrees with the schema', () => {
+    const weak = passwordChecks('abc');
+    expect(weak.filter((c) => c.ok).map((c) => c.label)).toEqual(['Có chữ thường']);
+    const strong = passwordChecks('Bvdk@2026');
+    expect(strong.every((c) => c.ok)).toBe(true);
+    expect(passwordSchema.safeParse('Bvdk@2026').success).toBe(true);
+    expect(PASSWORD_STRENGTH[strong.filter((c) => c.ok).length]).toBe('Mạnh');
   });
 });

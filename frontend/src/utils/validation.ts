@@ -11,6 +11,19 @@ export const passwordSchema = z
   .regex(/\d/, 'Mật khẩu phải có chữ số')
   .regex(/[^\p{L}\p{N}]/u, 'Mật khẩu phải có ký tự đặc biệt');
 
+/** The five password rules, in the order shown on the change-password checklist (same as passwordSchema). */
+export function passwordChecks(value: string) {
+  return [
+    { label: 'Ít nhất 8 ký tự', ok: value.length >= 8 },
+    { label: 'Có chữ hoa', ok: /[A-ZÀ-Ỹ]/.test(value) },
+    { label: 'Có chữ thường', ok: /[a-zà-ỹ]/.test(value) },
+    { label: 'Có chữ số', ok: /\d/.test(value) },
+    { label: 'Có ký tự đặc biệt', ok: /[^\p{L}\p{N}]/u.test(value) },
+  ];
+}
+
+export const PASSWORD_STRENGTH = ['Rất yếu', 'Rất yếu', 'Yếu', 'Trung bình', 'Khá', 'Mạnh'] as const;
+
 export const PASSWORD_RULE: Rule = {
   validator: (_, value: string | undefined) => {
     if (!value) return Promise.resolve();
