@@ -140,7 +140,20 @@ public static class DependencyInjection
             return new CmsBuilder(sp.GetRequiredService<IHttpClientFactory>(), () => settings.Signing().TsaUrl);
         });
         services.AddHttpClient(CmsBuilder.TsaClient, c => c.Timeout = TimeSpan.FromSeconds(20));
-        services.AddDistributedMemoryCache();
+        // Signing sessions (USB token / remote CA) start on one request and finish on another, possibly on another API
+        // instance: shared Redis cache when configured (ADR-061), in-process otherwise.
+        if (configuration["Redis:Configuration"] is { Length: > 0 } redis)
+        {
+            services.AddStackExchangeRedisCache(o =>
+            {
+                o.Configuration = redis;
+                o.InstanceName = "blueprocure:";
+            });
+        }
+        else
+        {
+            services.AddDistributedMemoryCache();
+        }
         services.AddScoped<CertificateStore>();
         services.AddScoped<IOrganizationCertificates>(sp => sp.GetRequiredService<CertificateStore>());
         services.AddScoped<ISigningProvider, MockSigningProvider>();

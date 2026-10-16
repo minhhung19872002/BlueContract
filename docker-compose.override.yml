@@ -15,4 +15,5 @@ services:
 
   api:
     ports:
-      - "127.0.0.1:${API_PORT:-47081}:8080"
+      # A range, so `docker compose up --scale api=2` can give every instance a port.
+      - "127.0.0.1:${API_PORT:-47081}-${API_PORT_LAST:-47089}:8080"

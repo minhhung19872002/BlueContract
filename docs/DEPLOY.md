@@ -188,4 +188,6 @@ Sau khi khôi phục, vào **Quản trị → Kiểm tra toàn vẹn → Kiểm 
 
 ## 9. Mở rộng
 
+**Nhiều instance API:** `docker compose up -d --scale api=N api`, rồi `docker compose restart web` để nginx nhận đủ địa chỉ các instance. Redis (container `redis`, biến `REDIS_CONFIGURATION`) giữ trạng thái dùng chung: SignalR và phiên ký. Kiểm tra bằng `scripts/scale-check.ps1` / `.sh`. Nếu đặt `REDIS_CONFIGURATION=` (rỗng) thì chỉ chạy được **một** instance.
+
 API không lưu trạng thái phiên (JWT + refresh token trong cookie) nên chạy được nhiều bản sau load balancer. Khi chạy nhiều bản (ADR-027): chỉ một bản bật `Hangfire__ServerEnabled=true`, cấu hình backplane SignalR (Redis) để thông báo realtime đến mọi bản, và dùng distributed cache chung (Redis) cho trạng thái ký số từ xa / USB token.

@@ -239,3 +239,12 @@ Mỗi mục là một ADR ngắn: **Bối cảnh → Quyết định → Hệ qu
   - chữ của AntD: `i18n/antdLocale`.
 - **Chốt chặn:** `src/i18n/vietnameseOnly.test.ts` quét mọi `.tsx`. Chữ hiển thị (văn bản JSX và các prop người dùng đọc: title, label, message, placeholder…) không được chứa từ giao diện tiếng Anh (OK, Cancel, Import, Placeholder, Workflow…).
 - **Hệ quả:** Nếu sau này cần thêm ngôn ngữ, phải trích chuỗi ra danh mục; các điểm tập trung trên giúp phần dùng chung chuyển trước.
+
+## ADR-061 — Nhiều instance API: Redis cho SignalR và phiên ký
+- **Bối cảnh:** spec §11 yêu cầu API chạy được nhiều instance. Với `--scale api=2`, nginx chia request cho các instance. Thông báo SignalR chỉ tới người đang kết nối cùng instance, và phiên ký từ xa / USB token (bắt đầu ở request này, hoàn tất ở request khác) nằm trong bộ nhớ của từng instance.
+- **Quyết định:** Thêm container `redis` (không lưu đĩa, 256 MB). Khi có `Redis:Configuration` thì dùng SignalR backplane Redis (kênh tiền tố `blueprocure`) và `IDistributedCache` Redis (tiền tố `blueprocure:`); trống thì dùng bộ nhớ trong tiến trình (một instance, như các test tích hợp). Những trạng thái khác đã dùng chung qua PostgreSQL: khóa Data Protection, job Hangfire (khóa phân tán), refresh token, khóa nghiệp vụ advisory lock.
+- **Chấp nhận:**
+  - cache security stamp 15 giây và cache cấu hình 30 giây là theo từng instance, nên thu hồi phiên hay đổi cấu hình có hiệu lực trên instance khác chậm tối đa chừng đó;
+  - giới hạn đăng nhập (rate limit) tính riêng từng instance.
+- **Kiểm chứng:** `scripts/scale-check` chạy E2E #6 trên 2 instance. Không có Redis: ĐỎ ("signing session lost between API instances"). Có Redis: XANH, hai instance chia đều request, và toàn bộ 7 E2E xanh khi chạy 2 instance.
+- **Không chọn:** backplane trên PostgreSQL. Không có gói chính thức; tự viết LISTEN/NOTIFY thì phải tự lo kết nối lại và thứ tự gói tin.

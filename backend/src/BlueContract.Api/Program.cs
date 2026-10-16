@@ -84,7 +84,14 @@ try
     builder.Services.AddAppAuth(builder.Configuration);
 
     // Realtime notifications (SignalR) and background job server (Hangfire)
-    builder.Services.AddSignalR();
+    // With several API instances (docker compose --scale api=N) a push must reach users connected to any instance:
+    // Redis backplane when "Redis:Configuration" is set (ADR-061); in-process otherwise (single instance).
+    var signalR = builder.Services.AddSignalR();
+    if (builder.Configuration["Redis:Configuration"] is { Length: > 0 } redis)
+    {
+        signalR.AddStackExchangeRedis(redis, o => o.Configuration.ChannelPrefix = StackExchange.Redis.RedisChannel.Literal("blueprocure"));
+    }
+
     builder.Services.AddSingleton<Microsoft.AspNetCore.SignalR.IUserIdProvider, BlueContract.Api.Realtime.SubjectUserIdProvider>();
     builder.Services.AddScoped<BlueContract.Application.Notifications.IRealtimeNotifier, BlueContract.Api.Realtime.SignalRNotifier>();
     var hangfire = builder.Configuration.GetSection(BlueContract.Infrastructure.Jobs.HangfireOptions.SectionName).Get<BlueContract.Infrastructure.Jobs.HangfireOptions>()
