@@ -211,3 +211,31 @@ Mỗi mục là một ADR ngắn: **Bối cảnh → Quyết định → Hệ qu
 - **Replay HMAC:** bảng `used_request_signatures` (khóa chính = chữ ký), giữ 2× độ lệch giờ cho phép.
 - **Tệp tải lên:** lưu với media type/đuôi suy từ nội dung (magic bytes), không theo khai báo của client.
 
+
+## ADR-056 — Hợp đồng nhiều cơ sở (`FacilityIds`)
+- **Quyết định:** HĐ giữ danh sách cơ sở thực hiện (`uuid[]`, rỗng = toàn bệnh viện), không dùng bảng nối. Phạm vi dữ liệu so trùng mảng (`&&`), nên một HĐ hiện với mọi cơ sở trong danh sách. Luồng ký chỉ có một cơ sở phạm vi: HĐ đúng một cơ sở dùng luồng của cơ sở đó (`SingleFacilityId`); HĐ nhiều cơ sở dùng luồng chung.
+- **Không chọn:** bảng `contract_facilities`. Truy vấn và migration nặng hơn mà không có thuộc tính riêng nào trên quan hệ.
+
+## ADR-057 — Cấu hình chỉnh trên giao diện đè appsettings (`config_overrides`)
+- **Quyết định:** SMTP và ký số sửa được trên màn hình. Giá trị lưu theo khóa cấu hình (`Email:Host`…) trong `config_overrides`, bí mật mã hóa Data Protection. `RuntimeSettings` gộp appsettings với giá trị này rồi bind ra các lớp options; mọi chỗ đọc đi qua nó. Cache 30 giây, làm mới ngay trên instance vừa lưu; instance khác nhận trong vòng 30 giây.
+- **Giữ ở máy chủ:** công tắc an toàn (`EnableMockProviders`), chuỗi kết nối, khóa ký JWT. Những giá trị này không sửa được trên giao diện.
+
+## ADR-058 — "Xuất Excel" theo đúng cái đang thấy
+- **Quyết định:** Mọi bảng xuất bằng một cơ chế chung: trang gửi cột và dòng nó hiển thị (giá trị lấy theo hàm render của cột) tới `POST /api/export/table`; máy chủ chỉ dựng workbook với ô số / tiền / ngày đúng kiểu. Danh sách phân trang server tự lấy hết các trang với cùng bộ lọc. Endpoint không đọc dữ liệu nên không thể mở rộng quyền xem.
+- **Giữ nguyên:** các danh sách đã có endpoint `/export` riêng với cột chọn lọc (HĐ, phiếu nhập kho, báo cáo…).
+
+## ADR-059 — Nháp form dài lưu trong trình duyệt
+- **Quyết định:** `useFormDraft` lưu giá trị form và trạng thái ngoài form vào `localStorage`, khóa theo tài khoản và theo form/đối tượng, giữ 14 ngày. Không lưu mật khẩu/secret, không lưu tệp. Nháp chỉ ở máy đang dùng, không đồng bộ giữa thiết bị.
+- **Không chọn:** lưu nháp trên máy chủ. Cần thêm bảng và quyền cho dữ liệu chưa hoàn chỉnh, trong khi các chứng từ (HĐ, phiếu…) đã có trạng thái Nháp ở máy chủ khi bấm Lưu.
+
+## ADR-060 — Chuỗi giao diện tiếng Việt đặt tại chỗ, từ vựng dùng chung tập trung
+- **Bối cảnh:** AUDIT-1 §12.6 hỏi có gom chuỗi giao diện về `src/i18n/` không. Ứng dụng chỉ có tiếng Việt (spec §1), không có kế hoạch đa ngôn ngữ.
+- **Quyết định:** Không dựng danh mục dịch. Câu chữ của từng màn hình nằm cạnh component. Phần từ vựng **dùng chung ở nhiều nơi** thì tập trung một chỗ, mỗi chỗ có test bảo đảm đủ:
+  - trạng thái / loại: `StatusTag`, test đối chiếu mọi enum của OpenAPI;
+  - hành động và đối tượng nhật ký: `AuditVocabulary` (backend), test quét mã nguồn;
+  - tên trường lịch sử: `utils/auditDetails`;
+  - mã lỗi: `ErrorMessages` (backend);
+  - ngày, giờ, tiền: `utils/format` + `i18n/dayjs`;
+  - chữ của AntD: `i18n/antdLocale`.
+- **Chốt chặn:** `src/i18n/vietnameseOnly.test.ts` quét mọi `.tsx`. Chữ hiển thị (văn bản JSX và các prop người dùng đọc: title, label, message, placeholder…) không được chứa từ giao diện tiếng Anh (OK, Cancel, Import, Placeholder, Workflow…).
+- **Hệ quả:** Nếu sau này cần thêm ngôn ngữ, phải trích chuỗi ra danh mục; các điểm tập trung trên giúp phần dùng chung chuyển trước.
