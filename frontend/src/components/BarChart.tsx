@@ -22,6 +22,7 @@ export function BarChart<T extends Record<string, number | string>>({
   height = 220,
   stacked = false,
   label = 'Biểu đồ',
+  emptyText = 'Chưa có số liệu trong khoảng thời gian này',
 }: {
   data: T[];
   category: keyof T & string;
@@ -29,6 +30,7 @@ export function BarChart<T extends Record<string, number | string>>({
   height?: number;
   stacked?: boolean;
   label?: string;
+  emptyText?: string;
 }) {
   const value = (d: T, key: string) => Number(d[key]) || 0;
   const total = (d: T) => series.reduce((sum, s) => sum + value(d, s.key), 0);
@@ -36,6 +38,7 @@ export function BarChart<T extends Record<string, number | string>>({
     Math.max(0, ...data.map((d) => (stacked ? total(d) : Math.max(...series.map((s) => value(d, s.key)))))),
   );
   const ticks = [1, 0.75, 0.5, 0.25, 0];
+  const empty = data.every((d) => series.every((x) => value(d, x.key) === 0));
 
   return (
     <figure className="bar-chart" aria-label={label}>
@@ -47,7 +50,12 @@ export function BarChart<T extends Record<string, number | string>>({
           </span>
         ))}
       </div>
-      <div className="bar-chart__plot" style={{ height }}>
+      {empty && (
+        <div className="bar-chart__empty" style={{ height }}>
+          {emptyText}
+        </div>
+      )}
+      <div className="bar-chart__plot" style={{ height }} hidden={empty}>
         <div className="bar-chart__axis" aria-hidden>
           {ticks.map((t) => (
             <span key={t}>{shortMoney(max * t)}</span>
@@ -114,7 +122,7 @@ export function BarChart<T extends Record<string, number | string>>({
           </div>
         </div>
       </div>
-      <div className="bar-chart__labels" aria-hidden>
+      <div className="bar-chart__labels" aria-hidden hidden={empty}>
         {data.map((d) => (
           <span key={String(d[category])}>{String(d[category])}</span>
         ))}

@@ -477,9 +477,13 @@ export function SigningInboxPage() {
         ],
       }}
     >
-      <Button aria-label="Nhà cung cấp chữ ký số">
+      <Button
+        aria-label="Nhà cung cấp chữ ký số"
+        className="inbox-provider-btn"
+        title={provider?.displayName}
+      >
         {providerIcon(provider, 16)}
-        {provider?.displayName}
+        <span className="inbox-provider-btn__label">{provider?.displayName}</span>
         <ChevronDown size={15} aria-hidden />
       </Button>
     </Dropdown>

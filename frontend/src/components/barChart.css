@@ -27,6 +27,21 @@
   flex: none;
 }
 
+.bar-chart__empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed var(--bp-border);
+  border-radius: 8px;
+  color: var(--bp-caption);
+  font-size: 13px;
+}
+
+.bar-chart__plot[hidden],
+.bar-chart__labels[hidden] {
+  display: none;
+}
+
 .bar-chart__plot {
   display: flex;
   gap: 8px;

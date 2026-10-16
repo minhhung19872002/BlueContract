@@ -12,7 +12,23 @@
   gap: 8px;
 }
 
+.inbox-toolbar {
+  max-width: 100%;
+}
+
+.inbox-toolbar .inbox-provider-btn {
+  max-width: 100%;
+}
+
+.inbox-provider-btn__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .inbox-modes {
+  max-width: 100%;
   display: inline-flex;
   padding: 2px;
   border-radius: 8px;
