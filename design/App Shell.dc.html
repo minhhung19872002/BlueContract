@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<title>BlueProcure — App shell</title>
+<link rel="icon" href="./favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap">
+<script src="./bp.js"></script>
+<script src="./screens.js"></script>
+<style>
+:root{--bp-primary:#1554ad;--bp-primary-hover:#2a6bc6;--bp-primary-active:#0f428a;--bp-primary-fg:#1554ad;--bp-primary-bg:#eaf1fb;--bp-primary-bd:#bcd3f2;--bp-primary-solid:#1554ad;
+--bp-sider:#0B1F44;--bp-sider-active:#1d3a73;--bp-sider-bar:#7fb2ff;--bp-sider-text:#c3cee3;--bp-sider-muted:#8a9bbd;--bp-sider-line:rgba(255,255,255,.08);
+--bp-teal-fg:#0f766e;--bp-teal-bg:#e7f5f3;--bp-teal-bd:#a5dcd4;--bp-teal-solid:#0f766e;
+--bp-success-fg:#067647;--bp-success-bg:#ecfdf3;--bp-success-bd:#abefc6;--bp-success-solid:#12b76a;
+--bp-warning-fg:#8a5300;--bp-warning-bg:#fff8e6;--bp-warning-bd:#f8dc8f;--bp-warning-solid:#f0a800;
+--bp-orange-fg:#b93815;--bp-orange-bg:#fff4ed;--bp-orange-bd:#fbcfb3;--bp-orange-solid:#ef6820;
+--bp-danger-fg:#b42318;--bp-danger-bg:#fef3f2;--bp-danger-bd:#fecdca;--bp-danger-solid:#d92d20;
+--bp-info-fg:#0e6a80;--bp-info-bg:#ebf7fa;--bp-info-bd:#b2dfea;--bp-info-solid:#1592ad;
+--bp-purple-fg:#6941c6;--bp-purple-bg:#f4f3ff;--bp-purple-bd:#d9d6fe;--bp-purple-solid:#7a5af8;
+--bp-indigo-fg:#3538cd;--bp-indigo-bg:#eef4ff;--bp-indigo-bd:#c7d7fe;--bp-indigo-solid:#444ce7;
+--bp-neutral-fg:#475467;--bp-neutral-bg:#f2f4f7;--bp-neutral-bd:#dfe3ea;--bp-neutral-solid:#98a2b3;
+--bp-layout:#F6F7F9;--bp-card:#ffffff;--bp-th:#F9FAFB;--bp-hover:#F2F4F7;--bp-border:#E6E8EC;--bp-input-bd:#8a94a6;
+--bp-text:#101828;--bp-text-2:#475467;--bp-caption:#5f6b7d;--bp-overlay:rgba(16,24,40,.45);
+--bp-shadow:0 16px 40px -12px rgba(16,24,40,.22),0 4px 10px -4px rgba(16,24,40,.08);--bp-shadow-hover:0 6px 16px -6px rgba(16,24,40,.14);}
+[data-theme="dark"]{--bp-primary:#2f6fcf;--bp-primary-hover:#4683dc;--bp-primary-active:#1f5bb5;--bp-primary-fg:#8ab8ff;--bp-primary-bg:#11264a;--bp-primary-bd:#22468a;--bp-primary-solid:#4d8ae6;
+--bp-sider:#070f22;--bp-sider-active:#17305f;
+--bp-teal-fg:#5fd3c4;--bp-teal-bg:#0a2724;--bp-teal-bd:#145a52;
+--bp-success-fg:#75e0a7;--bp-success-bg:#0b2a1c;--bp-success-bd:#175a3a;
+--bp-warning-fg:#fcd36b;--bp-warning-bg:#2b2108;--bp-warning-bd:#6b4f0e;
+--bp-orange-fg:#fdac74;--bp-orange-bg:#2e1709;--bp-orange-bd:#7a3410;
+--bp-danger-fg:#fda29b;--bp-danger-bg:#2f1210;--bp-danger-bd:#7a271a;
+--bp-info-fg:#7cd4e8;--bp-info-bg:#0a2730;--bp-info-bd:#155e70;
+--bp-purple-fg:#bdb4fe;--bp-purple-bg:#1e1640;--bp-purple-bd:#4a3a9a;
+--bp-indigo-fg:#a4bcfd;--bp-indigo-bg:#141a42;--bp-indigo-bd:#3538a0;
+--bp-neutral-fg:#c5ccd8;--bp-neutral-bg:#1d2433;--bp-neutral-bd:#364056;--bp-neutral-solid:#7d879a;
+--bp-layout:#0a0f1a;--bp-card:#111827;--bp-th:#151d2c;--bp-hover:#1a2335;--bp-border:#253047;--bp-input-bd:#5b6780;
+--bp-text:#eef1f6;--bp-text-2:#b4bdcc;--bp-caption:#9aa5b8;--bp-overlay:rgba(0,0,0,.6);
+--bp-shadow:0 16px 40px -12px rgba(0,0,0,.6),0 4px 10px -4px rgba(0,0,0,.4);}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bp-layout);color:var(--bp-text);font-family:'Be Vietnam Pro','Segoe UI',Roboto,sans-serif;font-size:14px;line-height:1.5715;-webkit-font-smoothing:antialiased}
+a{color:var(--bp-primary-fg);text-decoration:none}a:hover{color:var(--bp-primary-hover);text-decoration:underline}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--bp-primary-solid);outline-offset:2px}
+input::placeholder{color:var(--bp-caption)}
+@keyframes bp-pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--bp-primary-solid) 55%,transparent)}70%{box-shadow:0 0 0 5px transparent}100%{box-shadow:0 0 0 0 transparent}}
+@keyframes bp-shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
+</style>
+</helmet>
+<div style="display:flex;min-height:100vh;background:var(--bp-layout)">
+  <sc-if value="{{ mobileOverlay }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeMobile }}" style="position:fixed;inset:0;background:var(--bp-overlay);z-index:40"></div>
+  </sc-if>
+  <aside class="app-sider" style="{{ siderStyle }}">
+    <div style="height:64px;display:flex;align-items:center;gap:10px;padding:0 16px;border-bottom:1px solid var(--bp-sider-line);flex:none">
+      <img src="./favicon.svg" alt="BlueProcure" width="32" height="32" style="flex:none;border-radius:7px;box-shadow:0 0 0 1px rgba(255,255,255,.12)">
+      <sc-if value="{{ expanded }}" hint-placeholder-val="{{ true }}">
+        <div style="min-width:0;display:flex;flex-direction:column;line-height:1.25">
+          <span style="color:#fff;font-weight:700;font-size:15px;letter-spacing:-.01em">BlueProcure</span>
+          <span style="color:var(--bp-sider-muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ orgName }}</span>
+        </div>
+      </sc-if>
+    </div>
+    <sc-if value="{{ isSupplier }}" hint-placeholder-val="{{ false }}">
+      <sc-if value="{{ expanded }}" hint-placeholder-val="{{ true }}">
+        <div style="margin:12px 12px 0;padding:6px 10px;border-radius:8px;background:rgba(127,178,255,.12);color:#cfe0ff;font-size:12px;font-weight:600;display:flex;align-items:center;gap:8px"><bp-icon name="building-2" size="14"></bp-icon>Cổng Nhà cung cấp</div>
+      </sc-if>
+    </sc-if>
+    <nav aria-label="Menu chính" style="flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.18) transparent;padding:8px 0 16px">
+      <sc-for list="{{ nav }}" as="g" hint-placeholder-count="4">
+        <div style="padding-top:12px">
+          <sc-if value="{{ g.showLabel }}" hint-placeholder-val="{{ true }}">
+            <div style="padding:0 20px 6px;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--bp-sider-muted)">{{ g.group }}</div>
+          </sc-if>
+          <sc-if value="{{ g.showDivider }}" hint-placeholder-val="{{ false }}">
+            <div style="height:1px;margin:0 16px 8px;background:var(--bp-sider-line)"></div>
+          </sc-if>
+          <div style="display:flex;flex-direction:column;gap:2px">
+            <sc-for list="{{ g.items }}" as="it" hint-placeholder-count="3">
+              <div style="display:flex;flex-direction:column;gap:2px">
+                <button onClick="{{ it.onClick }}" onMouseEnter="{{ it.onEnter }}" onMouseLeave="{{ hideTip }}" aria-current="{{ it.current }}" style="position:relative;display:flex;align-items:center;gap:12px;height:38px;margin:0 8px;padding:0 {{ itemPadX }}px;border:0;border-radius:8px;cursor:pointer;text-align:left;background:{{ it.bg }};color:{{ it.fg }};font-size:14px;font-weight:{{ it.fw }};justify-content:{{ itemJustify }}" style-hover="background:{{ it.hov }};color:#fff">
+                  <span style="position:absolute;left:-8px;top:9px;bottom:9px;width:3px;border-radius:0 3px 3px 0;background:var(--bp-sider-bar);opacity:{{ it.bar }}"></span>
+                  <span style="position:relative;display:inline-flex;white-space:nowrap">
+                    <bp-icon name="{{ it.i }}" size="18"></bp-icon>
+                    <sc-if value="{{ it.dotBadge }}" hint-placeholder-val="{{ false }}">
+                      <span style="position:absolute;top:-3px;right:-4px;width:8px;height:8px;border-radius:50%;background:#f04438;box-shadow:0 0 0 2px var(--bp-sider)"></span>
+                    </sc-if>
+                  </span>
+                  <sc-if value="{{ expanded }}" hint-placeholder-val="{{ true }}">
+                    <span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ it.l }}</span>
+                    <sc-if value="{{ it.badge }}" hint-placeholder-val="{{ false }}">
+                      <span style="min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:{{ it.badgeBg }};color:#fff;font-size:11px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums;white-space:nowrap">{{ it.badge }}</span>
+                    </sc-if>
+                    <sc-if value="{{ it.hasChildren }}" hint-placeholder-val="{{ false }}">
+                      <bp-icon name="{{ it.chev }}" size="16"></bp-icon>
+                    </sc-if>
+                  </sc-if>
+                </button>
+                <sc-if value="{{ it.showChildren }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;flex-direction:column;gap:1px;padding:2px 0 4px">
+                    <sc-for list="{{ it.children }}" as="c" hint-placeholder-count="6">
+                      <button onClick="{{ c.onClick }}" aria-current="{{ c.current }}" style="display:flex;align-items:center;height:34px;margin:0 8px;padding:0 10px 0 42px;border:0;border-radius:8px;cursor:pointer;text-align:left;font-size:13.5px;background:{{ c.bg }};color:{{ c.fg }};font-weight:{{ c.fw }};position:relative" style-hover="background:{{ c.hov }};color:#fff">
+                        <span style="position:absolute;left:24px;top:50%;width:5px;height:5px;margin-top:-2.5px;border-radius:50%;background:{{ c.dot }}"></span>{{ c.l }}
+                      </button>
+                    </sc-for>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-for>
+    </nav>
+    <div style="flex:none;border-top:1px solid var(--bp-sider-line);padding:10px 8px">
+      <button onClick="{{ toggleCollapse }}" aria-label="Thu gọn / mở rộng menu" style="width:100%;height:36px;display:flex;align-items:center;justify-content:{{ itemJustify }};gap:10px;padding:0 {{ itemPadX }}px;border:0;border-radius:8px;background:transparent;color:var(--bp-sider-muted);cursor:pointer;font-size:13px" style-hover="background:rgba(255,255,255,.06);color:#fff">
+        <bp-icon name="{{ collapseIcon }}" size="18"></bp-icon>
+        <sc-if value="{{ expanded }}" hint-placeholder-val="{{ true }}"><span>Thu gọn menu</span></sc-if>
+      </button>
+    </div>
+  </aside>
+  <sc-if value="{{ tip }}" hint-placeholder-val="{{ false }}">
+    <div role="tooltip" style="position:fixed;left:78px;top:{{ tipTop }}px;z-index:60;padding:6px 10px;border-radius:6px;background:#101828;color:#fff;font-size:12px;font-weight:500;white-space:nowrap;box-shadow:var(--bp-shadow);pointer-events:none">{{ tipLabel }}</div>
+  </sc-if>
+
+  <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+    <header class="app-header" style="position:sticky;top:0;z-index:30;height:56px;display:flex;align-items:center;gap:12px;padding:0 20px;background:var(--bp-card);border-bottom:1px solid var(--bp-border)">
+      <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
+        <button onClick="{{ openMobile }}" aria-label="Mở menu" style="width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--bp-border);border-radius:8px;background:var(--bp-card);cursor:pointer;white-space:nowrap"><bp-icon name="menu" size="18"></bp-icon></button>
+      </sc-if>
+      <nav aria-label="Breadcrumb" style="display:flex;align-items:center;gap:6px;min-width:0;font-size:13px;color:var(--bp-caption)">
+        <bp-icon name="house" size="14"></bp-icon>
+        <bp-icon name="chevron-right" size="14"></bp-icon>
+        <span style="white-space:nowrap">{{ crumbGroup }}</span>
+        <bp-icon name="chevron-right" size="14"></bp-icon>
+        <span style="color:var(--bp-text);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ crumbPage }}</span>
+      </nav>
+      <div style="flex:1"></div>
+      <sc-if value="{{ showSearchBox }}" hint-placeholder-val="{{ true }}">
+        <button onClick="{{ openPalette }}" style="width:300px;height:36px;display:flex;align-items:center;gap:8px;padding:0 8px 0 12px;border:1px solid var(--bp-border);border-radius:8px;background:var(--bp-layout);color:var(--bp-caption);cursor:pointer;font-size:13px;text-align:left" style-hover="border-color:var(--bp-input-bd)">
+          <bp-icon name="search" size="16"></bp-icon>
+          <span style="flex:1">Tìm hợp đồng, phiếu, nhà cung cấp…</span>
+          <span style="display:inline-flex;gap:3px;white-space:nowrap"><kbd style="font-family:'JetBrains Mono',monospace;font-size:11px;padding:1px 5px;border:1px solid var(--bp-border);border-bottom-width:2px;border-radius:4px;background:var(--bp-card);color:var(--bp-text-2)">Ctrl</kbd><kbd style="font-family:'JetBrains Mono',monospace;font-size:11px;padding:1px 6px;border:1px solid var(--bp-border);border-bottom-width:2px;border-radius:4px;background:var(--bp-card);color:var(--bp-text-2)">K</kbd></span>
+        </button>
+      </sc-if>
+      <sc-if value="{{ showEnv }}" hint-placeholder-val="{{ true }}">
+        <span title="Môi trường phát triển — ẩn ở production" style="display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 8px;border-radius:6px;border:1px solid var(--bp-warning-bd);background:var(--bp-warning-bg);color:var(--bp-warning-fg);font-size:12px;font-weight:600;white-space:nowrap"><span style="width:6px;height:6px;border-radius:50%;background:var(--bp-warning-solid)"></span>Development</span>
+      </sc-if>
+      <div style="position:relative">
+        <button onClick="{{ toggleNotif }}" aria-label="Thông báo" style="position:relative;width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:8px;background:transparent;color:var(--bp-text-2);cursor:pointer;white-space:nowrap" style-hover="background:var(--bp-hover)">
+          <bp-icon name="bell" size="18"></bp-icon>
+          <sc-if value="{{ unread }}" hint-placeholder-val="{{ true }}">
+            <span style="position:absolute;top:3px;right:2px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:var(--bp-danger-solid);color:#fff;font-size:10.5px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px var(--bp-card)">{{ unread }}</span>
+          </sc-if>
+        </button>
+        <sc-if value="{{ notifOpen }}" hint-placeholder-val="{{ false }}">
+          <div onClick="{{ closeAll }}" style="position:fixed;inset:0;z-index:49"></div>
+          <div role="dialog" aria-label="Thông báo" style="position:absolute;right:-8px;top:44px;z-index:50;width:min(400px,calc(100vw - 24px));background:var(--bp-card);border:1px solid var(--bp-border);border-radius:12px;box-shadow:var(--bp-shadow);overflow:hidden">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--bp-border)">
+              <span style="font-weight:600;font-size:15px">Thông báo</span>
+              <button onClick="{{ markAll }}" style="display:inline-flex;align-items:center;gap:6px;border:0;background:transparent;color:var(--bp-primary-fg);font-size:13px;font-weight:500;cursor:pointer;padding:4px 6px;border-radius:6px;white-space:nowrap" style-hover="background:var(--bp-primary-bg)"><bp-icon name="check-check" size="15"></bp-icon>Đánh dấu đã đọc tất cả</button>
+            </div>
+            <div style="max-height:420px;overflow-y:auto">
+              <sc-for list="{{ notifications }}" as="n" hint-placeholder-count="4">
+                <a href="{{ n.href }}" onClick="{{ n.onClick }}" style="display:flex;gap:12px;padding:12px 16px;border-bottom:1px solid var(--bp-border);background:{{ n.bg }};color:var(--bp-text);text-decoration:none" style-hover="background:var(--bp-hover);text-decoration:none;color:var(--bp-text)">
+                  <span style="flex:none;width:32px;height:32px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;background:var(--bp-{{ n.tone }}-bg);color:var(--bp-{{ n.tone }}-fg);white-space:nowrap"><bp-icon name="{{ n.icon }}" size="16"></bp-icon></span>
+                  <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
+                    <span style="font-size:13.5px;font-weight:{{ n.fw }};line-height:1.4">{{ n.title }}</span>
+                    <span style="font-size:12.5px;color:var(--bp-text-2)">{{ n.body }}</span>
+                    <span style="font-size:12px;color:var(--bp-caption);font-variant-numeric:tabular-nums">{{ n.time }}</span>
+                  </span>
+                  <sc-if value="{{ n.unread }}" hint-placeholder-val="{{ false }}"><span aria-label="Chưa đọc" style="flex:none;width:8px;height:8px;margin-top:6px;border-radius:50%;background:var(--bp-primary-solid)"></span></sc-if>
+                </a>
+              </sc-for>
+            </div>
+            <a href="#thong-bao" onClick="{{ openAllNotif }}" style="display:block;padding:10px;text-align:center;font-size:13px;font-weight:500">Xem tất cả thông báo</a>
+          </div>
+        </sc-if>
+      </div>
+      <button onClick="{{ toggleTheme }}" aria-label="Đổi giao diện sáng / tối" title="Đổi giao diện sáng / tối" style="width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:8px;background:transparent;color:var(--bp-text-2);cursor:pointer;white-space:nowrap" style-hover="background:var(--bp-hover)"><bp-icon name="{{ themeIcon }}" size="18"></bp-icon></button>
+      <div style="width:1px;height:24px;background:var(--bp-border)"></div>
+      <div style="position:relative">
+        <button onClick="{{ toggleUser }}" style="display:flex;align-items:center;gap:10px;height:40px;padding:0 8px 0 4px;border:0;border-radius:8px;background:transparent;cursor:pointer;text-align:left" style-hover="background:var(--bp-hover)">
+          <span style="width:32px;height:32px;border-radius:50%;background:var(--bp-primary-bg);color:var(--bp-primary-fg);font-weight:600;font-size:13px;display:inline-flex;align-items:center;justify-content:center;flex:none;white-space:nowrap">{{ user.initials }}</span>
+          <sc-if value="{{ showUserText }}" hint-placeholder-val="{{ true }}">
+            <span style="display:flex;flex-direction:column;line-height:1.25;min-width:0">
+              <span style="font-weight:600;font-size:13.5px;white-space:nowrap">{{ user.name }}</span>
+              <span style="font-size:12px;color:var(--bp-caption);white-space:nowrap">{{ user.title }}</span>
+            </span>
+          </sc-if>
+          <bp-icon name="chevron-down" size="16"></bp-icon>
+        </button>
+        <sc-if value="{{ userOpen }}" hint-placeholder-val="{{ false }}">
+          <div onClick="{{ closeAll }}" style="position:fixed;inset:0;z-index:49"></div>
+          <div role="menu" style="position:absolute;right:0;top:46px;z-index:50;width:260px;background:var(--bp-card);border:1px solid var(--bp-border);border-radius:12px;box-shadow:var(--bp-shadow);padding:6px">
+            <div style="padding:10px 10px 12px;border-bottom:1px solid var(--bp-border);margin-bottom:6px">
+              <div style="font-weight:600">{{ user.name }}</div>
+              <div style="font-size:12px;color:var(--bp-caption)">{{ user.unit }}</div>
+              <div style="font-size:12px;color:var(--bp-caption);font-family:'JetBrains Mono',monospace;margin-top:2px">{{ user.login }}</div>
+            </div>
+            <a href="#/design-system" onClick="{{ openDS }}" role="menuitem" style="display:flex;align-items:center;gap:10px;height:36px;padding:0 10px;border-radius:8px;color:var(--bp-text);text-decoration:none" style-hover="background:var(--bp-hover);text-decoration:none;color:var(--bp-text)"><bp-icon name="palette" size="16"></bp-icon>Design system</a>
+            <a href="#loi-404" onClick="{{ openErr }}" role="menuitem" style="display:flex;align-items:center;gap:10px;height:36px;padding:0 10px;border-radius:8px;color:var(--bp-text);text-decoration:none" style-hover="background:var(--bp-hover);text-decoration:none;color:var(--bp-text)"><bp-icon name="circle-alert" size="16"></bp-icon>Trang lỗi 404 / 403 / 500</a>
+            <a href="{{ accountHref }}" onClick="{{ openAccount }}" role="menuitem" style="display:flex;align-items:center;gap:10px;height:36px;padding:0 10px;border-radius:8px;color:var(--bp-text);text-decoration:none" style-hover="background:var(--bp-hover);text-decoration:none;color:var(--bp-text)"><bp-icon name="shield-check" size="16"></bp-icon>Tài khoản &amp; bảo mật</a>
+            <div style="height:1px;background:var(--bp-border);margin:6px 0"></div>
+            <a href="#/dang-nhap" onClick="{{ logout }}" role="menuitem" style="display:flex;align-items:center;gap:10px;height:36px;padding:0 10px;border-radius:8px;color:var(--bp-danger-fg);text-decoration:none" style-hover="background:var(--bp-danger-bg);text-decoration:none;color:var(--bp-danger-fg)"><bp-icon name="log-out" size="16"></bp-icon>Đăng xuất</a>
+          </div>
+        </sc-if>
+      </div>
+    </header>
+
+    <main style="flex:1;padding:{{ mainPad }};min-width:0">
+      <div style="max-width:1440px;margin:0 auto;display:flex;flex-direction:column;gap:16px">
+        <sc-if value="{{ isList }}" hint-placeholder-val="{{ true }}"><dc-import name="Page List" config="{{ screen }}" on-open="{{ openScreen }}" hint-size="100%,640px"></dc-import></sc-if>
+        <sc-if value="{{ isDetail }}" hint-placeholder-val="{{ false }}"><dc-import name="Page Detail" config="{{ screen }}" supplier="{{ isSupplier }}" on-open="{{ openScreen }}" hint-size="100%,800px"></dc-import></sc-if>
+        <sc-if value="{{ isForm }}" hint-placeholder-val="{{ false }}"><dc-import name="Page Form" config="{{ screen }}" on-open="{{ openScreen }}" hint-size="100%,700px"></dc-import></sc-if>
+        <sc-if value="{{ c_Tong_quan }}" hint-placeholder-val="{{ false }}"><dc-import name="Tong quan" view="{{ view }}" portal="{{ portalKey }}" on-open="{{ openScreen }}" on-navigate="{{ onNavigate }}" hint-size="100%,700px"></dc-import></sc-if>
+        <sc-if value="{{ c_Trinh_ky }}" hint-placeholder-val="{{ false }}"><dc-import name="Trinh ky" view="{{ view }}" portal="{{ portalKey }}" on-open="{{ openScreen }}" on-navigate="{{ onNavigate }}" hint-size="100%,700px"></dc-import></sc-if>
+        <sc-if value="{{ c_Xac_minh }}" hint-placeholder-val="{{ false }}"><dc-import name="Xac minh" view="{{ view }}" portal="{{ portalKey }}" on-open="{{ openScreen }}" on-navigate="{{ onNavigate }}" hint-size="100%,700px"></dc-import></sc-if>
+        <sc-if value="{{ c_Ho_so_luu_tru }}" hint-placeholder-val="{{ false }}"><dc-import name="Ho so luu tru" view="{{ view }}" portal="{{ portalKey }}" on-open="{{ openScreen }}" on-navigate="{{ onNavigate }}" hint-size="100%,700px"></dc-import></sc-if>
+        <sc-if value="{{ c_Bao_cao }}" hint-placeholder-val="{{ false }}"><dc-import name="Bao cao" view="{{ view }}" portal="{{ portalKey }}" on-open="{{ openScreen }}" on-navigate="{{ onNavigate }}" hint-size="100%,700px"></dc-import></sc-if>
+        <sc-if value="{{ c_Vai_tro }}" hint-placeholder-val="{{ false }}"><dc-import name="Vai tro" view="{{ view }}" portal="{{ portalKey }}" on-open="{{ openScreen }}" on-navigate="{{ onNavigate }}" hint-size="100%,700px"></dc-import></sc-if>
+        <sc-if value="{{ c_Luong_ky_builder }}" hint-placeholder-val="{{ false }}"><dc-import name="Luong ky builder" view="{{ view }}" portal="{{ portalKey }}" on-open="{{ openScreen }}" on-navigate="{{ onNavigate }}" hint-size="100%,700px"></dc-import></sc-if>
+        <sc-if value="{{ c_Tich_hop_HIS }}" hint-placeholder-val="{{ false }}"><dc-import name="Tich hop HIS" view="{{ view }}" portal="{{ portalKey }}" on-open="{{ openScreen }}" on-navigate="{{ onNavigate }}" hint-size="100%,700px"></dc-import></sc-if>
+        <sc-if value="{{ c_Tai_khoan }}" hint-placeholder-val="{{ false }}"><dc-import name="Tai khoan" view="{{ view }}" portal="{{ portalKey }}" on-open="{{ openScreen }}" on-navigate="{{ onNavigate }}" hint-size="100%,700px"></dc-import></sc-if>
+        <sc-if value="{{ c_He_thong }}" hint-placeholder-val="{{ false }}"><dc-import name="He thong" view="{{ view }}" portal="{{ portalKey }}" on-open="{{ openScreen }}" on-navigate="{{ onNavigate }}" hint-size="100%,700px"></dc-import></sc-if>
+      </div>
+    </main>
+  </div>
+
+  <sc-if value="{{ paletteOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeAll }}" style="position:fixed;inset:0;background:var(--bp-overlay);z-index:70"></div>
+    <div role="dialog" aria-label="Tìm kiếm nhanh" style="position:fixed;left:50%;top:12vh;transform:translateX(-50%);z-index:71;width:min(640px,calc(100vw - 32px));background:var(--bp-card);border:1px solid var(--bp-border);border-radius:14px;box-shadow:var(--bp-shadow);overflow:hidden">
+      <div style="display:flex;align-items:center;gap:10px;padding:0 16px;height:56px;border-bottom:1px solid var(--bp-border);color:var(--bp-caption)">
+        <bp-icon name="search" size="18"></bp-icon>
+        <input autoFocus="{{ true }}" placeholder="Gõ số hợp đồng, số phiếu, MST hoặc tên màn hình…" style="flex:1;border:0;outline:0;background:transparent;font-size:15px;color:var(--bp-text)">
+        <kbd style="font-family:'JetBrains Mono',monospace;font-size:11px;padding:2px 6px;border:1px solid var(--bp-border);border-radius:4px;color:var(--bp-text-2)">Esc</kbd>
+      </div>
+      <div style="max-height:400px;overflow-y:auto;padding:8px">
+        <div style="padding:8px 10px 4px;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--bp-caption)">Tài liệu gần đây</div>
+        <sc-for list="{{ recent }}" as="rc" hint-placeholder-count="3">
+          <a href="#" style="display:flex;align-items:center;gap:12px;height:44px;padding:0 10px;border-radius:8px;color:var(--bp-text);text-decoration:none" style-hover="background:var(--bp-hover);text-decoration:none;color:var(--bp-text)">
+            <bp-icon name="{{ rc.icon }}" size="16"></bp-icon>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500">{{ rc.code }}</span>
+            <span style="flex:1;min-width:0;color:var(--bp-text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px">{{ rc.name }}</span>
+            <span style="font-size:12px;color:var(--bp-caption)">{{ rc.type }}</span>
+          </a>
+        </sc-for>
+        <div style="padding:12px 10px 4px;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--bp-caption)">Đi tới</div>
+        <sc-for list="{{ jumpTo }}" as="j" hint-placeholder-count="5">
+          <button onClick="{{ j.onClick }}" style="width:100%;display:flex;align-items:center;gap:12px;height:40px;padding:0 10px;border:0;border-radius:8px;background:transparent;cursor:pointer;text-align:left;color:var(--bp-text)" style-hover="background:var(--bp-hover)"><bp-icon name="{{ j.i }}" size="16"></bp-icon><span style="flex:1">{{ j.l }}</span><span style="font-size:12px;color:var(--bp-caption)">{{ j.group }}</span></button>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;portal&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;internal&quot;,&quot;supplier&quot;],&quot;default&quot;:&quot;internal&quot;,&quot;tsType&quot;:&quot;'internal'|'supplier'&quot;},&quot;collapsed&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;tableState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;data&quot;,&quot;loading&quot;,&quot;empty&quot;,&quot;error&quot;],&quot;default&quot;:&quot;data&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;showEnv&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+const ADMIN = ['Thông tin bệnh viện','Cơ sở','Khoa/phòng','Kho','Nhà cung cấp','Người dùng','Vai trò & phân quyền','Ủy quyền ký','Mẫu biểu','Cấu hình luồng ký','Tích hợp HIS','Tham số hệ thống','Kiểm tra toàn vẹn','Nhật ký hoạt động'];
+const NAV_INTERNAL = [
+  { group: 'Làm việc', items: [{ k: 'tong-quan', l: 'Tổng quan', i: 'layout-dashboard' }, { k: 'trinh-ky', l: 'Trình ký', i: 'pen-line', badge: 7, urgent: true }] },
+  { group: 'Mua sắm', items: [{ k: 'quyet-dinh-thau', l: 'Quyết định thầu', i: 'file-check-2' }, { k: 'danh-muc', l: 'Danh mục hàng hóa', i: 'package' }, { k: 'hop-dong', l: 'Hợp đồng', i: 'file-text' }, { k: 'de-xuat', l: 'Đề xuất', i: 'clipboard-list' }, { k: 'tong-hop', l: 'Tổng hợp đề xuất', i: 'merge' }, { k: 'goi-hang', l: 'Gọi hàng', i: 'truck', badge: 3 }] },
+  { group: 'Kho & Tài chính', items: [{ k: 'nhap-kho', l: 'Phiếu nhập kho', i: 'warehouse', badge: 2 }, { k: 'thanh-toan', l: 'Thanh toán', i: 'wallet' }] },
+  { group: 'Tra cứu', items: [{ k: 'ho-so', l: 'Hồ sơ lưu trữ', i: 'archive' }, { k: 'bao-cao', l: 'Báo cáo', i: 'chart-column' }, { k: 'xac-minh', l: 'Xác minh chữ ký', i: 'shield-check' }] },
+  { group: 'Hệ thống', items: [{ k: 'quan-tri', l: 'Quản trị', i: 'settings', children: ADMIN.map((l, n) => ({ k: 'qt-' + n, l })) }] },
+];
+const NAV_SUPPLIER = [
+  { group: 'Làm việc', items: [{ k: 'tong-quan', l: 'Tổng quan', i: 'layout-dashboard' }, { k: 'trinh-ky', l: 'Trình ký', i: 'pen-line', badge: 2, urgent: true }] },
+  { group: 'Giao dịch', items: [{ k: 'hop-dong', l: 'Hợp đồng', i: 'file-text' }, { k: 'goi-hang', l: 'Gọi hàng', i: 'truck', badge: 1 }, { k: 'nhap-kho', l: 'Phiếu nhập kho', i: 'warehouse' }, { k: 'thanh-toan', l: 'Thanh toán', i: 'wallet' }] },
+  { group: 'Khác', items: [{ k: 'xac-minh', l: 'Xác minh chữ ký', i: 'shield-check' }, { k: 'cong-ty', l: 'Tài khoản công ty', i: 'building-2' }] },
+];
+const S = {
+  draft: ['Bản nháp', 'neutral'], review: ['Tổ rà soát kiểm tra', 'primary'], supRev: ['NCC rà soát', 'warning'], supSign: ['NCC ký số', 'purple'],
+  init: ['Kế toán ký nháy', 'indigo'], eff: ['Đang hiệu lực', 'success'], liq: ['Đã thanh lý', 'info'], ret: ['Bị trả lại', 'danger'],
+};
+const SUPPLIER = 'Công ty CP Dược phẩm Minh An';
+const ROWS = [
+  { code: '15/2026/HĐ-BVĐK', proc: 'Trong thầu', name: 'Cung cấp thuốc generic nhóm 1 năm 2026', bid: 'QĐ 245/QĐ-BVĐK', supplier: SUPPLIER, cat: 'Thuốc', value: 4862350000, period: '01/03/2026 – 28/02/2027', pct: 46, st: 'eff' },
+  { code: '22/2025/HĐ-BVĐK', proc: 'Trong thầu', name: 'Vật tư tiêu hao phòng mổ và hồi sức', bid: 'QĐ 198/QĐ-BVĐK', supplier: 'Công ty TNHH Thiết bị Y tế Việt Tiến', cat: 'Vật tư y tế', value: 1245800000, period: '15/11/2025 – 14/11/2026', warnDays: 29, pct: 88, st: 'eff' },
+  { code: '31/2026/HĐ-BVĐK', proc: 'Trong thầu', name: 'Hóa chất xét nghiệm sinh hóa – miễn dịch', bid: 'QĐ 261/QĐ-BVĐK', supplier: 'Công ty CP Hóa chất Xét nghiệm Sài Gòn', cat: 'Hóa chất', value: 2031000000, period: 'Chưa có hiệu lực', pct: 0, st: 'init', anim: true },
+  { code: '34/2026/HĐ-BVĐK', proc: 'Ngoài thầu', name: 'Bảo dưỡng máy phát điện 250kVA', bid: 'Mua sắm ngoài thầu', supplier: 'Công ty TNHH Cơ điện Minh Phát', cat: 'Dịch vụ', value: 123000000, period: '01/04/2026 – 31/10/2026', warnDays: 15, pct: 100, st: 'eff' },
+  { code: '36/2026/HĐ-BVĐK', proc: 'Trong thầu', name: 'Sinh phẩm xét nghiệm HbA1c và đông máu', bid: 'QĐ 261/QĐ-BVĐK', supplier: SUPPLIER, cat: 'Sinh phẩm xét nghiệm', value: 876400000, period: 'Chưa có hiệu lực', pct: 0, st: 'supRev', anim: true },
+  { code: '38/2026/HĐ-BVĐK', proc: 'Trong thầu', name: 'Băng gạc, bông y tế các loại', bid: 'QĐ 198/QĐ-BVĐK', supplier: 'Công ty TNHH Thiết bị Y tế Việt Tiến', cat: 'Vật tư y tế', value: 412650000, period: 'Chưa có hiệu lực', pct: 0, st: 'ret' },
+  { code: '40/2026/HĐ-BVĐK', proc: 'Trong thầu', name: 'Thuốc kháng sinh nhóm Cephalosporin', bid: 'QĐ 245/QĐ-BVĐK', supplier: SUPPLIER, cat: 'Thuốc', value: 1580200000, period: '20/10/2025 – 19/11/2026', warnDays: 34, pct: 72, st: 'eff' },
+  { code: '42/2026/HĐ-BVĐK', proc: 'Trong thầu', name: 'Dịch truyền và điện giải năm 2026', bid: 'QĐ 245/QĐ-BVĐK', supplier: SUPPLIER, cat: 'Thuốc', value: 645900000, period: 'Chưa có hiệu lực', pct: 0, st: 'supSign', anim: true },
+  { code: '12/2025/HĐ-BVĐK', proc: 'Trong thầu', name: 'Cung cấp oxy y tế lỏng năm 2025', bid: 'QĐ 102/QĐ-BVĐK', supplier: 'Công ty TNHH Khí công nghiệp Phương Nam', cat: 'Hàng hóa', value: 958000000, period: '01/01/2025 – 31/12/2025', pct: 100, st: 'liq' },
+  { code: '41/2026/HĐ-BVĐK', proc: 'Ngoài thầu', name: 'Sửa chữa hệ thống điều hòa khu Hồi sức', bid: 'Mua sắm ngoài thầu', supplier: 'Công ty TNHH Cơ điện Minh Phát', cat: 'Sửa chữa', value: 86500000, period: 'Chưa có hiệu lực', pct: 0, st: 'draft' },
+];
+const money = (v) => new Intl.NumberFormat('vi-VN').format(v) + ' ₫';
+
+class Component extends DCLogic {
+  state = { view: null, collapsed: false, adminOpen: false, active: 'tong-quan', activeChild: null, tab: 'all', sel: {}, density: 'comfortable', notifOpen: false, userOpen: false, paletteOpen: false, tip: null, tipTop: 0, w: window.innerWidth, mobileNav: false, q: '', fCat: true, fExp: false, fValid: true, readAll: false, dark: false };
+  componentDidMount() {
+    this.onR = () => this.setState({ w: window.innerWidth });
+    this.onK = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); this.setState({ paletteOpen: true }); }
+      if (e.key === 'Escape') this.closeAll();
+    };
+    window.addEventListener('resize', this.onR);
+    window.addEventListener('keydown', this.onK);
+    if (!window.BP_DATA) { this.poll = setInterval(() => { if (window.BP_DATA) { clearInterval(this.poll); this.forceUpdate(); } }, 50); }
+    this.setState({ dark: window.bpGetTheme ? window.bpGetTheme() === 'dark' : false, collapsed: !!this.props.collapsed });
+  }
+  componentDidUpdate(pp) {
+    if (pp.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (pp.portal !== this.props.portal) this.setState({ active: 'tong-quan', activeChild: null, view: null, sel: {}, adminOpen: false, tab: 'all' });
+  }
+  componentWillUnmount() { clearInterval(this.poll); window.removeEventListener('resize', this.onR); window.removeEventListener('keydown', this.onK); }
+  closeAll = () => this.setState({ notifOpen: false, userOpen: false, paletteOpen: false, mobileNav: false });
+
+  renderVals() {
+    const st = this.state, p = this.props;
+    const isSupplier = (p.portal ?? 'internal') === 'supplier';
+    const isMobile = st.w < 900;
+    const isPhone = st.w < 640;
+    const expanded = isMobile ? true : !st.collapsed;
+    const tableState = p.tableState ?? 'data';
+    const navSrc = isSupplier ? NAV_SUPPLIER : NAV_INTERNAL;
+    const BD = window.BP_DATA || { screens: {}, menu: { internal: {}, supplier: {} }, custom: {}, titles: {} };
+    const MM = BD.menu[isSupplier ? 'supplier' : 'internal'];
+    const go = (k, child) => () => { this.setState({ active: k, activeChild: child ?? null, mobileNav: false, tip: null, view: MM[child || k] || k }); window.scrollTo(0, 0); };
+
+    const nav = navSrc.map((g, gi) => ({
+      group: g.group, showLabel: expanded, showDivider: !expanded && gi > 0,
+      items: g.items.map((it) => {
+        const act = st.active === it.k;
+        const hasChildren = !!it.children;
+        const open = hasChildren && st.adminOpen;
+        return {
+          ...it, current: act ? 'page' : undefined,
+          bg: act ? 'var(--bp-sider-active)' : 'transparent', hov: act ? 'var(--bp-sider-active)' : 'rgba(255,255,255,.06)',
+          fg: act ? '#fff' : 'var(--bp-sider-text)', fw: act ? 600 : 500, bar: act && !hasChildren ? 1 : 0,
+          badge: it.badge || 0, badgeBg: it.urgent ? '#d92d20' : 'rgba(255,255,255,.18)', dotBadge: !expanded && !!it.badge,
+          hasChildren, chev: open ? 'chevron-up' : 'chevron-down', showChildren: open && expanded,
+          onClick: hasChildren ? () => this.setState({ adminOpen: !st.adminOpen, collapsed: false, tip: null }) : go(it.k),
+          onEnter: (e) => { if (!expanded) { const r = e.currentTarget.getBoundingClientRect(); this.setState({ tip: it.l + (it.badge ? ` · ${it.badge} chờ xử lý` : ''), tipTop: Math.round(r.top + r.height / 2 - 14) }); } },
+          children: (it.children || []).map((c) => {
+            const ca = st.active === it.k && st.activeChild === c.k;
+            return { ...c, current: ca ? 'page' : undefined, bg: ca ? 'var(--bp-sider-active)' : 'transparent', hov: ca ? 'var(--bp-sider-active)' : 'rgba(255,255,255,.06)', fg: ca ? '#fff' : 'var(--bp-sider-text)', fw: ca ? 600 : 400, dot: ca ? 'var(--bp-sider-bar)' : 'rgba(255,255,255,.25)', onClick: go(it.k, c.k) };
+          }),
+        };
+      }),
+    }));
+    const flatNav = navSrc.flatMap((g) => g.items.map((i) => ({ ...i, group: g.group })));
+    const cur = flatNav.find((i) => i.k === st.active) || flatNav[0];
+    const curChild = cur.children && cur.children.find((c) => c.k === st.activeChild);
+
+    const siderStyle = isMobile
+      ? { position: 'fixed', left: 0, top: 0, bottom: 0, width: 280, zIndex: 50, background: 'var(--bp-sider)', display: 'flex', flexDirection: 'column', transform: st.mobileNav ? 'none' : 'translateX(-100%)', transition: 'transform .22s ease', boxShadow: st.mobileNav ? 'var(--bp-shadow)' : 'none' }
+      : { position: 'sticky', top: 0, height: '100vh', width: expanded ? 248 : 68, flex: 'none', zIndex: 20, background: 'var(--bp-sider)', display: 'flex', flexDirection: 'column', transition: 'width .2s ease', overflow: 'hidden' };
+
+    let base = ROWS.filter((r) => !isSupplier || r.supplier === SUPPLIER);
+    const tabDefs = [
+      { k: 'all', label: 'Tất cả', f: () => true },
+      { k: 'sign', label: 'Đang trình ký', f: (r) => ['review', 'supRev', 'supSign', 'init'].includes(r.st) },
+      { k: 'eff', label: 'Đang hiệu lực', f: (r) => r.st === 'eff' },
+      { k: 'ret', label: 'Bị trả lại', f: (r) => r.st === 'ret' },
+      { k: 'liq', label: 'Đã thanh lý', f: (r) => r.st === 'liq' },
+    ].filter((t) => !isSupplier || t.k !== 'ret');
+    const tabs = tabDefs.map((t) => {
+      const sel = st.tab === t.k;
+      return { label: t.label, count: base.filter(t.f).length, sel, fw: sel ? 600 : 500, fg: sel ? 'var(--bp-primary-fg)' : 'var(--bp-text-2)', bar: sel ? 1 : 0, cbg: sel ? 'var(--bp-primary-bg)' : 'var(--bp-hover)', cfg: sel ? 'var(--bp-primary-fg)' : 'var(--bp-text-2)', onClick: () => this.setState({ tab: t.k, sel: {} }) };
+    });
+    const tf = tabDefs.find((t) => t.k === st.tab) || tabDefs[0];
+    let rows = base.filter(tf.f);
+    if (st.fCat) rows = rows.filter((r) => r.cat === 'Thuốc' || r.cat === 'Vật tư y tế' || r.cat === 'Sinh phẩm xét nghiệm' || r.cat === 'Hóa chất' || true);
+    if (st.fExp) rows = rows.filter((r) => r.warnDays && r.warnDays <= 30);
+    if (st.q) { const q = st.q.toLowerCase(); rows = rows.filter((r) => (r.code + r.name + r.supplier).toLowerCase().includes(q)); }
+
+    const outRows = rows.map((r) => {
+      const sel = !!st.sel[r.code];
+      const [label, tone] = S[r.st];
+      return {
+        ...r, status: label, tone, anim: r.anim ? 'bp-pulse 1.6s ease-out infinite' : 'none', value: money(r.value),
+        procTone: r.proc === 'Trong thầu' ? 'primary' : 'purple',
+        warn: r.warnDays && r.warnDays <= 30 ? `Còn ${r.warnDays} ngày` : '', warnTone: r.warnDays && r.warnDays <= 15 ? 'danger' : 'warning',
+        pctTone: r.pct >= 100 ? 'success' : r.pct >= 80 ? 'warning' : 'primary',
+        sel, bg: sel ? 'var(--bp-primary-bg)' : 'var(--bp-card)', cbd: sel ? 'var(--bp-primary-solid)' : 'var(--bp-input-bd)', cbg: sel ? 'var(--bp-primary-solid)' : 'var(--bp-card)',
+        toggle: () => this.setState((s) => ({ sel: { ...s.sel, [r.code]: !s.sel[r.code] } })),
+      };
+    });
+    const selCount = outRows.filter((r) => r.sel).length;
+    const allSel = outRows.length > 0 && selCount === outRows.length;
+    const someSel = selCount > 0 && !allSel;
+
+    const chips = [];
+    if (st.fCat) chips.push({ label: 'Hạng mục: Thuốc, Vật tư y tế', onRemove: () => this.setState({ fCat: false }) });
+    if (st.fValid) chips.push({ label: 'Còn hiệu lực', onRemove: () => this.setState({ fValid: false }) });
+    if (st.fExp) chips.push({ label: 'Sắp hết hạn (≤ 30 ngày)', onRemove: () => this.setState({ fExp: false }) });
+    const selBox = (label, value, active) => ({ label, value, bd: active ? 'var(--bp-primary-bd)' : 'var(--bp-input-bd)', bg: active ? 'var(--bp-primary-bg)' : 'var(--bp-card)', fg: active ? 'var(--bp-primary-fg)' : 'var(--bp-text)' });
+    const checkBox = (label, on, key) => ({ label, on, bd: on ? 'var(--bp-primary-solid)' : 'var(--bp-input-bd)', bg: on ? 'var(--bp-primary-solid)' : 'var(--bp-card)', onClick: () => this.setState({ [key]: !on }) });
+    const selects = [
+      ...(isSupplier ? [] : [selBox('Nhà cung cấp', 'Tất cả', false)]),
+      selBox('Hạng mục', st.fCat ? '2 mục' : 'Tất cả', st.fCat),
+      selBox('Trạng thái', 'Tất cả', false),
+      ...(isSupplier ? [] : [selBox('Hình thức', 'Tất cả', false)]),
+    ];
+    const checks = [checkBox('Còn hiệu lực', st.fValid, 'fValid'), checkBox('Sắp hết hạn (≤ 30 ngày)', st.fExp, 'fExp')];
+    const densities = [['comfortable', 'Thoải mái', 'rows-3'], ['compact', 'Gọn', 'rows-4']].map(([k, label, icon]) => {
+      const sel = st.density === k;
+      return { label: isPhone ? '' : label, icon, sel, bg: sel ? 'var(--bp-card)' : 'transparent', fg: sel ? 'var(--bp-text)' : 'var(--bp-text-2)', sh: sel ? '0 1px 2px rgba(16,24,40,.08)' : 'none', onClick: () => this.setState({ density: k }) };
+    });
+
+    const user = isSupplier
+      ? { name: 'Trần Minh Quân', title: SUPPLIER, initials: 'TQ', unit: 'Quản trị NCC · ' + SUPPLIER, login: 'quan.tm@minhan' }
+      : { name: 'Nguyễn Thị Thu Hà', title: 'Kế toán trưởng', initials: 'TH', unit: 'Kế toán trưởng · Phòng Tài chính – Kế toán', login: 'ha.ntt' };
+    const notifRaw = isSupplier ? [
+      { title: 'Đơn gọi hàng GH-2026-0317 chờ xác nhận', body: 'Hạn giao 18/10/2026 · 12 mặt hàng', time: '16/10/2026 09:15', icon: 'truck', tone: 'warning', unread: true },
+      { title: 'Hợp đồng 36/2026/HĐ-BVĐK chờ NCC rà soát', body: 'Bước 3/8 · NCC rà soát', time: '15/10/2026 16:40', icon: 'file-text', tone: 'primary', unread: true },
+      { title: 'Biên bản nghiệm thu NT-2026-0009 đã ký xong', body: 'Giá trị nghiệm thu 482.150.000 ₫', time: '14/10/2026 10:02', icon: 'circle-check', tone: 'success', unread: false },
+    ] : [
+      { title: 'Hợp đồng 31/2026/HĐ-BVĐK chờ bạn ký nháy', body: 'Bước 6/8 · Kế toán ký nháy · hạn 17/10/2026', time: '16/10/2026 09:42', icon: 'pen-line', tone: 'indigo', unread: true },
+      { title: 'Phiếu nhập kho PNK-2026-01482 không hợp lệ', body: 'Tổng tiền hóa đơn lệch 1.250.000 ₫ so với phiếu', time: '16/10/2026 08:57', icon: 'triangle-alert', tone: 'danger', unread: true },
+      { title: 'Đơn gọi hàng GH-2026-0311 quá hạn xác nhận', body: 'Công ty TNHH Thiết bị Y tế Việt Tiến · hạn 15/10/2026', time: '15/10/2026 17:00', icon: 'clock-alert', tone: 'orange', unread: true },
+      { title: 'Biên bản nghiệm thu NT-2026-0009 đã ký xong', body: 'Văn thư đã đóng dấu điện tử', time: '14/10/2026 10:02', icon: 'circle-check', tone: 'success', unread: false },
+    ];
+    const notifications = notifRaw.map((n) => { const u = n.unread && !st.readAll; const tgt = { 'pen-line': 'tai-lieu', 'triangle-alert': 'nk-chi-tiet', 'clock-alert': 'gh-chi-tiet', 'circle-check': isSupplier ? 'ncc-nt-chi-tiet' : 'nt-chi-tiet', truck: 'ncc-gh-chi-tiet', 'file-text': 'ncc-hd-review' }[n.icon]; return { ...n, unread: u, fw: u ? 600 : 400, bg: u ? 'var(--bp-primary-bg)' : 'transparent', href: '#' + tgt, onClick: (e) => { e.preventDefault(); this._open && this._open(tgt); } }; });
+    const unread = notifications.filter((n) => n.unread).length;
+
+    const recent = isSupplier
+      ? [{ icon: 'file-text', code: '36/2026/HĐ-BVĐK', name: 'Sinh phẩm xét nghiệm HbA1c và đông máu', type: 'Hợp đồng' }, { icon: 'truck', code: 'GH-2026-0317', name: 'Đơn gọi hàng đợt 10/2026', type: 'Gọi hàng' }]
+      : [{ icon: 'file-text', code: '31/2026/HĐ-BVĐK', name: 'Hóa chất xét nghiệm sinh hóa – miễn dịch', type: 'Hợp đồng' }, { icon: 'warehouse', code: 'PNK-2026-01482', name: 'Kho Dược · Công ty CP Dược phẩm Minh An', type: 'Phiếu nhập kho' }, { icon: 'wallet', code: 'NT-2026-0009', name: 'Nghiệm thu kỳ 09/2026', type: 'Nghiệm thu' }];
+    const jumpTo = flatNav.filter((i) => !i.children).slice(0, 7).map((i) => ({ ...i, onClick: () => { go(i.k)(); this.closeAll(); } }));
+
+    const PHASE = { 'tong-quan': 1, 'trinh-ky': 1, 'xac-minh': 1, 'quyet-dinh-thau': 2, 'danh-muc': 2, 'hop-dong': 2, 'de-xuat': 3, 'tong-hop': 3, 'goi-hang': 3, 'nhap-kho': 3, 'thanh-toan': 4, 'ho-so': 4, 'bao-cao': 4, 'quan-tri': 5, 'cong-ty': 6 };
+    const ROUTE = { 'tong-quan': '/tong-quan', 'trinh-ky': '/trinh-ky', 'xac-minh': '/xac-minh-chu-ky', 'quyet-dinh-thau': '/quyet-dinh-thau', 'danh-muc': '/danh-muc-hang-hoa', 'de-xuat': '/de-xuat', 'tong-hop': '/tong-hop-de-xuat', 'goi-hang': '/goi-hang', 'nhap-kho': '/nhap-kho', 'thanh-toan': '/thanh-toan', 'ho-so': '/ho-so-luu-tru', 'bao-cao': '/bao-cao', 'quan-tri': '/quan-tri', 'cong-ty': '/cong-ty' };
+    const nav2 = (route) => (e) => { if (p.onNavigate) { e.preventDefault(); this.setState({ userOpen: false }); p.onNavigate(route); } };
+    const view = st.view || MM[st.active] || 'tong-quan';
+    const customName = BD.custom[view];
+    const screen = customName ? null : BD.screens[view];
+    const openScreen = (id) => {
+      if (!id) return;
+      const owner = Object.keys(MM).find((k) => MM[k] === id);
+      const patch = { view: id, notifOpen: false, userOpen: false };
+      if (owner) { if (owner.startsWith('qt-')) Object.assign(patch, { active: 'quan-tri', activeChild: owner, adminOpen: true }); else Object.assign(patch, { active: owner, activeChild: null }); }
+      this.setState(patch); window.scrollTo(0, 0);
+    };
+    this._open = openScreen;
+    const routerFlags = {};
+    ['Tong quan', 'Trinh ky', 'Xac minh', 'Ho so luu tru', 'Bao cao', 'Vai tro', 'Luong ky builder', 'Tich hop HIS', 'Tai khoan', 'He thong'].forEach((n) => { routerFlags['c_' + n.replace(/ /g, '_')] = customName === n; });
+    const viewTitle = customName ? BD.titles[view] : screen ? (screen.type === 'detail' ? screen.code : screen.title) : '';
+    return {
+      ...routerFlags, view, portalKey: isSupplier ? 'supplier' : 'internal', openScreen, onNavigate: (r) => p.onNavigate && p.onNavigate(r),
+      screen: screen || { title: 'Không tìm thấy màn hình', cols: [], rows: [] },
+      isList: !!window.BP_DATA && !customName && (!screen || screen.type === 'list'), isDetail: !customName && !!screen && screen.type === 'detail', isForm: !customName && !!screen && screen.type === 'form',
+      openErr: (e) => { e.preventDefault(); openScreen('loi-404'); },
+      openAllNotif: (e) => { e.preventDefault(); openScreen('thong-bao'); },
+      openDS: nav2('design-system'), openAccount: (e) => { e.preventDefault(); openScreen(isSupplier ? 'ncc-tai-khoan' : 'tai-khoan'); }, logout: nav2('dang-nhap'),
+      siderStyle, expanded, isSupplier, isInternal: !isSupplier, isMobile, nav,
+      orgName: isSupplier ? SUPPLIER : 'Bệnh viện Đa khoa tỉnh Thành Nam',
+      itemPadX: expanded ? 10 : 0, itemJustify: expanded ? 'flex-start' : 'center',
+      collapseIcon: expanded ? 'panel-left-close' : 'panel-left-open',
+      toggleCollapse: () => isMobile ? this.setState({ mobileNav: false }) : this.setState({ collapsed: !st.collapsed, tip: null }),
+      tip: !!st.tip && !isMobile, tipLabel: st.tip, tipTop: st.tipTop, hideTip: () => st.tip && this.setState({ tip: null }),
+      mobileOverlay: isMobile && st.mobileNav, openMobile: () => this.setState({ mobileNav: true }), closeMobile: () => this.setState({ mobileNav: false }),
+      crumbGroup: cur.group, crumbPage: (curChild ? `${cur.l} / ${curChild.l}` : cur.l) + (viewTitle && viewTitle !== cur.l && viewTitle !== (curChild && curChild.l) ? ' / ' + viewTitle : ''),
+      showSearchBox: st.w >= 1100, showEnv: (p.showEnv ?? true) && st.w >= 760, showUserText: st.w >= 1024,
+      unread, notifications, notifOpen: st.notifOpen, markAll: () => this.setState({ readAll: true }),
+      toggleNotif: () => this.setState({ notifOpen: !st.notifOpen, userOpen: false }),
+      userOpen: st.userOpen, toggleUser: () => this.setState({ userOpen: !st.userOpen, notifOpen: false }),
+      closeAll: this.closeAll, user, accountHref: isSupplier ? '#ncc-tai-khoan' : '#tai-khoan',
+      themeIcon: st.dark ? 'sun' : 'moon',
+      toggleTheme: () => { const d = !st.dark; window.bpSetTheme && window.bpSetTheme(d ? 'dark' : 'light'); this.setState({ dark: d }); },
+      paletteOpen: st.paletteOpen, openPalette: () => this.setState({ paletteOpen: true }), recent, jumpTo,
+      mainPad: isPhone ? '16px 12px' : '24px',
+      pageDesc: isSupplier ? 'Hợp đồng giữa công ty với bệnh viện — rà soát, ký số và theo dõi thực hiện' : 'Hợp đồng trong thầu và ngoài thầu — trình ký, theo dõi thực hiện, nhập kho và thanh toán',
+      tabs, q: st.q, onQ: (e) => this.setState({ q: e.target.value }), selects, checks, densities,
+      chips, hasChips: chips.length > 0, clearFilters: () => this.setState({ fCat: false, fExp: false, fValid: false, q: '' }),
+      hasSel: selCount > 0, selCount, clearSel: () => this.setState({ sel: {} }),
+      allSel, someSel, allBd: allSel || someSel ? 'var(--bp-primary-solid)' : 'var(--bp-input-bd)', allBg: allSel || someSel ? 'var(--bp-primary-solid)' : 'var(--bp-card)',
+      toggleAll: () => this.setState({ sel: allSel ? {} : Object.fromEntries(outRows.map((r) => [r.code, true])) }),
+      cols: [
+        { label: 'Số hợp đồng', align: 'left', left: '44px' }, { label: 'Tên hợp đồng', align: 'left', left: 'auto' },
+        ...(isSupplier ? [] : [{ label: 'Nhà cung cấp', align: 'left', left: 'auto' }]),
+        { label: 'Hạng mục', align: 'left', left: 'auto' }, { label: 'Giá trị', align: 'right', left: 'auto' },
+        { label: 'Hiệu lực', align: 'left', left: 'auto' }, { label: 'Đã nhập kho', align: 'left', left: 'auto' }, { label: 'Trạng thái', align: 'left', left: 'auto' },
+      ],
+      showSupplierCol: !isSupplier,
+      rows: outRows, cellPad: st.density === 'compact' ? '7px' : '13px',
+      showData: tableState === 'data' && outRows.length > 0, showLoading: tableState === 'loading',
+      showEmpty: tableState === 'empty' || (tableState === 'data' && outRows.length === 0), showError: tableState === 'error',
+      skeletonRows: [80, 62, 74, 55, 68, 60].map((w) => ({ w })),
+      total: tableState === 'data' ? (isSupplier ? 14 : 48) : 0,
+    };
+  }
+}
+</script>
+</body>
+</html>

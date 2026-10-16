@@ -1,4 +1,5 @@
 import { createBrowserRouter } from 'react-router-dom';
+import { NotificationsPage } from './pages/NotificationsPage';
 import { AppShell } from './layouts/AppShell';
 import { internalNav, supplierNav } from './layouts/navigation';
 import { HomePage, SupplierHomePage } from './pages/HomePage';
@@ -72,6 +73,7 @@ export const router = createBrowserRouter([
         children: [
           { path: '/tong-quan', element: <HomePage /> },
           { path: '/tai-khoan', element: <MyAccountPage /> },
+          { path: '/thong-bao', element: <NotificationsPage /> },
           { path: '/quan-tri/benh-vien', element: guard([P.OrganizationManage], <OrganizationPage />) },
           { path: '/quan-tri/co-so', element: guard([P.FacilityManage], <FacilitiesPage />) },
           { path: '/quan-tri/khoa-phong', element: guard([P.DepartmentManage], <DepartmentsPage />) },
@@ -154,6 +156,7 @@ export const router = createBrowserRouter([
           { index: true, element: <SupplierHomePage /> },
           { path: 'tong-quan', element: <SupplierHomePage /> },
           { path: 'tai-khoan', element: <MyAccountPage /> },
+          { path: 'thong-bao', element: <NotificationsPage /> },
           { path: 'cong-ty', element: guard([P.SupplierCompanyView], <CompanyPage />) },
           { path: 'trinh-ky', element: guard([P.SigningInbox], <SigningInboxPage />) },
           { path: 'hop-dong', element: guard([P.ContractView], <ContractsPage />) },

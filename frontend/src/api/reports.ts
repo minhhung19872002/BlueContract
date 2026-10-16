@@ -35,11 +35,12 @@ export const useInternalDashboard = (enabled = true) =>
     refetchInterval: 60_000,
   });
 
-export const useSupplierDashboard = () =>
+export const useSupplierDashboard = (enabled = true) =>
   useQuery({
     queryKey: ['/api/dashboard', 'supplier'],
     queryFn: get<SupplierDashboardDto>('/api/dashboard/supplier'),
     refetchInterval: 60_000,
+    enabled,
   });
 
 export const useArchiveTree = (contractId?: string) =>
