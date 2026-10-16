@@ -8,6 +8,7 @@ Cổng Quản lý & Thanh toán Mua sắm Hàng hóa Trực tuyến cho bệnh v
 - Hướng dẫn sử dụng: [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md)
 - Triển khai & vận hành: [`docs/DEPLOY.md`](docs/DEPLOY.md)
 - Tích hợp HIS: [`docs/HIS_INTEGRATION.md`](docs/HIS_INTEGRATION.md)
+- API (quy ước, xác thực, lỗi, toàn bộ endpoint và quyền): [`docs/API.md`](docs/API.md)
 
 ## Chạy nhanh trên Windows
 
@@ -83,5 +84,5 @@ backend/   .NET 10 — Domain / Application / Infrastructure / Api + tests
 frontend/  React 18 + Vite + TypeScript + Ant Design 5
 templates/ Mẫu DOCX/XLSX
 scripts/   dev-up, seed, reset-db, backup, e2e, coverage (.ps1 + .sh)
-docs/      SPEC, DECISIONS, DEPLOY, USER_GUIDE, HIS_INTEGRATION (API: Scalar tại /docs)
+docs/      SPEC, DECISIONS, DEPLOY, USER_GUIDE, HIS_INTEGRATION, API (thử API: Scalar tại /docs)
 ```
