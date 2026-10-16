@@ -68,9 +68,17 @@ export async function openFromInbox(page: Page, base: '' | '/ncc', title: string
   return page.getByRole('dialog', { name: 'Xem và xử lý tài liệu' });
 }
 
+/** Confirms the "Ký số tài liệu" modal opened by a signing button (provider = the default one). */
+export async function confirmSign(page: Page, label: RegExp) {
+  const modal = page.locator('.sign-modal');
+  await expect(modal).toBeVisible();
+  await modal.getByRole('button', { name: label }).click();
+}
+
 /** Clicks the main signing button of the active step (provider = default MOCK) and waits for success. */
 export async function signFromInbox(page: Page, base: '' | '/ncc', title: string, label: RegExp) {
   const dialog = await openFromInbox(page, base, title);
   await dialog.getByRole('button', { name: label }).first().click();
+  await confirmSign(page, label);
   await expectToast(page, 'Đã ký số thành công');
 }

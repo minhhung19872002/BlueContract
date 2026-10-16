@@ -1,5 +1,5 @@
-import { Alert, App, Button, Dropdown, Input, Modal, Space, Spin, Steps, Typography, Upload } from 'antd';
-import { EditOutlined, MobileOutlined, UsbOutlined } from '@ant-design/icons';
+import { Alert, App, Button, Input, Modal, Segmented, Typography, Upload } from 'antd';
+import { Check, CircleCheck, Cloud, Info, PenLine, Smartphone, Usb } from 'lucide-react';
 import { useRef, useState } from 'react';
 import {
   beginSign,
@@ -17,79 +17,124 @@ import {
   tokenPluginConfigured,
 } from './tokenPlugin';
 import { waitForRemoteSignature } from './signingFlow';
+import './signModal.css';
 
 interface Props {
   stepId: string;
   label?: string;
   comment?: string;
+  /** Shown under the modal title (document number). */
+  documentCode?: string;
   onSigned?: () => void;
 }
 
-type Phase =
-  | { kind: 'idle' }
-  | { kind: 'remote'; message?: string | null }
-  | { kind: 'token'; request?: SigningRequestDto; certificate?: string; signature?: string; busy?: boolean };
+/** 0 = choose provider, 1 = connecting, 2 = signing (waiting phone / token), 3 = signature embedded. */
+type Phase = 0 | 1 | 2 | 3;
+
+interface TokenState {
+  request?: SigningRequestDto;
+  certificate?: string;
+  signature?: string;
+  busy?: boolean;
+}
+
+const PHASES = ['Đang kết nối', 'Đang ký', 'Đã gắn chữ ký vào PDF'];
+
+const providerIcon = (p?: SigningProviderDto) =>
+  p?.mode === 'RemoteAsync' ? (
+    <Smartphone size={15} strokeWidth={1.75} aria-hidden />
+  ) : p?.mode === 'ClientSide' ? (
+    <Usb size={15} strokeWidth={1.75} aria-hidden />
+  ) : (
+    <Cloud size={15} strokeWidth={1.75} aria-hidden />
+  );
+
+/** Readable error for the USB-token plugin: "Failed to fetch" means the local plugin is not running. */
+function tokenError(e: unknown) {
+  const raw = e instanceof Error ? e.message : '';
+  if (/failed to fetch|networkerror|load failed/i.test(raw)) {
+    return 'Không kết nối được plugin ký số trên máy. Hãy cắm USB token, mở phần mềm ký số của nhà cung cấp chứng thư rồi thử lại.';
+  }
+  return raw || toApiProblem(e).title;
+}
 
 /**
- * "Ký" button for a workflow step (spec §8): picks the provider (default first), signs immediately on the server,
- * waits for the phone confirmation (remote signing) with polling, or drives the USB-token plugin.
+ * "Ký số" for a workflow step (spec §8, design/Sign Modal.dc.html): a modal to pick the signing provider, then a 3-step
+ * progress — remote signing waits for the phone confirmation (polling), USB token drives the local plugin.
  */
-export function SignButton({ stepId, label = 'Ký số', comment, onSigned }: Props) {
+export function SignButton({ stepId, label = 'Ký số', comment, documentCode, onSigned }: Props) {
   const providers = useSigningProviders();
   const invalidate = useInvalidateWorkflow();
   const { message } = App.useApp();
-  const [loading, setLoading] = useState(false);
-  const [phase, setPhase] = useState<Phase>({ kind: 'idle' });
+  const [open, setOpen] = useState(false);
+  const [phase, setPhase] = useState<Phase>(0);
+  const [providerCode, setProviderCode] = useState<string>();
+  const [remoteMessage, setRemoteMessage] = useState<string | null>(null);
+  const [token, setToken] = useState<TokenState | null>(null);
   const remoteWait = useRef({ cancelled: false });
 
   const list = providers.data ?? [];
   const preferred = list.find((p) => p.isDefault) ?? list[0];
+  const provider = list.find((p) => p.code === providerCode) ?? preferred;
+
+  const reset = () => {
+    setPhase(0);
+    setToken(null);
+    setRemoteMessage(null);
+  };
+  const close = () => {
+    remoteWait.current.cancelled = true;
+    setOpen(false);
+    reset();
+  };
 
   const finish = async (result: SigningRequestDto) => {
     if (result.status === 'Completed') {
+      setPhase(3);
       message.success('Đã ký số thành công');
-      setPhase({ kind: 'idle' });
       await invalidate();
+      setOpen(false);
+      reset();
       onSigned?.();
     } else {
       message.error(
         result.error ?? (result.status === 'Expired' ? 'Yêu cầu ký đã hết hạn.' : 'Ký số không thành công.'),
       );
-      setPhase({ kind: 'idle' });
+      reset();
       await invalidate();
     }
   };
 
-  const run = async (provider: SigningProviderDto) => {
+  const start = async () => {
+    if (!provider) return;
     if (provider.mode === 'ClientSide') {
-      setPhase({ kind: 'token' });
+      setToken({});
       return;
     }
-    setLoading(true);
+    setPhase(1);
     try {
       const request = await beginSign(stepId, { provider: provider.code, comment });
       if (request.status === 'Pending' && request.mode === 'RemoteAsync') {
         const wait = { cancelled: false };
         remoteWait.current = wait;
-        setPhase({ kind: 'remote', message: request.message });
+        setRemoteMessage(request.message ?? null);
+        setPhase(2);
         const result = await waitForRemoteSignature(request, () => wait.cancelled);
         if (!wait.cancelled) await finish(result);
       } else {
+        setPhase(2);
         await finish(request);
       }
     } catch (e) {
       message.error(toApiProblem(e).title);
-      setPhase({ kind: 'idle' });
-    } finally {
-      setLoading(false);
+      reset();
     }
   };
 
   // ---- USB token ----
-  const tokenState = phase.kind === 'token' ? phase : null;
-
   const startToken = async (certificate: string) => {
-    setPhase({ kind: 'token', certificate, busy: true });
+    setToken({ certificate, busy: true });
+    setPhase(1);
     try {
       const request = await beginSign(stepId, {
         provider: 'USB_TOKEN',
@@ -100,134 +145,128 @@ export function SignButton({ stepId, label = 'Ký số', comment, onSigned }: Pr
         await finish(request);
         return;
       }
+      setPhase(2);
       if (tokenPluginConfigured) {
         const signature = await signWithToken(request.dataToSign);
         await finish(await completeSigningRequest(request.requestId, signature));
         return;
       }
-      setPhase({ kind: 'token', certificate, request, busy: false });
+      setToken({ certificate, request, busy: false });
     } catch (e) {
-      message.error(e instanceof Error ? e.message : toApiProblem(e).title);
-      setPhase({ kind: 'token', certificate, busy: false });
+      message.error(tokenError(e));
+      setToken({ certificate, busy: false });
+      setPhase(0);
     }
   };
 
   const submitManualSignature = async () => {
-    if (!tokenState?.request || !tokenState.signature) return;
-    setPhase({ ...tokenState, busy: true });
+    if (!token?.request || !token.signature) return;
+    setToken({ ...token, busy: true });
     try {
-      await finish(await completeSigningRequest(tokenState.request.requestId, tokenState.signature.trim()));
+      await finish(await completeSigningRequest(token.request.requestId, token.signature.trim()));
     } catch (e) {
       message.error(toApiProblem(e).title);
-      setPhase({ ...tokenState, busy: false });
+      setToken({ ...token, busy: false });
     }
   };
 
-  const icon = (p?: SigningProviderDto) =>
-    p?.mode === 'RemoteAsync' ? (
-      <MobileOutlined />
-    ) : p?.mode === 'ClientSide' ? (
-      <UsbOutlined />
-    ) : (
-      <EditOutlined />
-    );
+  const choosing = phase === 0 && !token;
+  const progress = phase > 0 && !(token && !token.busy && token.request);
 
   return (
     <>
-      {list.length > 1 ? (
-        <Dropdown.Button
-          type="primary"
-          loading={loading}
-          disabled={!preferred}
-          onClick={() => preferred && void run(preferred)}
-          menu={{
-            items: list.map((p) => ({ key: p.code, icon: icon(p), label: p.displayName })),
-            onClick: ({ key }) => {
-              const p = list.find((x) => x.code === key);
-              if (p) void run(p);
-            },
-          }}
-        >
-          {icon(preferred)} {label}
-        </Dropdown.Button>
-      ) : (
-        <Button
-          type="primary"
-          icon={icon(preferred)}
-          loading={loading || providers.isLoading}
-          disabled={!preferred}
-          onClick={() => preferred && void run(preferred)}
-        >
-          {label}
-        </Button>
-      )}
-
-      <Modal
-        open={phase.kind === 'remote'}
-        title="Ký số từ xa"
-        closable={false}
-        maskClosable={false}
-        footer={
-          <Button
-            onClick={() => {
-              remoteWait.current.cancelled = true;
-              setPhase({ kind: 'idle' });
-            }}
-          >
-            Đóng (yêu cầu vẫn chờ xác nhận)
-          </Button>
-        }
+      <Button
+        type="primary"
+        size="small"
+        icon={<PenLine size={14} strokeWidth={1.75} aria-hidden />}
+        loading={providers.isLoading}
+        disabled={!preferred}
+        onClick={() => {
+          setProviderCode(preferred?.code);
+          setOpen(true);
+        }}
       >
-        <Space direction="vertical" align="center" style={{ width: '100%', padding: 16 }}>
-          <Spin size="large" />
-          <Typography.Text strong>
-            {phase.kind === 'remote'
-              ? (phase.message ?? 'Vui lòng xác nhận yêu cầu ký trên điện thoại.')
-              : ''}
-          </Typography.Text>
-          <Typography.Text type="secondary">
-            Hệ thống tự cập nhật khi anh/chị xác nhận trên ứng dụng ký số.
-          </Typography.Text>
-        </Space>
-      </Modal>
+        {label}
+      </Button>
 
       <Modal
-        open={!!tokenState}
-        title="Ký bằng USB token"
-        onCancel={() => setPhase({ kind: 'idle' })}
+        open={open}
+        width={500}
         maskClosable={false}
+        onCancel={close}
+        className="sign-modal"
+        title={
+          <div>
+            <div className="sign-modal__title">Ký số tài liệu</div>
+            {documentCode && <div className="sign-modal__code mono">{documentCode}</div>}
+          </div>
+        }
         footer={
-          tokenState?.request ? (
-            <Button
-              type="primary"
-              loading={tokenState.busy}
-              disabled={!tokenState.signature}
-              onClick={() => void submitManualSignature()}
-            >
-              Hoàn tất ký
+          <>
+            <Button onClick={close}>
+              {phase === 2 && provider?.mode === 'RemoteAsync' ? 'Đóng (yêu cầu vẫn chờ xác nhận)' : 'Hủy'}
             </Button>
-          ) : null
+            {choosing && (
+              <Button
+                type="primary"
+                icon={<PenLine size={16} strokeWidth={1.75} aria-hidden />}
+                onClick={() => void start()}
+                disabled={!provider}
+              >
+                {label}
+              </Button>
+            )}
+            {token?.request && !token.busy && (
+              <Button type="primary" disabled={!token.signature} onClick={() => void submitManualSignature()}>
+                Hoàn tất ký
+              </Button>
+            )}
+          </>
         }
-        width={640}
       >
-        <Steps
-          size="small"
-          current={tokenState?.request ? 1 : 0}
-          style={{ marginBottom: 16 }}
-          items={[{ title: 'Chọn chứng thư' }, { title: 'Ký trên token' }]}
-        />
-        {!tokenState?.request && (
-          <Space direction="vertical" style={{ width: '100%' }}>
+        {choosing && (
+          <div className="sign-modal__form">
+            <div className="sign-modal__field">
+              <span className="sign-modal__label">Nhà cung cấp chữ ký số</span>
+              {list.length > 1 ? (
+                <Segmented
+                  block
+                  value={provider?.code}
+                  onChange={(v) => setProviderCode(String(v))}
+                  options={list.map((p) => ({ value: p.code, label: p.displayName, icon: providerIcon(p) }))}
+                />
+              ) : (
+                <span className="sign-modal__provider">
+                  {providerIcon(provider)}
+                  {provider?.displayName}
+                </span>
+              )}
+            </div>
+            <div className="sign-modal__note">
+              <Info size={15} strokeWidth={1.75} aria-hidden />
+              <span>
+                Chữ ký được gắn trực tiếp vào tệp PDF.{' '}
+                {provider?.mode === 'ClientSide'
+                  ? 'Hãy cắm USB token trước khi ký.'
+                  : provider?.mode === 'RemoteAsync'
+                    ? 'Sau khi bấm ký, xác nhận yêu cầu trên ứng dụng ký số của điện thoại.'
+                    : ''}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {token && !token.request && !token.busy && (
+          <div className="sign-modal__form">
             {tokenPluginConfigured ? (
               <Button
                 type="primary"
-                icon={<UsbOutlined />}
-                loading={tokenState?.busy}
+                icon={<Usb size={16} strokeWidth={1.75} aria-hidden />}
                 onClick={async () => {
                   try {
                     await startToken(await readTokenCertificate());
                   } catch (e) {
-                    message.error(e instanceof Error ? e.message : 'Không đọc được chứng thư từ USB token.');
+                    message.error(tokenError(e));
                   }
                 }}
               >
@@ -249,27 +288,66 @@ export function SignButton({ stepId, label = 'Ký số', comment, onSigned }: Pr
                 return false;
               }}
             >
-              <Button loading={tokenState?.busy && !tokenPluginConfigured}>Chọn tệp chứng thư (.cer)</Button>
+              <Button>Chọn tệp chứng thư (.cer)</Button>
             </Upload>
-          </Space>
+          </div>
         )}
-        {tokenState?.request && (
-          <Space direction="vertical" style={{ width: '100%' }}>
+
+        {token?.request && !token.busy && (
+          <div className="sign-modal__form">
             <Typography.Text>Dữ liệu cần ký (base64, SHA-256 / RSA PKCS#1 v1.5):</Typography.Text>
             <Typography.Paragraph
               code
               copyable
               style={{ wordBreak: 'break-all', maxHeight: 120, overflow: 'auto' }}
             >
-              {tokenState.request.dataToSign}
+              {token.request.dataToSign}
             </Typography.Paragraph>
             <Input.TextArea
               rows={4}
               placeholder="Dán giá trị chữ ký (base64) do plugin/công cụ của CA trả về"
-              value={tokenState.signature}
-              onChange={(e) => setPhase({ ...tokenState, signature: e.target.value })}
+              value={token.signature}
+              onChange={(e) => setToken({ ...token, signature: e.target.value })}
             />
-          </Space>
+          </div>
+        )}
+
+        {progress && (
+          <div className="sign-modal__progress" aria-live="polite">
+            {PHASES.map((l, i) => {
+              const done = phase > i + 1 || phase === 3;
+              const active = phase === i + 1 && phase !== 3;
+              return (
+                <div
+                  key={l}
+                  className={`sign-modal__phase${done ? ' sign-modal__phase--done' : ''}${active ? ' sign-modal__phase--active' : ''}`}
+                >
+                  <span className="sign-modal__phase-dot">
+                    {done ? (
+                      <Check size={14} strokeWidth={2.5} aria-hidden />
+                    ) : active ? (
+                      <span className="sign-modal__spinner" aria-hidden />
+                    ) : null}
+                  </span>
+                  <span>{i === 1 && phase === 2 && remoteMessage ? remoteMessage : l}</span>
+                </div>
+              );
+            })}
+            {phase === 2 && provider?.mode === 'RemoteAsync' && (
+              <div className="sign-modal__note">
+                <Smartphone size={15} strokeWidth={1.75} aria-hidden />
+                <span>Hệ thống tự cập nhật khi anh/chị xác nhận trên ứng dụng ký số.</span>
+              </div>
+            )}
+            {phase === 3 && (
+              <div className="sign-modal__success">
+                <CircleCheck size={17} strokeWidth={1.75} aria-hidden />
+                <span>
+                  <strong>Đã ký thành công.</strong> Luồng ký chuyển sang bước tiếp theo.
+                </span>
+              </div>
+            )}
+          </div>
         )}
       </Modal>
     </>

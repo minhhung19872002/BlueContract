@@ -1,183 +1,47 @@
+import { Alert, App, Button, Empty, Form, Input, Modal, Tooltip } from 'antd';
 import {
-  Alert,
-  App,
-  Button,
-  Card,
-  Empty,
-  Form,
-  Input,
-  Modal,
-  Radio,
-  Space,
-  Steps,
-  Tag,
-  Timeline,
-  Tooltip,
-  Typography,
-} from 'antd';
-import {
-  CheckOutlined,
-  ClockCircleOutlined,
-  CommentOutlined,
-  RollbackOutlined,
-  SafetyCertificateOutlined,
-  StopOutlined,
-  SyncOutlined,
-} from '@ant-design/icons';
+  Ban,
+  Check,
+  Clock,
+  FileBadge,
+  MessageSquare,
+  PenLine,
+  RefreshCw,
+  Signature,
+  Stamp,
+  Undo2,
+} from 'lucide-react';
 import { useState } from 'react';
 import {
   useApproveStep,
   useCancelWorkflow,
   useCommentWorkflow,
   useResubmitWorkflow,
-  useReturnStep,
   type WorkflowDto,
   type WorkflowStepDto,
 } from '../../api/signing';
-import { StatusTag, statusLabel } from '../../components/StatusTag';
+import { StatusTag, statusLabel, statusTone, type Tone } from '../../components/StatusTag';
 import { useApiError } from '../../components/common';
 import { formatDateTime } from '../../utils/format';
+import { ReturnDialog } from './ReturnDialog';
 import { SignButton } from './SignButton';
+import './workflowPanel.css';
 
-function stepStatus(s: WorkflowStepDto): 'wait' | 'process' | 'finish' | 'error' {
-  if (s.status === 'Done' || s.status === 'Skipped') return 'finish';
-  if (s.status === 'Active') return s.isOverdue ? 'error' : 'process';
-  return 'wait';
-}
+const initials = (name?: string | null) => {
+  const parts = (name ?? 'Hệ thống').trim().split(/\s+/).filter(Boolean);
+  return ((parts.length > 1 ? (parts.at(-2)?.[0] ?? '') : '') + (parts.at(-1)?.[0] ?? '')).toUpperCase();
+};
 
-/** Steps of the workflow with assignee, who acted, when and the SLA (spec §6.7 "lịch sử luồng"). */
-export function WorkflowSteps({ wf }: { wf: WorkflowDto }) {
-  return (
-    <Steps
-      direction="vertical"
-      size="small"
-      items={wf.steps.map((s) => ({
-        status: stepStatus(s),
-        title: (
-          <Space size={4} wrap>
-            <span>
-              {s.order}. {s.name}
-            </span>
-            <StatusTag domain="workflowAction" value={s.actionType} />
-            {s.isOptional && <Tag>Tùy chọn</Tag>}
-          </Space>
-        ),
-        description: (
-          <Space direction="vertical" size={0}>
-            <Typography.Text type="secondary">{s.assigneeDisplay}</Typography.Text>
-            {s.status === 'Done' && (
-              <Typography.Text>
-                {s.actedByName} · {formatDateTime(s.actedAt)}
-                {s.signatureId && (
-                  <Tooltip title="Đã gắn chữ ký số vào PDF">
-                    <SafetyCertificateOutlined style={{ color: '#722ed1', marginLeft: 6 }} />
-                  </Tooltip>
-                )}
-              </Typography.Text>
-            )}
-            {s.status === 'Active' && s.dueAt && (
-              <Typography.Text type={s.isOverdue ? 'danger' : 'secondary'}>
-                <ClockCircleOutlined /> Hạn xử lý {formatDateTime(s.dueAt)}
-                {s.isOverdue && ' (quá hạn)'}
-              </Typography.Text>
-            )}
-            {s.comment && <Typography.Text italic>“{s.comment}”</Typography.Text>}
-          </Space>
-        ),
-      }))}
-    />
-  );
-}
-
-/** Ý kiến / sự kiện của luồng (trả lại, ý kiến chuyển tiếp, chữ ký...). */
-export function WorkflowHistory({ wf }: { wf: WorkflowDto }) {
-  if (wf.events.length === 0)
-    return <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Chưa có ý kiến" />;
-  return (
-    <Timeline
-      items={[...wf.events].reverse().map((e, i) => ({
-        key: i,
-        color:
-          e.type === 'Returned' || e.type === 'Cancelled'
-            ? 'red'
-            : e.type === 'SignatureAdded'
-              ? 'purple'
-              : 'blue',
-        children: (
-          <Space direction="vertical" size={0}>
-            <Space size={4} wrap>
-              <StatusTag domain="workflowEvent" value={e.type} />
-              <Typography.Text strong>{e.actorName ?? 'Hệ thống'}</Typography.Text>
-              {e.stepName && <Typography.Text type="secondary">· {e.stepName}</Typography.Text>}
-            </Space>
-            {e.note && <Typography.Text style={{ whiteSpace: 'pre-line' }}>{e.note}</Typography.Text>}
-            {e.type === 'Returned' && e.targetOrder !== null && e.targetOrder !== undefined && (
-              <Typography.Text type="secondary">
-                Trả về: {e.targetOrder === 0 ? 'người lập' : `bước ${e.targetOrder}`}
-              </Typography.Text>
-            )}
-            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-              {formatDateTime(e.at)}
-            </Typography.Text>
-          </Space>
-        ),
-      }))}
-    />
-  );
-}
-
-function ReturnDialog({ wf, open, onClose }: { wf: WorkflowDto; open: boolean; onClose: () => void }) {
-  const [form] = Form.useForm<{ toOrder: number; reason: string }>();
-  const returnStep = useReturnStep();
-  const onError = useApiError();
-  const { message } = App.useApp();
-  return (
-    <Modal
-      title="Trả lại tài liệu"
-      open={open}
-      onCancel={onClose}
-      okText="Trả lại"
-      okButtonProps={{ danger: true, loading: returnStep.isPending }}
-      onOk={async () => {
-        const v = await form.validateFields();
-        try {
-          await returnStep.mutateAsync({ stepId: wf.myStepId!, toOrder: v.toOrder, reason: v.reason });
-          message.success('Đã trả lại tài liệu');
-          form.resetFields();
-          onClose();
-        } catch (e) {
-          onError(e);
-        }
-      }}
-      destroyOnHidden
-    >
-      <Form form={form} layout="vertical" initialValues={{ toOrder: wf.returnTargets[0]?.order }}>
-        <Form.Item
-          name="toOrder"
-          label="Trả về bước"
-          rules={[{ required: true, message: 'Chọn bước trả về' }]}
-        >
-          <Radio.Group>
-            <Space direction="vertical">
-              {wf.returnTargets.map((t) => (
-                <Radio key={t.order} value={t.order}>
-                  {t.order === 0 ? t.name : `${t.order}. ${t.name}`}
-                </Radio>
-              ))}
-            </Space>
-          </Radio.Group>
-        </Form.Item>
-        <Form.Item
-          name="reason"
-          label="Lý do trả lại"
-          rules={[{ required: true, whitespace: true, message: 'Bắt buộc nhập lý do trả lại' }]}
-        >
-          <Input.TextArea rows={4} maxLength={2000} showCount />
-        </Form.Item>
-      </Form>
-    </Modal>
-  );
-}
+const EVENT_TONE: Record<string, Tone> = {
+  Started: 'primary',
+  Resubmitted: 'primary',
+  Approved: 'success',
+  Completed: 'success',
+  SignatureAdded: 'purple',
+  Returned: 'danger',
+  Commented: 'info',
+  Restarted: 'orange',
+};
 
 function TextDialog({
   title,
@@ -186,6 +50,7 @@ function TextDialog({
   open,
   loading,
   required = true,
+  danger,
   onClose,
   onSubmit,
 }: {
@@ -195,6 +60,7 @@ function TextDialog({
   open: boolean;
   loading: boolean;
   required?: boolean;
+  danger?: boolean;
   onClose: () => void;
   onSubmit: (text: string) => Promise<void>;
 }) {
@@ -205,7 +71,8 @@ function TextDialog({
       open={open}
       onCancel={onClose}
       okText={okText}
-      okButtonProps={{ loading }}
+      cancelText="Hủy"
+      okButtonProps={{ loading, danger }}
       onOk={async () => {
         const v = await form.validateFields();
         await onSubmit(v.text ?? '');
@@ -230,8 +97,19 @@ function TextDialog({
   );
 }
 
-/** Action bar for the current user on a workflow: Ký / Đồng ý / Trả lại / Chuyển tiếp ý kiến / Trình lại / Hủy. */
-export function WorkflowActions({ wf, onDone }: { wf: WorkflowDto; onDone?: () => void }) {
+/**
+ * Actions of the current user on the workflow (Ký số / Đồng ý / Trả lại / Ý kiến) and of the sender (Trình lại / Hủy luồng).
+ * `part` limits the buttons to the step ("mine") or to the sender's footer ("sender"); omitted = everything.
+ */
+export function WorkflowActions({
+  wf,
+  onDone,
+  part,
+}: {
+  wf: WorkflowDto;
+  onDone?: () => void;
+  part?: 'mine' | 'sender';
+}) {
   const [dialog, setDialog] = useState<'return' | 'comment' | 'approve' | 'cancel' | null>(null);
   const approve = useApproveStep();
   const comment = useCommentWorkflow();
@@ -246,6 +124,8 @@ export function WorkflowActions({ wf, onDone }: { wf: WorkflowDto; onDone?: () =
   const [reason, setReason] = useState('');
   const blocked = !!gate?.blocked;
   const reasonMissing = !!gate?.reasonRequired && !reason.trim();
+  const showMine = part !== 'sender';
+  const showSender = part !== 'mine';
 
   const guarded = async (action: () => Promise<unknown>, success: string) => {
     try {
@@ -265,11 +145,14 @@ export function WorkflowActions({ wf, onDone }: { wf: WorkflowDto; onDone?: () =
       : myStep.actionType === 'Initial'
         ? 'Ký nháy'
         : statusLabel('workflowAction', myStep.actionType);
+  const reviewLike = myStep && (myStep.actionType === 'Review' || myStep.actionType === 'SupplierReview');
 
   return (
-    <Space direction="vertical" style={{ width: '100%' }}>
-      {gate && <Alert type={gate.blocked ? 'error' : 'warning'} showIcon message={gate.message} />}
-      {gate?.reasonRequired && !gate.blocked && (
+    <div className="wf-actions">
+      {showMine && gate && (
+        <Alert type={gate.blocked ? 'error' : 'warning'} showIcon message={gate.message} />
+      )}
+      {showMine && gate?.reasonRequired && !gate.blocked && (
         <Input.TextArea
           rows={2}
           maxLength={2000}
@@ -279,12 +162,13 @@ export function WorkflowActions({ wf, onDone }: { wf: WorkflowDto; onDone?: () =
           onChange={(e) => setReason(e.target.value)}
         />
       )}
-      <Space wrap>
-        {myStep &&
+      <div className="wf-actions__buttons">
+        {showMine &&
+          myStep &&
           (myStep.requiresSignature ? (
             blocked || reasonMissing ? (
               <Tooltip title={blocked ? gate?.message : 'Nhập lý do chấp nhận cảnh báo trước khi ký'}>
-                <Button type="primary" icon={<SafetyCertificateOutlined />} disabled>
+                <Button type="primary" size="small" icon={<PenLine size={14} aria-hidden />} disabled>
                   {signLabel}
                 </Button>
               </Tooltip>
@@ -299,126 +183,296 @@ export function WorkflowActions({ wf, onDone }: { wf: WorkflowDto; onDone?: () =
           ) : (
             <Button
               type="primary"
-              icon={<CheckOutlined />}
+              size="small"
+              icon={<Check size={14} aria-hidden />}
               disabled={blocked}
               onClick={() => setDialog('approve')}
             >
-              {myStep.actionType === 'Review' || myStep.actionType === 'SupplierReview' ? 'Đồng ý' : 'Duyệt'}
+              {reviewLike ? 'Đồng ý' : 'Duyệt'}
             </Button>
           ))}
-        {myStep && wf.returnTargets.length > 0 && (
-          <Button danger icon={<RollbackOutlined />} onClick={() => setDialog('return')}>
+        {showMine && myStep && wf.returnTargets.length > 0 && (
+          <Button
+            size="small"
+            danger
+            icon={<Undo2 size={14} aria-hidden />}
+            onClick={() => setDialog('return')}
+          >
             Trả lại
           </Button>
         )}
-        <Button icon={<CommentOutlined />} onClick={() => setDialog('comment')}>
-          Chuyển tiếp ý kiến
-        </Button>
-        {wf.canResubmit && (
+        {showMine && (
           <Button
-            icon={<SyncOutlined />}
+            size="small"
+            type="text"
+            icon={<MessageSquare size={14} aria-hidden />}
+            onClick={() => setDialog('comment')}
+          >
+            Ý kiến
+          </Button>
+        )}
+        {showSender && wf.canResubmit && (
+          <Button
+            size="small"
+            icon={<RefreshCw size={14} aria-hidden />}
             loading={resubmit.isPending}
             onClick={() => guarded(() => resubmit.mutateAsync(wf.instanceId), 'Đã trình ký lại')}
           >
-            Trình ký lại
+            Trình lại
           </Button>
         )}
-        {wf.canCancel && (
-          <Button icon={<StopOutlined />} onClick={() => setDialog('cancel')}>
-            Hủy luồng ký
+        {showSender && wf.canCancel && (
+          <Button
+            size="small"
+            danger
+            icon={<Ban size={14} aria-hidden />}
+            onClick={() => setDialog('cancel')}
+          >
+            Hủy luồng
           </Button>
         )}
+      </div>
 
-        <ReturnDialog wf={wf} open={dialog === 'return'} onClose={close} />
-        <TextDialog
-          title="Chuyển tiếp ý kiến"
-          label="Ý kiến"
-          okText="Gửi ý kiến"
-          open={dialog === 'comment'}
-          loading={comment.isPending}
-          onClose={close}
-          onSubmit={(text) =>
-            guarded(() => comment.mutateAsync({ instanceId: wf.instanceId, text }), 'Đã gửi ý kiến')
-          }
-        />
-        <TextDialog
-          title="Đồng ý / duyệt"
-          label={gate?.reasonRequired ? 'Lý do chấp nhận cảnh báo' : 'Ý kiến (không bắt buộc)'}
-          okText="Xác nhận"
-          required={!!gate?.reasonRequired}
-          open={dialog === 'approve'}
-          loading={approve.isPending}
-          onClose={close}
-          onSubmit={(text) =>
-            guarded(
-              () => approve.mutateAsync({ stepId: myStep!.id, comment: text || undefined }),
-              'Đã xác nhận',
-            )
-          }
-        />
-        <TextDialog
-          title="Hủy luồng ký"
-          label="Lý do hủy"
-          okText="Hủy luồng"
-          open={dialog === 'cancel'}
-          loading={cancel.isPending}
-          onClose={close}
-          onSubmit={(text) =>
-            guarded(() => cancel.mutateAsync({ instanceId: wf.instanceId, reason: text }), 'Đã hủy luồng ký')
-          }
-        />
-      </Space>
-    </Space>
+      <ReturnDialog wf={wf} open={dialog === 'return'} onClose={close} onDone={onDone} />
+      <TextDialog
+        title="Chuyển tiếp ý kiến"
+        label="Ý kiến"
+        okText="Gửi ý kiến"
+        open={dialog === 'comment'}
+        loading={comment.isPending}
+        onClose={close}
+        onSubmit={(text) =>
+          guarded(() => comment.mutateAsync({ instanceId: wf.instanceId, text }), 'Đã gửi ý kiến')
+        }
+      />
+      <TextDialog
+        title="Đồng ý / duyệt"
+        label={gate?.reasonRequired ? 'Lý do chấp nhận cảnh báo' : 'Ý kiến (không bắt buộc)'}
+        okText="Xác nhận"
+        required={!!gate?.reasonRequired}
+        open={dialog === 'approve'}
+        loading={approve.isPending}
+        onClose={close}
+        onSubmit={(text) =>
+          guarded(
+            () => approve.mutateAsync({ stepId: myStep!.id, comment: text || undefined }),
+            'Đã xác nhận',
+          )
+        }
+      />
+      <TextDialog
+        title="Hủy luồng ký?"
+        label="Lý do"
+        okText="Hủy luồng"
+        danger
+        open={dialog === 'cancel'}
+        loading={cancel.isPending}
+        onClose={close}
+        onSubmit={(text) =>
+          guarded(() => cancel.mutateAsync({ instanceId: wf.instanceId, reason: text }), 'Đã hủy luồng ký')
+        }
+      />
+    </div>
   );
 }
 
-/** Complete workflow card: status, actions, steps, history and signatures. */
-export function WorkflowCard({ wf, onDone }: { wf: WorkflowDto; onDone?: () => void }) {
+function StepItem({
+  s,
+  last,
+  wf,
+  onDone,
+}: {
+  s: WorkflowStepDto;
+  last: boolean;
+  wf: WorkflowDto;
+  onDone?: () => void;
+}) {
+  const done = s.status === 'Done';
+  const active = s.status === 'Active';
+  const skipped = s.status === 'Skipped';
+  const mine = active && s.id === wf.myStepId && (wf.status === 'Running' || wf.status === 'Returned');
   return (
-    <Card
-      title={
-        <Space wrap>
-          Luồng ký
-          <StatusTag domain="workflowStatus" value={wf.status} />
-        </Space>
-      }
-      extra={
-        <Typography.Text type="secondary">
-          {wf.startedByName} gửi lúc {formatDateTime(wf.startedAt)}
-        </Typography.Text>
-      }
-    >
-      {(wf.status === 'Running' || wf.status === 'Returned') && (
-        <div style={{ marginBottom: 16 }}>
-          <WorkflowActions wf={wf} onDone={onDone} />
+    <li className={`wf-step${done ? ' wf-step--done' : ''}${active ? ' wf-step--active' : ''}`}>
+      <div className="wf-step__rail">
+        <span className="wf-step__dot">
+          {done ? <Check size={14} strokeWidth={2.5} aria-hidden /> : s.order}
+        </span>
+        {!last && <span className="wf-step__line" />}
+      </div>
+      <div className="wf-step__body">
+        <div className="wf-step__head">
+          <span className="wf-step__title">{s.name}</span>
+          <StatusTag domain="workflowAction" value={s.actionType} />
+          {s.isOptional && <span className="wf-step__optional">Tùy chọn</span>}
         </div>
-      )}
-      <WorkflowSteps wf={wf} />
-      <Typography.Title level={5}>Ý kiến & lịch sử</Typography.Title>
-      <WorkflowHistory wf={wf} />
+        <div className="wf-step__assignee">{s.assigneeDisplay}</div>
+        {done && s.actedByName && (
+          <div className="wf-step__signer">
+            {s.signatureId && (
+              <Tooltip title="Đã gắn chữ ký số vào PDF">
+                <FileBadge
+                  size={14}
+                  strokeWidth={1.75}
+                  className="wf-step__badge"
+                  aria-label="Đã gắn chữ ký số"
+                />
+              </Tooltip>
+            )}
+            <span>
+              <strong>{s.actedByName}</strong> · {formatDateTime(s.actedAt)}
+            </span>
+          </div>
+        )}
+        {skipped && <div className="wf-step__deadline">Bỏ qua</div>}
+        {active && s.dueAt && (
+          <div className={`wf-step__deadline${s.isOverdue ? ' wf-step__deadline--overdue' : ''}`}>
+            <Clock size={14} strokeWidth={1.75} aria-hidden />
+            Hạn xử lý {formatDateTime(s.dueAt)}
+            {s.isOverdue && <StatusTag domain="flag" value="Overdue" />}
+          </div>
+        )}
+        {s.comment && <div className="wf-step__comment">“{s.comment}”</div>}
+        {mine && <WorkflowActions wf={wf} onDone={onDone} part="mine" />}
+      </div>
+    </li>
+  );
+}
+
+/** Steps of the workflow (design "Luồng ký"): number / check, action tag, assignee, signer and time, SLA. */
+export function WorkflowSteps({ wf, onDone }: { wf: WorkflowDto; onDone?: () => void }) {
+  return (
+    <ol className="wf-steps">
+      {wf.steps.map((s, i) => (
+        <StepItem key={s.id} s={s} wf={wf} last={i === wf.steps.length - 1} onDone={onDone} />
+      ))}
+    </ol>
+  );
+}
+
+/** Ý kiến / sự kiện của luồng (trả lại, ý kiến chuyển tiếp, chữ ký...) as an avatar timeline. */
+export function WorkflowHistory({ wf }: { wf: WorkflowDto }) {
+  if (wf.events.length === 0)
+    return <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Chưa có ý kiến" />;
+  const events = [...wf.events].reverse();
+  return (
+    <div className="wf-timeline">
+      {events.map((e, i) => {
+        const tone = EVENT_TONE[e.type] ?? 'neutral';
+        return (
+          <div key={i} className="wf-timeline__item">
+            <div className="wf-timeline__rail">
+              <span
+                className="wf-timeline__avatar"
+                style={{ background: `var(--bp-${tone}-bg)`, color: `var(--bp-${tone}-fg)` }}
+              >
+                {initials(e.actorName)}
+              </span>
+              {i < events.length - 1 && <span className="wf-timeline__line" />}
+            </div>
+            <div className="wf-timeline__body">
+              <div className="wf-timeline__head">
+                <span className="wf-timeline__who">{e.actorName ?? 'Hệ thống'}</span>
+                <StatusTag domain="workflowEvent" value={e.type} />
+                {e.stepName && <span className="wf-timeline__step">· {e.stepName}</span>}
+              </div>
+              <div className="wf-timeline__at">{formatDateTime(e.at)}</div>
+              {e.type === 'Returned' && e.targetOrder !== null && e.targetOrder !== undefined && (
+                <div className="wf-timeline__at">
+                  Trả về: {e.targetOrder === 0 ? 'người lập' : `bước ${e.targetOrder}`}
+                </div>
+              )}
+              {e.note && <div className="wf-timeline__note">{e.note}</div>}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/** Signatures embedded in the PDF (design "Chữ ký số (n)"). */
+export function WorkflowSignatures({ wf }: { wf: WorkflowDto }) {
+  return (
+    <div className="wf-signatures">
+      {wf.signatures.map((s) => {
+        const tone = statusTone('signatureKind', s.kind);
+        const Icon = s.kind === 'Organization' ? Stamp : s.kind === 'Initial' ? Signature : PenLine;
+        return (
+          <div key={s.id} className="wf-signature">
+            <span
+              className="wf-signature__icon"
+              style={{ background: `var(--bp-${tone}-bg)`, color: `var(--bp-${tone}-fg)` }}
+              aria-hidden
+            >
+              <Icon size={15} strokeWidth={1.75} />
+            </span>
+            <div className="wf-signature__body">
+              <div className="wf-signature__head">
+                <span className="wf-signature__name">{s.signerName}</span>
+                <StatusTag domain="signatureKind" value={s.kind} />
+                {s.caption && <span className="wf-signature__caption">{s.caption}</span>}
+              </div>
+              {s.signerTitle && <div className="wf-signature__org">{s.signerTitle}</div>}
+              <div className="wf-signature__meta">
+                {s.provider} · {formatDateTime(s.signedAt)}
+              </div>
+              <div className="wf-signature__meta mono">Số serial {s.certificateSerial}</div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/** Complete right column of a document (design/Page Detail.dc.html): Luồng ký, Ý kiến & lịch sử, Chữ ký số. */
+export function WorkflowCard({ wf, onDone }: { wf: WorkflowDto; onDone?: () => void }) {
+  const doneCount = wf.steps.filter((s) => s.status === 'Done').length;
+  const running = wf.status === 'Running' || wf.status === 'Returned';
+  const senderActions = running && (wf.canResubmit || wf.canCancel);
+  return (
+    <div className="wf-column">
+      <section className="wf-card sign-flow">
+        <div className="wf-card__head">
+          <span className="wf-card__title">Luồng ký</span>
+          <StatusTag
+            domain="workflowStatus"
+            value={wf.status}
+            suffix={running ? ` · ${doneCount}/${wf.steps.length}` : undefined}
+          />
+        </div>
+        <div className="wf-card__sub">
+          {wf.startedByName} gửi lúc {formatDateTime(wf.startedAt)}
+        </div>
+        <WorkflowSteps wf={wf} onDone={onDone} />
+        {running && !wf.myStepId && (
+          <div className="wf-card__comment-only">
+            <WorkflowActions wf={wf} onDone={onDone} part="mine" />
+          </div>
+        )}
+        {senderActions && (
+          <div className="wf-card__footer">
+            <span className="wf-card__footer-label">Người gửi</span>
+            <WorkflowActions wf={wf} onDone={onDone} part="sender" />
+          </div>
+        )}
+      </section>
+      <section className="wf-card">
+        <div className="wf-card__head">
+          <span className="wf-card__title">Ý kiến &amp; lịch sử</span>
+        </div>
+        <div className="wf-card__body">
+          <WorkflowHistory wf={wf} />
+        </div>
+      </section>
       {wf.signatures.length > 0 && (
-        <>
-          <Typography.Title level={5}>Chữ ký số ({wf.signatures.length})</Typography.Title>
-          <Space direction="vertical" style={{ width: '100%' }}>
-            {wf.signatures.map((s) => (
-              <Card key={s.id} size="small">
-                <Space direction="vertical" size={0}>
-                  <Space wrap>
-                    <SafetyCertificateOutlined style={{ color: '#722ed1' }} />
-                    <Typography.Text strong>{s.signerName}</Typography.Text>
-                    {s.caption && <Tag color="purple">{s.caption}</Tag>}
-                    <StatusTag domain="signatureKind" value={s.kind} />
-                  </Space>
-                  {s.signerTitle && <Typography.Text type="secondary">{s.signerTitle}</Typography.Text>}
-                  <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                    {formatDateTime(s.signedAt)} · {s.provider} · Số serial {s.certificateSerial}
-                  </Typography.Text>
-                </Space>
-              </Card>
-            ))}
-          </Space>
-        </>
+        <section className="wf-card">
+          <div className="wf-card__head">
+            <span className="wf-card__title">Chữ ký số ({wf.signatures.length})</span>
+          </div>
+          <WorkflowSignatures wf={wf} />
+        </section>
       )}
-    </Card>
+    </div>
   );
 }

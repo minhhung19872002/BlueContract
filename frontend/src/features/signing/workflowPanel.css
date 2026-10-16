@@ -1,0 +1,373 @@
+/* Right column of a document — design/Page Detail.dc.html (Luồng ký, Ý kiến & lịch sử, Chữ ký số). */
+.wf-column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.wf-card {
+  background: var(--bp-card);
+  border: 1px solid var(--bp-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.wf-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--bp-border);
+}
+
+.wf-card__title {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.wf-card__sub {
+  padding: 10px 16px 0;
+  font-size: 12.5px;
+  color: var(--bp-caption);
+}
+
+.wf-card__body {
+  padding: 16px;
+}
+
+.wf-card__comment-only {
+  padding: 0 16px 12px;
+}
+
+.wf-card__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--bp-border);
+  background: var(--bp-th);
+}
+
+.wf-card__footer-label {
+  font-size: 12px;
+  color: var(--bp-caption);
+  flex: 1;
+}
+
+/* Steps */
+.wf-steps {
+  list-style: none;
+  margin: 0;
+  padding: 16px;
+}
+
+.wf-step {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 12px;
+}
+
+.wf-step__rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.wf-step__dot {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--bp-card);
+  color: var(--bp-text-2);
+  border: 1.5px solid var(--bp-input-bd);
+}
+
+.wf-step--done .wf-step__dot {
+  background: var(--bp-success-solid);
+  border-color: var(--bp-success-solid);
+  color: #fff;
+}
+
+.wf-step--active .wf-step__dot {
+  background: var(--bp-primary-solid);
+  border-color: var(--bp-primary-solid);
+  color: #fff;
+  box-shadow: 0 0 0 4px var(--bp-primary-bg);
+}
+
+.wf-step__line {
+  flex: 1;
+  width: 2px;
+  min-height: 14px;
+  margin: 4px 0;
+  border-radius: 1px;
+  background: var(--bp-border);
+}
+
+.wf-step--done .wf-step__line {
+  background: var(--bp-success-solid);
+}
+
+.wf-step__body {
+  padding-bottom: 16px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.wf-step__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.wf-step__title {
+  font-weight: 600;
+  font-size: 13.5px;
+  color: var(--bp-text-2);
+}
+
+.wf-step--done .wf-step__title,
+.wf-step--active .wf-step__title {
+  color: var(--bp-text);
+}
+
+.wf-step__optional {
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 6px;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 500;
+  border: 1px dashed var(--bp-neutral-bd);
+  color: var(--bp-neutral-fg);
+  white-space: nowrap;
+}
+
+.wf-step__assignee {
+  font-size: 12.5px;
+  color: var(--bp-text-2);
+}
+
+.wf-step__signer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--bp-text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.wf-step__signer strong {
+  color: var(--bp-text);
+  font-weight: 500;
+}
+
+.wf-step__badge {
+  flex: none;
+  color: var(--bp-purple-fg);
+}
+
+.wf-step__deadline {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--bp-text-2);
+}
+
+.wf-step__deadline--overdue {
+  color: var(--bp-danger-fg);
+}
+
+.wf-step__comment {
+  font-size: 12.5px;
+  font-style: italic;
+  color: var(--bp-text-2);
+}
+
+.wf-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.wf-card__footer .wf-actions {
+  margin-top: 0;
+}
+
+.wf-actions__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* Timeline */
+.wf-timeline {
+  display: flex;
+  flex-direction: column;
+}
+
+.wf-timeline__item {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 10px;
+}
+
+.wf-timeline__rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.wf-timeline__avatar {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wf-timeline__line {
+  flex: 1;
+  width: 1px;
+  background: var(--bp-border);
+  margin: 4px 0;
+}
+
+.wf-timeline__body {
+  padding-bottom: 14px;
+  min-width: 0;
+}
+
+.wf-timeline__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.wf-timeline__who {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.wf-timeline__step,
+.wf-timeline__at {
+  font-size: 12px;
+  color: var(--bp-caption);
+  font-variant-numeric: tabular-nums;
+}
+
+.wf-timeline__note {
+  margin-top: 6px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--bp-hover);
+  font-size: 13px;
+  white-space: pre-line;
+}
+
+/* Signatures */
+.wf-signature {
+  display: flex;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--bp-border);
+}
+
+.wf-signature:last-child {
+  border-bottom: 0;
+}
+
+.wf-signature__icon {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wf-signature__body {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.wf-signature__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.wf-signature__name {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.wf-signature__caption {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--bp-purple-fg);
+}
+
+.wf-signature__org {
+  font-size: 12px;
+  color: var(--bp-text-2);
+}
+
+.wf-signature__meta {
+  font-size: 12px;
+  color: var(--bp-caption);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+/* Danger confirmation modals (Trả lại, Hủy…) */
+.danger-modal__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.danger-modal__icon {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--bp-danger-bg);
+  color: var(--bp-danger-fg);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.danger-modal__body {
+  margin: 0 0 12px;
+  color: var(--bp-text-2);
+  font-size: 13.5px;
+}

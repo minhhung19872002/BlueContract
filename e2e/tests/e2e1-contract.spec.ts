@@ -60,7 +60,7 @@ test('bid decision to effective contract with the supplier revision loop', async
   await procurement.getByLabel('Số hợp đồng').fill(contractNumber);
   await procurement.getByRole('button', { name: 'Tiếp tục' }).click();
   await procurement.getByRole('button', { name: 'Xem trước PDF' }).click();
-  await expect(procurement.getByText(/\d+ trang/)).toBeVisible({ timeout: 90_000 });
+  await expect(procurement.locator('.pdf-viewer__pages')).toHaveText(/^Trang \d+ \/ [1-9]\d*$/, { timeout: 90_000 });
   await procurement.getByRole('button', { name: 'Tạo hợp đồng' }).click();
   await expect(procurement.getByRole('heading', { name: `Hợp đồng ${contractNumber}` })).toBeVisible({ timeout: 90_000 });
   const contractUrl = procurement.url();

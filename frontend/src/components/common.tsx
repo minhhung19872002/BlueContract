@@ -1,30 +1,32 @@
-import { App, Button, Typography, Space, Drawer, Timeline, Empty, Descriptions } from 'antd';
+import { App, Button, Typography, Drawer, Empty } from 'antd';
 import { DownloadOutlined, HistoryOutlined } from '@ant-design/icons';
 import { useState, type ReactNode } from 'react';
+import { ArrowRight } from 'lucide-react';
 import { downloadFile, toApiProblem, type ApiProblem } from '../api/http';
 import { useGet, type HistoryEntryDto } from '../api/admin';
 import { formatDateTime } from '../utils/format';
-import { StatusTag } from './StatusTag';
+import { StatusTag, statusTone } from './StatusTag';
 
+/** Page title 24/600, one-line description, actions on the right (design/Page List.dc.html). */
 export function PageHeader({
   title,
   subtitle,
   extra,
 }: {
-  title: string;
+  title: ReactNode;
   subtitle?: ReactNode;
   extra?: ReactNode;
 }) {
   return (
-    <Space style={{ width: '100%', justifyContent: 'space-between', marginBottom: 16 }} wrap>
-      <div>
-        <Typography.Title level={3} style={{ margin: 0 }}>
+    <div className="page-header">
+      <div className="page-header__text">
+        <Typography.Title level={1} className="page-header__title">
           {title}
         </Typography.Title>
-        {subtitle && <Typography.Text type="secondary">{subtitle}</Typography.Text>}
+        {subtitle && <p className="page-header__subtitle">{subtitle}</p>}
       </div>
-      {extra}
-    </Space>
+      {extra && <div className="page-header__actions">{extra}</div>}
+    </div>
   );
 }
 
@@ -109,6 +111,10 @@ const HIDDEN_FIELDS = new Set([
   'MustChangePassword',
 ]);
 
+/** Readable value of a snapshot field (booleans in Vietnamese, empty as a dash). */
+const display = (v: unknown) =>
+  v === true ? 'Có' : v === false ? 'Không' : v === null || v === undefined || v === '' ? '—' : String(v);
+
 /** "Lịch sử cập nhật" drawer for master data (departments, suppliers, users). */
 export function HistoryButton({ url, title }: { url: string; title: string }) {
   const [open, setOpen] = useState(false);
@@ -126,8 +132,8 @@ export function HistoryButton({ url, title }: { url: string; title: string }) {
         loading={isLoading}
       >
         {data && data.length === 0 && <Empty description="Chưa có lịch sử" />}
-        <Timeline
-          items={(data ?? []).map((h, i) => {
+        <div className="history-timeline">
+          {(data ?? []).map((h, i) => {
             const snapshot = JSON.parse(h.snapshot) as Record<string, unknown>;
             const previous = data?.[i + 1]
               ? (JSON.parse(data[i + 1]!.snapshot) as Record<string, unknown>)
@@ -137,34 +143,48 @@ export function HistoryButton({ url, title }: { url: string; title: string }) {
                 !HIDDEN_FIELDS.has(k) &&
                 (!previous || JSON.stringify(previous[k]) !== JSON.stringify(snapshot[k])),
             );
-            return {
-              key: h.version,
-              children: (
-                <Space direction="vertical" size={4} style={{ width: '100%' }}>
-                  <Space wrap>
-                    <Typography.Text strong>Phiên bản {h.version}</Typography.Text>
+            const tone = statusTone('historyChange', h.changeType);
+            return (
+              <div key={h.version} className="history-timeline__item">
+                <span
+                  className="history-timeline__dot"
+                  style={{
+                    background: `var(--bp-${tone}-solid)`,
+                    boxShadow: `0 0 0 3px var(--bp-${tone}-bg)`,
+                  }}
+                  aria-hidden
+                />
+                <div className="history-timeline__body">
+                  <div className="history-timeline__head">
+                    <span className="history-timeline__version">Phiên bản {h.version}</span>
                     <StatusTag domain="historyChange" value={h.changeType} />
-                    <Typography.Text type="secondary">
+                    <span className="history-timeline__meta">
                       {formatDateTime(h.changedAt)} · {h.changedByName}
-                    </Typography.Text>
-                  </Space>
-                  <Descriptions size="small" column={1} bordered>
-                    {changed.map((k) => (
-                      <Descriptions.Item key={k} label={FIELD_LABELS[k] ?? k}>
-                        {previous && (
-                          <Typography.Text delete type="secondary">
-                            {String(previous[k] ?? '—')}{' '}
-                          </Typography.Text>
-                        )}
-                        {String(snapshot[k] ?? '—')}
-                      </Descriptions.Item>
-                    ))}
-                  </Descriptions>
-                </Space>
-              ),
-            };
+                    </span>
+                  </div>
+                  {changed.length > 0 && (
+                    <div className="history-diff">
+                      {changed.map((k) => (
+                        <div key={k} className="history-diff__row">
+                          <span className="history-diff__key">{FIELD_LABELS[k] ?? k}</span>
+                          <span className="history-diff__value">
+                            {previous && (
+                              <>
+                                <span className="history-diff__old">{display(previous[k])}</span>
+                                <ArrowRight size={13} aria-hidden />
+                              </>
+                            )}
+                            <span className="history-diff__new">{display(snapshot[k])}</span>
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
           })}
-        />
+        </div>
       </Drawer>
     </>
   );

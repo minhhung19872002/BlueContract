@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { chooseOption, expectToast, loginAs, signFromInbox } from './helpers';
+import { chooseOption, confirmSign, expectToast, loginAs, signFromInbox } from './helpers';
 
 /**
  * E2E #2 (spec §13): Đề xuất → tổng hợp → GĐ ký → gọi hàng → NCC xác nhận, through the UI with khoanoi, tonghopvt,
@@ -22,6 +22,7 @@ test('proposal, summary, director approval, call order and supplier confirmation
   await department.getByRole('button', { name: 'Ký và gửi' }).click();
   await expectToast(department, 'Đã gửi ký');
   await department.getByRole('button', { name: /Ký số/ }).first().click();
+  await confirmSign(department, /Ký số/);
   await expectToast(department, 'Đã ký số thành công');
   await expect(department.getByText('Đã gửi — chờ tổng hợp')).toBeVisible();
 
@@ -39,6 +40,7 @@ test('proposal, summary, director approval, call order and supplier confirmation
   await aggregator.getByRole('button', { name: 'Gửi ký duyệt' }).click();
   await expectToast(aggregator, 'Đã gửi ký duyệt');
   await aggregator.getByRole('button', { name: /Ký số/ }).first().click();
+  await confirmSign(aggregator, /Ký số/);
   await expectToast(aggregator, 'Đã ký số thành công');
 
   // 3. Tổ trưởng vật tư duyệt; 4. Giám đốc ký.
