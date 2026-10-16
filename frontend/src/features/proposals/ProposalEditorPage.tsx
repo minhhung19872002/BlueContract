@@ -31,7 +31,8 @@ import {
   type ProposalDto,
 } from '../../api/proposals';
 import { useAuth } from '../../auth/useAuth';
-import { PageHeader, useApiError } from '../../components/common';
+import { useApiError } from '../../components/common';
+import { DocHeader, StickyActionBar } from '../../components/layout';
 import { QuantityInput } from '../../components/inputs';
 import { formatMoney, formatQuantity } from '../../utils/format';
 
@@ -142,29 +143,11 @@ function ProposalEditor({
 
   return (
     <>
-      <PageHeader
-        title={editing ? `Sửa phiếu đề xuất ${proposal.number}` : 'Lập phiếu đề xuất'}
-        subtitle="Số lượng đề xuất không vượt số lượng còn lại của hợp đồng"
-        extra={
-          <Button
-            type="primary"
-            icon={<SaveOutlined />}
-            loading={save.isPending}
-            disabled={over.length > 0}
-            onClick={async () => {
-              try {
-                const savedId = await save.mutateAsync();
-                message.success('Đã lưu phiếu đề xuất — kiểm tra rồi Ký và gửi');
-                navigate(`/de-xuat/${savedId}`);
-              } catch (e) {
-                if (e instanceof Error && !('code' in e)) message.error(e.message);
-                else onError(e);
-              }
-            }}
-          >
-            Lưu phiếu
-          </Button>
-        }
+      <DocHeader
+        back={{ to: -1, label: 'Quay lại' }}
+        plain
+        code={editing ? `Sửa phiếu đề xuất ${proposal.number}` : 'Lập phiếu đề xuất'}
+        sub="Số lượng đề xuất không vượt số lượng còn lại của hợp đồng"
       />
       <Card style={{ marginBottom: 16 }}>
         <Form form={form} layout="vertical" initialValues={initialHeader}>
@@ -329,6 +312,26 @@ function ProposalEditor({
           />
         )}
       </Card>
+      <StickyActionBar total={{ label: 'Tổng giá trị đề xuất', value: formatMoney(total) }}>
+        <Button
+          type="primary"
+          icon={<SaveOutlined />}
+          loading={save.isPending}
+          disabled={over.length > 0}
+          onClick={async () => {
+            try {
+              const savedId = await save.mutateAsync();
+              message.success('Đã lưu phiếu đề xuất — kiểm tra rồi Ký và gửi');
+              navigate(`/de-xuat/${savedId}`);
+            } catch (e) {
+              if (e instanceof Error && !('code' in e)) message.error(e.message);
+              else onError(e);
+            }
+          }}
+        >
+          Lưu phiếu
+        </Button>
+      </StickyActionBar>
     </>
   );
 }

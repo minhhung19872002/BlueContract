@@ -43,8 +43,8 @@ import {
 import { useDocumentWorkflow } from '../../api/signing';
 import { useAuth } from '../../auth/useAuth';
 import { statusLabel, StatusTag } from '../../components/StatusTag';
-import { PageHeader, useApiError } from '../../components/common';
-import { DocHeader } from '../../components/layout';
+import { useApiError } from '../../components/common';
+import { DocHeader, StickyActionBar } from '../../components/layout';
 import { MoneyInput } from '../../components/inputs';
 import { formatDate, formatDateTime, formatMoney } from '../../utils/format';
 import { WorkflowCard } from '../signing/WorkflowPanel';
@@ -133,25 +133,11 @@ export function LiquidationCreatePage() {
 
   return (
     <>
-      <PageHeader
-        title="Lập biên bản thanh lý hợp đồng"
-        subtitle="Tổng hợp các biên bản 08a đã ký; khoản còn thiếu được chốt công nợ trước khi trình ký"
-        extra={
-          <Button
-            type="primary"
-            icon={<SaveOutlined />}
-            disabled={!p || !!p.blockingCode}
-            loading={create.isPending}
-            onClick={() =>
-              create.mutateAsync().then((id) => {
-                message.success('Đã lập biên bản thanh lý — chốt công nợ (nếu còn) rồi gửi ký');
-                navigate(`/thanh-toan/thanh-ly/${id}`);
-              }, onError)
-            }
-          >
-            Lập biên bản thanh lý
-          </Button>
-        }
+      <DocHeader
+        back={{ to: -1, label: 'Quay lại' }}
+        plain
+        code="Lập biên bản thanh lý hợp đồng"
+        sub="Tổng hợp các biên bản 08a đã ký; khoản còn thiếu được chốt công nợ trước khi trình ký"
       />
       <Card style={{ marginBottom: 16 }}>
         <Row gutter={12}>
@@ -213,6 +199,22 @@ export function LiquidationCreatePage() {
           )}
         </Card>
       )}
+      <StickyActionBar>
+        <Button
+          type="primary"
+          icon={<SaveOutlined />}
+          disabled={!p || !!p.blockingCode}
+          loading={create.isPending}
+          onClick={() =>
+            create.mutateAsync().then((id) => {
+              message.success('Đã lập biên bản thanh lý — chốt công nợ (nếu còn) rồi gửi ký');
+              navigate(`/thanh-toan/thanh-ly/${id}`);
+            }, onError)
+          }
+        >
+          Lập biên bản thanh lý
+        </Button>
+      </StickyActionBar>
     </>
   );
 }

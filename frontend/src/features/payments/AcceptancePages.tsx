@@ -36,8 +36,8 @@ import {
 import { useDocumentWorkflow } from '../../api/signing';
 import { useAuth } from '../../auth/useAuth';
 import { StatusTag } from '../../components/StatusTag';
-import { PageHeader, useApiError } from '../../components/common';
-import { DocHeader } from '../../components/layout';
+import { useApiError } from '../../components/common';
+import { DocHeader, StickyActionBar } from '../../components/layout';
 import { formatDate, formatDateTime, formatMoney, formatQuantity } from '../../utils/format';
 import { WorkflowCard } from '../signing/WorkflowPanel';
 import { DocumentPdf } from '../proposals/ProposalDetailPage';
@@ -135,28 +135,11 @@ function AcceptanceEditor({ acceptance }: { acceptance?: AcceptanceDto }) {
 
   return (
     <>
-      <PageHeader
-        title={editing ? `Sửa biên bản nghiệm thu ${acceptance.number}` : 'Lập biên bản nghiệm thu'}
-        subtitle="Chỉ gồm phiếu nhập kho đã ký đủ, chưa nghiệm thu; phiếu hoàn trả được trừ vào giá trị"
-        extra={
-          <Button
-            type="primary"
-            icon={<SaveOutlined />}
-            disabled={selected.length === 0}
-            loading={save.isPending}
-            onClick={async () => {
-              try {
-                const savedId = await save.mutateAsync();
-                message.success('Đã lưu biên bản — kiểm tra rồi gửi ký');
-                navigate(`/thanh-toan/nghiem-thu/${savedId}`);
-              } catch (e) {
-                onError(e);
-              }
-            }}
-          >
-            Lưu biên bản ({selected.length} phiếu)
-          </Button>
-        }
+      <DocHeader
+        back={{ to: -1, label: 'Quay lại' }}
+        plain
+        code={editing ? `Sửa biên bản nghiệm thu ${acceptance.number}` : 'Lập biên bản nghiệm thu'}
+        sub="Chỉ gồm phiếu nhập kho đã ký đủ, chưa nghiệm thu; phiếu hoàn trả được trừ vào giá trị"
       />
       <Card style={{ marginBottom: 16 }}>
         <Form
@@ -228,6 +211,31 @@ function AcceptanceEditor({ acceptance }: { acceptance?: AcceptanceDto }) {
           />
         )}
       </Card>
+      <StickyActionBar
+        total={{
+          label: 'Giá trị nghiệm thu',
+          value: formatMoney(total),
+          sub: `${selected.length} phiếu nhập kho được chọn`,
+        }}
+      >
+        <Button
+          type="primary"
+          icon={<SaveOutlined />}
+          disabled={selected.length === 0}
+          loading={save.isPending}
+          onClick={async () => {
+            try {
+              const savedId = await save.mutateAsync();
+              message.success('Đã lưu biên bản — kiểm tra rồi gửi ký');
+              navigate(`/thanh-toan/nghiem-thu/${savedId}`);
+            } catch (e) {
+              onError(e);
+            }
+          }}
+        >
+          Lưu biên bản ({selected.length} phiếu)
+        </Button>
+      </StickyActionBar>
     </>
   );
 }

@@ -28,7 +28,8 @@ import {
   type ReceiptDto,
   type ReceiptType,
 } from '../../api/receipts';
-import { PageHeader, useApiError } from '../../components/common';
+import { useApiError } from '../../components/common';
+import { DocHeader, StickyActionBar } from '../../components/layout';
 import { MoneyInput, QuantityInput } from '../../components/inputs';
 import { formatMoney, formatQuantity } from '../../utils/format';
 
@@ -121,28 +122,11 @@ function ReceiptEditor({ receipt }: { receipt?: ReceiptDto }) {
 
   return (
     <>
-      <PageHeader
-        title={editing ? `Sửa phiếu ${receipt.number}` : 'Lập phiếu trên cổng'}
-        subtitle="Phiếu được kiểm tra tự động theo hợp đồng trước khi gửi ký"
-        extra={
-          <Button
-            type="primary"
-            icon={<SaveOutlined />}
-            loading={save.isPending}
-            onClick={async () => {
-              try {
-                const savedId = await save.mutateAsync();
-                message.success('Đã lưu phiếu — kiểm tra cảnh báo rồi gửi ký');
-                navigate(`/nhap-kho/${savedId}`);
-              } catch (e) {
-                if (e instanceof Error && !('code' in e) && !('response' in e)) message.error(e.message);
-                else onError(e);
-              }
-            }}
-          >
-            Lưu phiếu
-          </Button>
-        }
+      <DocHeader
+        back={{ to: -1, label: 'Quay lại' }}
+        plain
+        code={editing ? `Sửa phiếu ${receipt.number}` : 'Lập phiếu trên cổng'}
+        sub="Phiếu được kiểm tra tự động theo hợp đồng trước khi gửi ký"
       />
       <Card style={{ marginBottom: 16 }}>
         <Form
@@ -342,6 +326,25 @@ function ReceiptEditor({ receipt }: { receipt?: ReceiptDto }) {
           />
         )}
       </Card>
+      <StickyActionBar total={{ label: 'Tổng tiền phiếu', value: formatMoney(total) }}>
+        <Button
+          type="primary"
+          icon={<SaveOutlined />}
+          loading={save.isPending}
+          onClick={async () => {
+            try {
+              const savedId = await save.mutateAsync();
+              message.success('Đã lưu phiếu — kiểm tra cảnh báo rồi gửi ký');
+              navigate(`/nhap-kho/${savedId}`);
+            } catch (e) {
+              if (e instanceof Error && !('code' in e) && !('response' in e)) message.error(e.message);
+              else onError(e);
+            }
+          }}
+        >
+          Lưu phiếu
+        </Button>
+      </StickyActionBar>
     </>
   );
 }

@@ -45,8 +45,8 @@ import {
 import { useDocumentWorkflow } from '../../api/signing';
 import { useAuth } from '../../auth/useAuth';
 import { StatusTag } from '../../components/StatusTag';
-import { PageHeader, useApiError } from '../../components/common';
-import { DocHeader } from '../../components/layout';
+import { useApiError } from '../../components/common';
+import { DocHeader, StickyActionBar } from '../../components/layout';
 import { MoneyInput } from '../../components/inputs';
 import { formatDate, formatDateTime, formatMoney, formatQuantity } from '../../utils/format';
 import { WorkflowCard } from '../signing/WorkflowPanel';
@@ -88,27 +88,11 @@ export function ValuationCreatePage() {
 
   return (
     <>
-      <PageHeader
-        title="Lập biên bản xác định giá trị khối lượng hoàn thành (Mẫu 08a)"
-        subtitle="Hệ thống tính giá trị kỳ này, lũy kế đến kỳ trước / kỳ này, % so với hợp đồng và sinh kèm Đề nghị thanh toán"
-        extra={
-          <Button
-            type="primary"
-            icon={<SaveOutlined />}
-            disabled={selected.length === 0}
-            loading={create.isPending}
-            onClick={() =>
-              create.mutateAsync().then((v) => {
-                message.success(
-                  `Đã lập biên bản ${v.number} và đề nghị thanh toán ${v.paymentRequestNumber}`,
-                );
-                navigate(`/thanh-toan/xac-dinh-gia-tri/${v.id}`);
-              }, onError)
-            }
-          >
-            Lập 08a ({selected.length} biên bản)
-          </Button>
-        }
+      <DocHeader
+        back={{ to: -1, label: 'Quay lại' }}
+        plain
+        code="Lập biên bản xác định giá trị khối lượng hoàn thành (Mẫu 08a)"
+        sub="Hệ thống tính giá trị kỳ này, lũy kế đến kỳ trước / kỳ này, % so với hợp đồng và sinh kèm Đề nghị thanh toán"
       />
       <Card style={{ marginBottom: 16 }}>
         <Form form={form} layout="vertical" initialValues={{ advanceAmount: 0, advanceRecovered: 0 }}>
@@ -165,6 +149,22 @@ export function ValuationCreatePage() {
           />
         )}
       </Card>
+      <StickyActionBar total={{ label: 'Giá trị kỳ này', value: formatMoney(total) }}>
+        <Button
+          type="primary"
+          icon={<SaveOutlined />}
+          disabled={selected.length === 0}
+          loading={create.isPending}
+          onClick={() =>
+            create.mutateAsync().then((v) => {
+              message.success(`Đã lập biên bản ${v.number} và đề nghị thanh toán ${v.paymentRequestNumber}`);
+              navigate(`/thanh-toan/xac-dinh-gia-tri/${v.id}`);
+            }, onError)
+          }
+        >
+          Lập 08a ({selected.length} biên bản)
+        </Button>
+      </StickyActionBar>
     </>
   );
 }

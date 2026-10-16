@@ -20,6 +20,7 @@ import { P } from '../../auth/permissions';
 import { DataTable } from '../../components/DataTable';
 import { StatusTag, statusOptions } from '../../components/StatusTag';
 import { PageHeader, useApiError } from '../../components/common';
+import { DocHeader, StickyActionBar } from '../../components/layout';
 import { useTableUrlState } from '../../hooks/useUrlState';
 import { formatDateTime, formatMoney, formatQuantity } from '../../utils/format';
 
@@ -130,29 +131,7 @@ export function SummaryCreatePage() {
 
   return (
     <>
-      <PageHeader
-        title="Lập phiếu tổng hợp đề xuất"
-        extra={
-          <Button
-            type="primary"
-            icon={<SaveOutlined />}
-            disabled={selected.length === 0}
-            loading={create.isPending}
-            onClick={async () => {
-              const v = await form.validateFields();
-              try {
-                const id = await create.mutateAsync(v);
-                message.success('Đã lập phiếu tổng hợp — kiểm tra rồi gửi ký duyệt');
-                navigate(`/tong-hop-de-xuat/${id}`);
-              } catch (e) {
-                onError(e);
-              }
-            }}
-          >
-            Tổng hợp ({selected.length} phiếu)
-          </Button>
-        }
-      />
+      <DocHeader back={{ to: -1, label: 'Quay lại' }} plain code="Lập phiếu tổng hợp đề xuất" />
       <Card style={{ marginBottom: 16 }}>
         <Form
           form={form}
@@ -226,6 +205,26 @@ export function SummaryCreatePage() {
           </>
         )}
       </Card>
+      <StickyActionBar>
+        <Button
+          type="primary"
+          icon={<SaveOutlined />}
+          disabled={selected.length === 0}
+          loading={create.isPending}
+          onClick={async () => {
+            const v = await form.validateFields();
+            try {
+              const id = await create.mutateAsync(v);
+              message.success('Đã lập phiếu tổng hợp — kiểm tra rồi gửi ký duyệt');
+              navigate(`/tong-hop-de-xuat/${id}`);
+            } catch (e) {
+              onError(e);
+            }
+          }}
+        >
+          Tổng hợp ({selected.length} phiếu)
+        </Button>
+      </StickyActionBar>
     </>
   );
 }
