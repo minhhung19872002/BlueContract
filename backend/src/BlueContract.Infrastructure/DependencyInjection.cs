@@ -136,10 +136,12 @@ public static class DependencyInjection
         services.AddSingleton<ICmsBuilder, CmsBuilder>();
         services.AddDistributedMemoryCache();
         services.AddScoped<CertificateStore>();
+        services.AddScoped<IOrganizationCertificates>(sp => sp.GetRequiredService<CertificateStore>());
         services.AddScoped<ISigningProvider, MockSigningProvider>();
         services.AddScoped<ISigningProvider, MockRemoteSigningProvider>();
         services.AddScoped<ISigningProvider, UsbTokenSigningProvider>();
         services.AddScoped<ISigningProvider, InitialStampProvider>();
+        services.AddScoped<ISigningProvider, OrganizationSealProvider>();
         services.AddScoped<ISigningProvider>(sp => new RemoteCaSigningProvider("VNPT_SMARTCA", "VNPT SmartCA (ký số từ xa)", o => o.VnptSmartCa, sp.GetRequiredService<IOptions<SigningOptions>>()));
         services.AddScoped<ISigningProvider>(sp => new RemoteCaSigningProvider("VIETTEL_MYSIGN", "Viettel MySign (ký số từ xa)", o => o.ViettelMySign, sp.GetRequiredService<IOptions<SigningOptions>>()));
         services.AddScoped<ISigningProvider>(sp => new RemoteCaSigningProvider("FPT_CA", "FPT CA (ký số từ xa)", o => o.FptCa, sp.GetRequiredService<IOptions<SigningOptions>>()));

@@ -125,6 +125,41 @@ internal sealed class InitialStampProvider(CertificateStore certificates, ICmsBu
 }
 
 /// <summary>
+/// "Đóng dấu điện tử" with the hospital certificate installed by the administrator (spec §8): signed on the server.
+/// Selected automatically for OrgSeal steps once a certificate is installed; never offered to users.
+/// </summary>
+internal sealed class OrganizationSealProvider(CertificateStore certificates, ICmsBuilder cms, IClock clock) : ISigningProvider
+{
+    public string ProviderCode => SigningDefaults.OrganizationSealProvider;
+
+    public SigningMode Mode => SigningMode.ServerSide;
+
+    public string DisplayName => "Chứng thư số tổ chức của Bệnh viện";
+
+    public bool IsAvailable => true;
+
+    public async Task<SigningSession> BeginAsync(SignRequest req, CancellationToken ct)
+    {
+        if (req.Kind != SignatureKind.Organization)
+        {
+            throw new DomainException("SIGNING_PROVIDER_NOT_CONFIGURED");
+        }
+
+        using var cert = await certificates.GetInstalledOrganizationCertificateAsync(ct);
+        var at = clock.UtcNow;
+        var toSign = cms.GetDataToSign(req.DocumentDigest, cert.RawData, at);
+        var envelope = cms.Assemble(req.DocumentDigest, cert.RawData, at, ProviderState.SignWithKey(cert, toSign));
+        return new SigningSession(req.SessionId.ToString("N"), SigningMode.ServerSide, SigningStatus.Completed, envelope, ProviderState.Describe(cert), null, null);
+    }
+
+    public Task<SignResult> CompleteAsync(string sessionId, SignCompletion completion, CancellationToken ct) =>
+        throw new DomainException("SIGNING_NOT_SUPPORTED");
+
+    public Task<SigningSession> GetStatusAsync(string sessionId, CancellationToken ct) =>
+        throw new DomainException("SIGNING_NOT_SUPPORTED");
+}
+
+/// <summary>
 /// Simulates remote signing (VNPT SmartCA / Viettel MySign style): the request waits for the user to confirm on a phone
 /// and the client polls GetStatus. Lets the whole async UI flow run without a real CA account.
 /// </summary>

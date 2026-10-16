@@ -1,3 +1,4 @@
+using BlueContract.Application.Common;
 using BlueContract.Domain.Workflows;
 
 namespace BlueContract.Application.Signing;
@@ -127,4 +128,20 @@ public interface ICmsBuilder
 
     /// <summary>Assembles the CMS from the external signature value (RSA PKCS#1 v1.5 / SHA-256).</summary>
     byte[] Assemble(byte[] documentDigest, byte[] certificate, DateTimeOffset signingTime, byte[] signatureValue);
+}
+
+/// <summary>The hospital certificate used for "đóng dấu điện tử" (spec §8), shown on the organisation page.</summary>
+public sealed record OrganizationCertificateDto(string Subject, string Issuer, string SerialNumber, DateTimeOffset NotBefore, DateTimeOffset NotAfter, bool IsSelfSigned);
+
+/// <summary>Installs / reads / removes the organisation e-seal certificate (PKCS#12 with its private key).</summary>
+public interface IOrganizationCertificates
+{
+    /// <summary>Checks the file (password, RSA private key, validity) and stores it encrypted, replacing the previous one.</summary>
+    Task<Result<OrganizationCertificateDto>> InstallAsync(byte[] pkcs12, string? password, CancellationToken ct);
+
+    Task<OrganizationCertificateDto?> GetAsync(CancellationToken ct);
+
+    Task RemoveAsync(CancellationToken ct);
+
+    Task<bool> IsInstalledAsync(CancellationToken ct);
 }

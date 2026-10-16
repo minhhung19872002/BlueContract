@@ -165,6 +165,8 @@ public class UploadTests(ApiFactory factory)
             new("signature-verify", "ketoan", "/api/signing/verify", "ky.pdf", "application/pdf", ["DOCUMENT_FILE_TYPE_INVALID"], []),
             new("signature-image", "ketoan", "/api/account/signature-images/signature", "chu-ky.png", "image/png", ["SIGNATURE_IMAGE_INVALID"], []),
             new("organization-seal", "admin", "/api/admin/organization/seal", "con-dau.png", "image/png", ["SIGNATURE_IMAGE_INVALID"], []),
+            new("organization-certificate", "admin", "/api/admin/organization/seal-certificate", "to-chuc.p12", "application/x-pkcs12", ["ORG_CERTIFICATE_INVALID"],
+                [("password", "x")]),
         ];
     }
 

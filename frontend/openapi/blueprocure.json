@@ -93,6 +93,84 @@
         }
       }
     },
+    "/api/admin/organization/seal-certificate": {
+      "post": {
+        "tags": [
+          "Organization"
+        ],
+        "summary": "Hospital certificate (.p12 / .pfx with its password) used for \"đóng dấu điện tử\" (spec §8).",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "allOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "file": {
+                        "$ref": "#/components/schemas/IFormFile"
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "password": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizationCertificateDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Organization"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizationCertificateDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Organization"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    },
     "/api/admin/organization/seal": {
       "post": {
         "tags": [
@@ -16538,6 +16616,40 @@
             "format": "int32"
           }
         }
+      },
+      "OrganizationCertificateDto": {
+        "required": [
+          "subject",
+          "issuer",
+          "serialNumber",
+          "notBefore",
+          "notAfter",
+          "isSelfSigned"
+        ],
+        "type": "object",
+        "properties": {
+          "subject": {
+            "type": "string"
+          },
+          "issuer": {
+            "type": "string"
+          },
+          "serialNumber": {
+            "type": "string"
+          },
+          "notBefore": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "notAfter": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "isSelfSigned": {
+            "type": "boolean"
+          }
+        },
+        "description": "The hospital certificate used for \"đóng dấu điện tử\" (spec §8), shown on the organisation page."
       },
       "OrganizationDto": {
         "required": [

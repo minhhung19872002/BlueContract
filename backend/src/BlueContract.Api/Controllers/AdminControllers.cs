@@ -10,8 +10,31 @@ using P = BlueContract.Domain.Identity.Permissions;
 namespace BlueContract.Api.Controllers;
 
 [Route("api/admin/organization")]
-public sealed class OrganizationController(OrganizationService service, SignatureImageService images) : ApiControllerBase
+public sealed class OrganizationController(OrganizationService service, SignatureImageService images, IOrganizationCertificates certificates) : ApiControllerBase
 {
+    /// <summary>Hospital certificate (.p12 / .pfx with its password) used for "đóng dấu điện tử" (spec §8).</summary>
+    [HttpPost("seal-certificate")]
+    [HasPermission(P.OrganizationManage)]
+    [RequestSizeLimit(FileInspector.MaxUploadBytes + (1024 * 1024))]
+    public async Task<ActionResult<OrganizationCertificateDto>> InstallCertificate(IFormFile? file, [FromForm] string? password, CancellationToken ct)
+    {
+        var upload = await TemplatesController.ReadUploadAsync(file, ct);
+        return upload.IsSuccess ? FromResult(await certificates.InstallAsync(upload.Value.Content, password, ct)) : Problem(upload.Error!);
+    }
+
+    [HttpGet("seal-certificate")]
+    [HasPermission(P.OrganizationManage, P.MasterDataView)]
+    public async Task<ActionResult<OrganizationCertificateDto>> GetCertificate(CancellationToken ct) =>
+        await certificates.GetAsync(ct) is { } installed ? installed : Problem(Error.NotFound("ORG_CERTIFICATE_NOT_INSTALLED"));
+
+    [HttpDelete("seal-certificate")]
+    [HasPermission(P.OrganizationManage)]
+    public async Task<IActionResult> RemoveCertificate(CancellationToken ct)
+    {
+        await certificates.RemoveAsync(ct);
+        return NoContent();
+    }
+
     /// <summary>Seal image drawn by "đóng dấu điện tử" (spec §8).</summary>
     [HttpPost("seal")]
     [HasPermission(P.OrganizationManage)]

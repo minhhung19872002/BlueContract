@@ -2,6 +2,8 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using BlueContract.Application.Auth;
 using BlueContract.Application.Common;
+using BlueContract.Application.Signing;
+using BlueContract.Domain.Common;
 using BlueContract.Domain.Workflows;
 using BlueContract.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -12,9 +14,77 @@ namespace BlueContract.Infrastructure.Signing;
 /// Development/demo certificates for <see cref="MockSigningProvider"/> (spec §8.2): a self-signed RSA-2048 certificate per
 /// user and one organisation certificate for the hospital e-seal. Private keys are stored encrypted (Data Protection).
 /// </summary>
-internal sealed class CertificateStore(AppDbContext db, ISecretProtector protector, IClock clock)
+internal sealed class CertificateStore(AppDbContext db, ISecretProtector protector, IClock clock, IAuditLogger audit) : IOrganizationCertificates
 {
     public const string MockProvider = "MOCK";
+
+    /// <summary>Provider tag of the certificate installed by the administrator for the e-seal.</summary>
+    private const string InstalledProvider = SigningDefaults.OrganizationSealProvider;
+
+    public async Task<Result<OrganizationCertificateDto>> InstallAsync(byte[] pkcs12, string? password, CancellationToken ct)
+    {
+        X509Certificate2 cert;
+        try
+        {
+            cert = X509CertificateLoader.LoadPkcs12(pkcs12, password, X509KeyStorageFlags.EphemeralKeySet | X509KeyStorageFlags.Exportable);
+        }
+        catch (CryptographicException)
+        {
+            return Error.Validation("ORG_CERTIFICATE_INVALID");
+        }
+
+        using (cert)
+        {
+            using var key = cert.GetRSAPrivateKey();
+            if (key is null)
+            {
+                return Error.Validation("ORG_CERTIFICATE_INVALID");
+            }
+
+            var now = clock.UtcNow.UtcDateTime;
+            if (cert.NotAfter.ToUniversalTime() <= now || cert.NotBefore.ToUniversalTime() > now)
+            {
+                return Error.Validation("ORG_CERTIFICATE_EXPIRED");
+            }
+
+            // Stored without the file password, encrypted with Data Protection like every other signing key.
+            var protectedPfx = protector.Protect(Convert.ToBase64String(cert.Export(X509ContentType.Pfx)));
+            db.SigningCertificates.RemoveRange(await db.SigningCertificates.Where(c => c.IsOrganization && c.Provider == InstalledProvider).ToListAsync(ct));
+            db.SigningCertificates.Add(new SigningCertificate(null, true, InstalledProvider, cert.Subject, cert.SerialNumber, cert.Issuer,
+                cert.NotBefore.ToUniversalTime(), cert.NotAfter.ToUniversalTime(), protectedPfx));
+            audit.Log("OrganizationCertificateInstall", "Organization", null, new { cert.Subject, cert.SerialNumber, NotAfter = cert.NotAfter.ToUniversalTime() });
+            await db.SaveChangesAsync(ct);
+            return new OrganizationCertificateDto(cert.Subject, cert.Issuer, cert.SerialNumber, cert.NotBefore.ToUniversalTime(), cert.NotAfter.ToUniversalTime(),
+                cert.Subject == cert.Issuer);
+        }
+    }
+
+    public async Task<OrganizationCertificateDto?> GetAsync(CancellationToken ct) =>
+        await db.SigningCertificates.AsNoTracking().Where(c => c.IsOrganization && c.Provider == InstalledProvider)
+            .Select(c => new OrganizationCertificateDto(c.Subject, c.Issuer, c.SerialNumber, c.NotBefore, c.NotAfter, c.Subject == c.Issuer))
+            .FirstOrDefaultAsync(ct);
+
+    public async Task RemoveAsync(CancellationToken ct)
+    {
+        var installed = await db.SigningCertificates.Where(c => c.IsOrganization && c.Provider == InstalledProvider).ToListAsync(ct);
+        if (installed.Count > 0)
+        {
+            db.SigningCertificates.RemoveRange(installed);
+            audit.Log("OrganizationCertificateRemove", "Organization", null, new { installed[0].SerialNumber });
+            await db.SaveChangesAsync(ct);
+        }
+    }
+
+    public Task<bool> IsInstalledAsync(CancellationToken ct) =>
+        db.SigningCertificates.AnyAsync(c => c.IsOrganization && c.Provider == InstalledProvider, ct);
+
+    /// <summary>The installed hospital certificate with its key; fails when none is installed or it has expired.</summary>
+    public async Task<X509Certificate2> GetInstalledOrganizationCertificateAsync(CancellationToken ct)
+    {
+        var installed = await db.SigningCertificates.AsNoTracking().Where(c => c.IsOrganization && c.Provider == InstalledProvider)
+            .FirstOrDefaultAsync(ct) ?? throw new DomainException("ORG_CERTIFICATE_NOT_INSTALLED");
+        return installed.NotAfter <= clock.UtcNow ? throw new DomainException("ORG_CERTIFICATE_EXPIRED") : Load(installed);
+    }
 
     public async Task<X509Certificate2> GetUserCertificateAsync(Guid userId, CancellationToken ct)
     {

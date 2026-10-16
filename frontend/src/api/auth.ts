@@ -94,3 +94,30 @@ export async function uploadSignatureImage(slot: SignatureImageSlot, file: File)
 export async function removeSignatureImage(slot: SignatureImageSlot) {
   await apiClient.delete(SIGNATURE_IMAGE_URLS[slot]);
 }
+
+// ---------------- Organisation e-seal certificate (spec §8) ----------------
+
+export type OrganizationCertificateDto = components['schemas']['OrganizationCertificateDto'];
+
+const SEAL_CERTIFICATE = '/api/admin/organization/seal-certificate';
+
+/** The installed certificate, or null when the e-seal still uses the test certificate (404). */
+export async function fetchSealCertificate(): Promise<OrganizationCertificateDto | null> {
+  try {
+    return (await apiClient.get<OrganizationCertificateDto>(SEAL_CERTIFICATE)).data;
+  } catch (e) {
+    if ((e as { response?: { status?: number } }).response?.status === 404) return null;
+    throw e;
+  }
+}
+
+export async function installSealCertificate(file: File, password: string) {
+  const data = new FormData();
+  data.append('file', file);
+  data.append('password', password);
+  return (await apiClient.post<OrganizationCertificateDto>(SEAL_CERTIFICATE, data)).data;
+}
+
+export async function removeSealCertificate() {
+  await apiClient.delete(SEAL_CERTIFICATE);
+}

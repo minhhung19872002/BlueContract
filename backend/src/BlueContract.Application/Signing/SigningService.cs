@@ -48,12 +48,13 @@ public sealed class SigningService(
     ICurrentUser current,
     IClock clock,
     SigningDefaults defaults,
-    SignatureImageService images)
+    SignatureImageService images,
+    IOrganizationCertificates organizationCertificates)
 {
     private static readonly TimeSpan RequestLifetime = TimeSpan.FromMinutes(10);
 
     public IReadOnlyList<SigningProviderDto> Providers() =>
-        providers.Where(p => p.IsAvailable && p.ProviderCode != SigningDefaults.InitialStampProvider)
+        providers.Where(p => p.IsAvailable && p.ProviderCode is not (SigningDefaults.InitialStampProvider or SigningDefaults.OrganizationSealProvider))
             .Select(p => new SigningProviderDto(p.ProviderCode, p.DisplayName, p.Mode, p.ProviderCode == defaults.DefaultProvider))
             .ToList();
 
@@ -91,7 +92,9 @@ public sealed class SigningService(
 
         var providerCode = step.ActionType == WorkflowActionType.Initial && !defaults.InitialRequiresCa
             ? SigningDefaults.InitialStampProvider
-            : r.Provider ?? defaults.DefaultProvider;
+            : step.ActionType == WorkflowActionType.OrgSeal && await organizationCertificates.IsInstalledAsync(ct)
+                ? SigningDefaults.OrganizationSealProvider
+                : r.Provider ?? defaults.DefaultProvider;
         var provider = providers.FirstOrDefault(p => p.ProviderCode == providerCode && p.IsAvailable);
         if (provider is null)
         {
@@ -378,4 +381,7 @@ public sealed record SigningDefaults(string DefaultProvider, bool InitialRequire
 {
     /// <summary>Internal provider used for ký nháy when no CA is required.</summary>
     public const string InitialStampProvider = "INITIAL_STAMP";
+
+    /// <summary>Server-side e-seal with the hospital certificate installed on the organisation page (spec §8).</summary>
+    public const string OrganizationSealProvider = "ORG_SEAL";
 }

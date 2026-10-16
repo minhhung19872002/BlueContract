@@ -90,6 +90,88 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/organization/seal-certificate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["OrganizationCertificateDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Hospital certificate (.p12 / .pfx with its password) used for "đóng dấu điện tử" (spec §8). */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "multipart/form-data": {
+                        file?: components["schemas"]["IFormFile"];
+                    } & {
+                        password?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["OrganizationCertificateDto"];
+                    };
+                };
+            };
+        };
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/organization/seal": {
         parameters: {
             query?: never;
@@ -10582,6 +10664,17 @@ export interface components {
             items: components["schemas"]["NotificationDto"][];
             /** Format: int32 */
             unreadCount: number;
+        };
+        /** @description The hospital certificate used for "đóng dấu điện tử" (spec §8), shown on the organisation page. */
+        OrganizationCertificateDto: {
+            subject: string;
+            issuer: string;
+            serialNumber: string;
+            /** Format: date-time */
+            notBefore: string;
+            /** Format: date-time */
+            notAfter: string;
+            isSelfSigned: boolean;
         };
         OrganizationDto: {
             /** Format: uuid */

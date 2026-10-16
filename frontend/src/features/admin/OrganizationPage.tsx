@@ -4,6 +4,7 @@ import { resources, useAction, useGet, type OrganizationDto } from '../../api/ad
 import { PageHeader, useApiError } from '../../components/common';
 import { Panel } from '../../components/layout';
 import { SignatureImageSlot } from '../../components/SignatureImageSlot';
+import { SealCertificatePanel } from './SealCertificatePanel';
 import { useAuth } from '../../auth/useAuth';
 import { P } from '../../auth/permissions';
 
@@ -129,6 +130,9 @@ export function OrganizationPage() {
             readOnly={!can(P.OrganizationManage)}
           />
         </Panel>
+      </div>
+      <div style={{ marginTop: 16 }}>
+        <SealCertificatePanel canManage={can(P.OrganizationManage)} />
       </div>
     </>
   );
