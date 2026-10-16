@@ -22,13 +22,20 @@ public sealed class LiquidationService(
     IFileStorage storage,
     IAuditLogger audit,
     ICurrentUser current,
-    IClock clock)
+    IClock clock,
+    DataScope dataScope,
+    Workflows.WorkflowAccess workflowAccess)
 {
     public const string OwnerType = "Liquidation";
 
-    public Task<PagedResult<LiquidationListItemDto>> ListAsync(PageQuery q, LiquidationFilter f, CancellationToken ct)
+    public async Task<PagedResult<LiquidationListItemDto>> ListAsync(PageQuery q, LiquidationFilter f, CancellationToken ct)
     {
         var query = db.LiquidationRecords.AsNoTracking();
+        if (await dataScope.ContractIdsAsync(ct) is { } scoped)
+        {
+            query = query.Where(x => scoped.Contains(x.ContractId));
+        }
+
         if (!string.IsNullOrWhiteSpace(q.Search))
         {
             var p = PagingExtensions.LikePattern(q.Search);
@@ -38,7 +45,7 @@ public sealed class LiquidationService(
         query = f.Status is { } status ? query.Where(l => l.Status == status) : query;
         query = f.ContractId is { } contract ? query.Where(l => l.ContractId == contract) : query;
         query = f.SupplierId is { } supplier ? query.Where(l => l.SupplierId == supplier) : query;
-        return query.OrderByDescending(l => l.CreatedAt)
+        return await query.OrderByDescending(l => l.CreatedAt)
             .Select(l => new LiquidationListItemDto(
                 l.Id, l.Number, l.ContractId,
                 db.Contracts.Where(c => c.Id == l.ContractId).Select(c => c.Number).FirstOrDefault() ?? string.Empty,
@@ -53,7 +60,7 @@ public sealed class LiquidationService(
     public async Task<Result<LiquidationPreviewDto>> PreviewAsync(Guid contractId, CancellationToken ct)
     {
         var contract = await db.Contracts.AsNoTracking().FirstOrDefaultAsync(c => c.Id == contractId, ct);
-        if (contract is null)
+        if (contract is null || !await dataScope.CanSeeContractAsync(contractId, ct))
         {
             return Error.NotFound();
         }
@@ -101,7 +108,7 @@ public sealed class LiquidationService(
     public async Task<Result<LiquidationDto>> GetAsync(Guid id, CancellationToken ct)
     {
         var l = await Query().AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, ct);
-        return l is null ? Error.NotFound() : await ToDtoAsync(l, ct);
+        return l is null || !await VisibleAsync(l.ContractId, l.DocumentId, ct) ? Error.NotFound() : await ToDtoAsync(l, ct);
     }
 
     public async Task<Result<Guid>> CreateAsync(SaveLiquidationRequest r, CancellationToken ct)
@@ -168,14 +175,16 @@ public sealed class LiquidationService(
         string? key = null;
         if (file is not null)
         {
-            if (FileInspector.Detect(file.Content) is not (FileKind.Pdf or FileKind.Jpeg or FileKind.Png))
+            var kind = FileInspector.Detect(file.Content);
+            if (kind is not (FileKind.Pdf or FileKind.Jpeg or FileKind.Png))
             {
                 return Error.Validation("PAYMENT_ORDER_FILE_INVALID");
             }
 
+            var stored = FileInspector.Storage(kind);
             using var stream = new MemoryStream(file.Content);
-            key = (await storage.UploadAsync($"liquidations/{liquidation.Id:N}/voucher-{clock.UtcNow:yyyyMMddHHmmss}{Path.GetExtension(file.FileName)}", stream,
-                file.ContentType, ct)).ObjectKey;
+            key = (await storage.UploadAsync($"liquidations/{liquidation.Id:N}/voucher-{clock.UtcNow:yyyyMMddHHmmss}{stored.Extension}", stream,
+                stored.MediaType, ct)).ObjectKey;
         }
 
         var settlement = liquidation.AddSettlement(r.ValuationId, r.Description, r.Amount, r.VoucherNumber, r.VoucherDate, key, file?.FileName,
@@ -311,4 +320,8 @@ public sealed class LiquidationService(
             CanSubmit: manage && l.IsEditable && l.DocumentId is not null,
             CanCancel: manage && l.IsEditable);
     }
+
+    /// <summary>Data scope (spec §4.2): out-of-scope records look missing, unless the user takes part in their signing.</summary>
+    private async Task<bool> VisibleAsync(Guid contractId, Guid? documentId, CancellationToken ct) =>
+        await dataScope.CanSeeContractAsync(contractId, ct) || (documentId is { } doc && await workflowAccess.IsParticipantAsync(doc, ct));
 }

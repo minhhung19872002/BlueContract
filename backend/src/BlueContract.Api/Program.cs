@@ -46,10 +46,20 @@ try
     builder.Services.Configure<Microsoft.AspNetCore.Mvc.ApiBehaviorOptions>(o => o.SuppressModelStateInvalidFilter = false);
     builder.Services.Configure<ForwardedHeadersOptions>(o =>
     {
-        // Behind the nginx reverse proxy (web container): trust X-Forwarded-* from the private network.
+        // X-Forwarded-* is believed only from the reverse proxy (AUDIT-1 §10.10): loopback by default, plus the proxy
+        // addresses / networks configured in "ForwardedHeaders" (docker compose: the network of the web container).
+        // Anyone else could otherwise spoof the HIS's IP past the whitelist or dodge the per-IP rate limits.
         o.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-        o.KnownIPNetworks.Clear();
-        o.KnownProxies.Clear();
+        var section = builder.Configuration.GetSection("ForwardedHeaders");
+        foreach (var network in section.GetSection("KnownNetworks").Get<string[]>() ?? [])
+        {
+            o.KnownIPNetworks.Add(System.Net.IPNetwork.Parse(network));
+        }
+
+        foreach (var proxy in section.GetSection("KnownProxies").Get<string[]>() ?? [])
+        {
+            o.KnownProxies.Add(System.Net.IPAddress.Parse(proxy));
+        }
     });
     builder.Services.AddOpenApi(options => options.AddDocumentTransformer((document, _, _) =>
     {

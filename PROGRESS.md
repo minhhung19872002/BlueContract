@@ -143,3 +143,29 @@ pm run lint/test/build pass (23 test) · Trình duyệt (Docker): thủ kho ký 
 - [x] **Checklist mục 13**: unit test (state machine workflow, rule số lượng, lũy kế 08a, đọc số thành chữ, validation engine, template engine) · integration test Testcontainers (cô lập NCC, HIS inbound HMAC + idempotent, ký nối tiếp nhiều chữ ký, 2 người ký cùng bước) · E2E #1–#4 · **coverage Domain + Application 75,7% ≥ 70%**, CI fail nếu thấp hơn (`scripts/coverage.sh|.ps1`)
 
 **Kiểm chứng:** `dotnet test` 318/318 (Domain 140, Application 50, Integration 128, thêm kiểm tra chặn chạy chồng) · `npm run lint/test/build` pass · **E2E #1–#4 pass (1,8 phút)** · header nginx kiểm tra bằng `curl -I` · kiểm tra toàn vẹn trên dữ liệu demo: 169 tệp / 19,5 MB, tất cả khớp.
+
+## Phase 10 — AUDIT-1: lỗ hổng nghiệp vụ & bảo mật ✅ (16/10/2026)
+Chi tiết, kết quả xác minh và cách sửa từng mục: [`docs/AUDIT-1.md`](docs/AUDIT-1.md). Mỗi lỗi có test **ĐỎ trên mã cũ** (chạy trên git worktree của commit 7c3a582) rồi XANH sau khi sửa.
+- [x] 10.1 Tải phiên bản DOCX/PDF bị chặn khi bước hiện tại không cho sửa; phiên bản mới sau khi đã có chữ ký thì khởi động lại luồng (dùng chung cho editor và tải lên)
+- [x] 10.2 Phiếu ảo chỉ cho HĐ không nhập kho và đang hiệu lực; màn lập phiếu lọc HĐ theo đó
+- [x] 10.3 Ký số / ký nháy / đóng dấu / rà soát HĐ đòi đúng quyền trong ma trận, kể cả khi ký thay; test quét: không còn quyền nào được seed mà không có chỗ đọc
+- [x] 10.4 Gọi hàng song song không vượt SL duyệt (khóa DB + đọc lại sau khóa); Σ gọi của mọi phiếu tổng hợp ≤ SL HĐ; phụ lục tăng SL ≤ SL trúng thầu còn lại
+- [x] 10.5 Gọi hàng và đề xuất chỉ cho HĐ đang hiệu lực theo cả trạng thái lẫn ngày
+- [x] 10.6 Chỉ mục duy nhất có điều kiện cho các luật "một … một"; lượt thua nhận 409 kèm câu tiếng Việt đúng luật (test quét: mọi chỉ mục duy nhất phải có câu báo); cấp số chứng từ bằng upsert nguyên tử; lần thanh toán 08a `Max+1`
+- [x] 10.7 Phạm vi dữ liệu Cơ sở/Khoa/Mảng áp ở một chỗ (`DataScope`) cho mọi danh sách, chi tiết, báo cáo, tổng quan, hồ sơ, tài liệu; ký thay theo phạm vi người ủy quyền
+- [x] 10.8 Xác minh chữ ký phiên bản và xem luồng ký của tài liệu đòi quyền xem tài liệu
+- [x] 10.9 Chống replay HMAC bằng bảng DB (đúng khi chạy nhiều instance và khi request đến đồng thời)
+- [x] 10.10 Chỉ tin X-Forwarded-For từ proxy cấu hình (`TRUSTED_PROXY_NETWORK`)
+- [x] 10.11 Test âm cho cả 13 lối tải lên; PDF hỏng → 400; tệp lưu theo kiểu nhận diện, không theo Content-Type của client
+- [x] Tìm thêm: không thêm được phạm vi dữ liệu cho user đã có (khóa Guid bị coi là do DB sinh) — đã sửa cho mọi bảng
+
+**Kiểm chứng:** `dotnet test` 350/350 (Domain 140, Application 52, Integration 158 — 27 test mới, trong đó các test tranh chấp gửi ≥ 3 lượt song song thật) · `npm run lint/test/build` pass · **E2E #1–#4 pass** · migration `Phase10UniqueRules` áp trên DB dev · đi lại trên trình duyệt màn lập phiếu nhập kho (bật phiếu ảo chỉ còn HĐ không nhập kho).
+
+## Phase 11 — AUDIT-1: chức năng spec còn thiếu
+- [ ] Menu Rà soát + so sánh phiên bản · chi tiết HĐ 9 tab · điều kiện luồng ký · cấu hình ký lại khi sửa SL duyệt · ảnh chữ ký/con dấu · chứng thư tổ chức · TSA · phụ lục thay đổi thông tin · HĐ nhiều cơ sở · mẫu email + giờ VN · cấu hình SMTP/ký số · NCC đăng ký chứng thư · SystemSetting phủ ngưỡng · API.md
+
+## Phase 12 — AUDIT-1: UX
+- [ ] Lưu nháp tự động · Xuất Excel mọi bảng · phân trang server mọi danh sách · component dùng chung · bỏ chữ kỹ thuật/tiếng Anh · i18n · đo khổ điện thoại/tablet
+
+## Phase 13 — AUDIT-1: vận hành / production
+- [ ] Tệp qua nginx · SignalR backplane + cache phân tán · restore + lịch backup · healthcheck · log · compose prod + chặn cờ dev · CI E2E/Trivy/tag · test bổ sung · ghi chú SeaweedFS

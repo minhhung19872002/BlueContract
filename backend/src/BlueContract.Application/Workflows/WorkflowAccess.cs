@@ -1,4 +1,6 @@
 using BlueContract.Application.Common;
+using BlueContract.Application.Documents;
+using BlueContract.Domain.Documents;
 using BlueContract.Domain.Identity;
 using BlueContract.Domain.Workflows;
 using Microsoft.EntityFrameworkCore;
@@ -12,9 +14,11 @@ public sealed record ActorStanding(bool CanAct, Guid? OnBehalfOf, string? Captio
 /// Resolves who may act on a workflow step (spec §4.2, §5.7): role + data scope, specific user, the document's supplier,
 /// or the creator; signing delegation lets a deputy act for the director ("KT. GIÁM ĐỐC").
 /// </summary>
-public sealed class WorkflowAccess(IAppDbContext db, ICurrentUser current, IClock clock)
+public sealed class WorkflowAccess(IAppDbContext db, ICurrentUser current, IClock clock, DataScope dataScope)
 {
     private List<string>? _myRoles;
+    private readonly Dictionary<Guid, DocumentType> _documentTypes = [];
+    private readonly Dictionary<string, HashSet<string>> _rolePermissions = [];
     private List<(Guid Delegator, string DelegatorTitle, string DelegateTitle, List<string> Roles)>? _delegations;
 
     public async Task<IReadOnlyList<string>> MyRolesAsync(CancellationToken ct) =>
@@ -63,40 +67,50 @@ public sealed class WorkflowAccess(IAppDbContext db, ICurrentUser current, ICloc
             return Deny("FORBIDDEN");
         }
 
+        var required = DocumentPermissions.Act(await DocumentTypeAsync(wf.DocumentId, ct), step.ActionType);
+        var holdsRequired = required.Length == 0 || current.Permissions.Overlaps(required);
         switch (step.AssigneeType)
         {
             case AssigneeType.User:
-                return step.AssigneeUserId == me ? Allow() : Deny("WORKFLOW_NOT_ASSIGNEE");
+                return step.AssigneeUserId != me ? Deny("WORKFLOW_NOT_ASSIGNEE") : holdsRequired ? Allow() : Deny("WORKFLOW_PERMISSION_MISSING");
             case AssigneeType.Creator:
-                return wf.StartedBy == me ? Allow() : Deny("WORKFLOW_NOT_ASSIGNEE");
+                return wf.StartedBy != me ? Deny("WORKFLOW_NOT_ASSIGNEE") : holdsRequired ? Allow() : Deny("WORKFLOW_PERMISSION_MISSING");
             case AssigneeType.DocumentSupplier:
-                return current.IsSupplier && wf.SupplierId is not null && current.SupplierId == wf.SupplierId ? Allow() : Deny("WORKFLOW_NOT_ASSIGNEE");
-        }
-
-        if (!InScope(wf))
-        {
-            return Deny("WORKFLOW_OUT_OF_SCOPE");
+                return !(current.IsSupplier && wf.SupplierId is not null && current.SupplierId == wf.SupplierId) ? Deny("WORKFLOW_NOT_ASSIGNEE")
+                    : holdsRequired ? Allow() : Deny("WORKFLOW_PERMISSION_MISSING");
         }
 
         var roles = await MyRolesAsync(ct);
-        if (roles.Contains(step.RoleCode!))
+        var holdsRole = roles.Contains(step.RoleCode!);
+        if (holdsRole && DataScope.Covers(await dataScope.MineAsync(ct), wf.ScopeFacilityId, wf.ScopeDomain))
         {
-            return Allow();
+            return holdsRequired ? Allow() : Deny("WORKFLOW_PERMISSION_MISSING");
         }
 
         // The e-seal is never delegated: only a clerk may apply the hospital's seal (spec §8.2).
         if (step.ActionType == WorkflowActionType.OrgSeal)
         {
-            return Deny("WORKFLOW_NOT_ASSIGNEE");
+            return Deny(holdsRole ? "WORKFLOW_OUT_OF_SCOPE" : "WORKFLOW_NOT_ASSIGNEE");
         }
 
-        var delegation = (await MyDelegationsAsync(ct)).FirstOrDefault(d => d.Roles.Contains(step.RoleCode!));
-        if (delegation.Delegator != Guid.Empty)
+        // A deputy acts with the delegator's authority and within the delegator's data scope (AUDIT-1 §10.7).
+        foreach (var delegation in (await MyDelegationsAsync(ct)).Where(d => d.Roles.Contains(step.RoleCode!)))
         {
+            if (!DataScope.Covers(await dataScope.OfUserAsync(delegation.Delegator, ct), wf.ScopeFacilityId, wf.ScopeDomain))
+            {
+                continue;
+            }
+
+            // The delegator's roles must hold the permission.
+            if (required.Length > 0 && !(await PermissionsOfAsync(delegation.Roles, ct)).Overlaps(required))
+            {
+                return Deny("WORKFLOW_PERMISSION_MISSING");
+            }
+
             return new ActorStanding(true, delegation.Delegator, $"KT. {delegation.DelegatorTitle.ToUpperInvariant()}", delegation.DelegateTitle, null);
         }
 
-        return Deny("WORKFLOW_NOT_ASSIGNEE");
+        return Deny(holdsRole ? "WORKFLOW_OUT_OF_SCOPE" : "WORKFLOW_NOT_ASSIGNEE");
     }
 
     /// <summary>Users to notify when a step becomes active.</summary>
@@ -147,14 +161,27 @@ public sealed class WorkflowAccess(IAppDbContext db, ICurrentUser current, ICloc
         return false;
     }
 
-    /// <summary>Data-scope rule for role steps: a user with facility/domain scopes only handles matching workflows.</summary>
-    public bool InScope(WorkflowInstance wf)
+    private async Task<DocumentType> DocumentTypeAsync(Guid documentId, CancellationToken ct)
     {
-        var scopes = current.DataScopes;
-        var facilities = scopes.Where(s => s.Type == DataScopeType.Facility).Select(s => s.Value).ToList();
-        var domains = scopes.Where(s => s.Type == DataScopeType.Domain).Select(s => s.Value).ToList();
-        return (wf.ScopeFacilityId is null || facilities.Count == 0 || facilities.Contains(wf.ScopeFacilityId.Value.ToString()))
-            && (wf.ScopeDomain is null || domains.Count == 0 || domains.Contains(wf.ScopeDomain));
+        if (!_documentTypes.TryGetValue(documentId, out var type))
+        {
+            type = await db.Documents.IgnoreQueryFilters().Where(d => d.Id == documentId).Select(d => d.Type).FirstAsync(ct);
+            _documentTypes[documentId] = type;
+        }
+
+        return type;
+    }
+
+    private async Task<HashSet<string>> PermissionsOfAsync(List<string> roleCodes, CancellationToken ct)
+    {
+        var key = string.Join(',', roleCodes.Order(StringComparer.Ordinal));
+        if (!_rolePermissions.TryGetValue(key, out var permissions))
+        {
+            permissions = [.. await db.Roles.Where(r => roleCodes.Contains(r.Code)).SelectMany(r => r.Permissions.Select(p => p.PermissionCode)).ToListAsync(ct)];
+            _rolePermissions[key] = permissions;
+        }
+
+        return permissions;
     }
 
     private static ActorStanding Allow() => new(true, null, null, null, null);

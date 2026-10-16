@@ -1,8 +1,8 @@
 namespace BlueContract.Domain.Common;
 
 /// <summary>
-/// Per-year counters for document numbers (DX-2026-0001...). The row's xmin makes concurrent allocations conflict
-/// instead of producing duplicates; the unique index on the generated numbers is the final guard.
+/// Per-year counters for document numbers (DX-2026-0001...). Allocation is one atomic upsert in the database
+/// (<c>IAppDbContext.NextNumberAsync</c>); the unique index on each generated number is the final guard.
 /// </summary>
 public sealed class NumberSequence
 {
@@ -28,6 +28,8 @@ public sealed class NumberSequence
     public string Next()
     {
         Last++;
-        return $"{Prefix}-{Year}-{Last:0000}";
+        return Format(Prefix, Year, Last);
     }
+
+    public static string Format(string prefix, int year, int value) => $"{prefix}-{year}-{value:0000}";
 }

@@ -26,7 +26,14 @@ public sealed class HisReceiptIngestion(
     public static string PayloadHash(HisReceiptPayload payload) =>
         Convert.ToHexStringLower(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(payload, HashOptions)));
 
-    public async Task<Result<HisIngestResultDto>> IngestAsync(HisReceiptPayload p, CancellationToken ct)
+    /// <summary>
+    /// Serialized per HIS receipt id (a retry racing the original is answered as a duplicate, not a 500) and per supplier
+    /// tax code (two receipts carrying the same invoice are validated one after the other, so only one is accepted).
+    /// </summary>
+    public Task<Result<HisIngestResultDto>> IngestAsync(HisReceiptPayload p, CancellationToken ct) =>
+        db.SerializedAsync([$"his-receipt:{p.HisReceiptId.Trim()}", ReceiptLocks.Invoices(p.SupplierTaxCode)], () => IngestLockedAsync(p, ct), ct);
+
+    private async Task<Result<HisIngestResultDto>> IngestLockedAsync(HisReceiptPayload p, CancellationToken ct)
     {
         var hash = PayloadHash(p);
         var hisId = p.HisReceiptId.Trim();

@@ -7,7 +7,6 @@ using BlueContract.Application.Integration;
 using BlueContract.Domain.Integration;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 
 namespace BlueContract.Api.Integration;
@@ -44,12 +43,12 @@ public sealed class HisInboundOptions
 
 /// <summary>
 /// Authenticates HIS calls: IP whitelist → X-Api-Key → X-Timestamp ±5 min → X-Signature (HMAC-SHA256 over method, path,
-/// timestamp and body hash) → anti-replay cache. Every call — accepted or rejected — is written to IntegrationLog with its
+/// timestamp and body hash) → anti-replay table. Every call — accepted or rejected — is written to IntegrationLog with its
 /// request and response.
 /// </summary>
 internal sealed class HisInboundFilter(
     IOptions<HisInboundOptions> options,
-    IMemoryCache cache,
+    IAppDbContext db,
     IntegrationLogWriter logs,
     IClock clock,
     ILogger<HisInboundFilter> logger) : IAsyncResourceFilter
@@ -89,8 +88,15 @@ internal sealed class HisInboundFilter(
             : !HisRequestSignature.IsFresh(http.Request.Headers["X-Timestamp"], clock.UtcNow) ? ("HIS_AUTH_TIMESTAMP_INVALID", StatusCodes.Status401Unauthorized)
             : !HisRequestSignature.Verify(client.Secret, http.Request.Method, pathAndQuery, http.Request.Headers["X-Timestamp"].ToString(), body,
                 http.Request.Headers["X-Signature"]) ? ("HIS_AUTH_SIGNATURE_INVALID", StatusCodes.Status401Unauthorized)
-            : !HttpMethods.IsGet(http.Request.Method) && !RegisterSignature(http.Request.Headers["X-Signature"].ToString()) ? ("HIS_AUTH_REPLAY", StatusCodes.Status401Unauthorized)
             : ((string Code, int Status)?)null;
+
+        // Anti-replay last, and only for writes: recorded in the database so it holds across API instances (AUDIT-1 §10.9).
+        if (rejection is null && !HttpMethods.IsGet(http.Request.Method)
+            && !await db.TryUseRequestSignatureAsync(http.Request.Headers["X-Signature"].ToString().Trim().ToLowerInvariant(), clock.UtcNow,
+                HisRequestSignature.AllowedSkew * 2, http.RequestAborted))
+        {
+            rejection = ("HIS_AUTH_REPLAY", StatusCodes.Status401Unauthorized);
+        }
 
         var logId = await logs.BeginAsync(IntegrationDirection.Inbound, operation, http.Request.Method, pathAndQuery, externalId, bodyText, ip?.ToString(),
             client?.Name, http.RequestAborted);
@@ -221,18 +227,6 @@ internal sealed class HisInboundFilter(
     }
 
     /// <summary>A write request's signature is accepted once within the freshness window (anti-replay); reads are idempotent.</summary>
-    private bool RegisterSignature(string signature)
-    {
-        var key = "his-sig:" + signature.Trim().ToLowerInvariant();
-        if (cache.TryGetValue(key, out _))
-        {
-            return false;
-        }
-
-        cache.Set(key, true, HisRequestSignature.AllowedSkew * 2);
-        return true;
-    }
-
     private static ProblemDetails Problem(HttpContext http, int status, string code)
     {
         var problem = new ProblemDetails { Status = status, Title = ErrorMessages.Get(code), Type = $"https://blueprocure.local/errors/{code}" };

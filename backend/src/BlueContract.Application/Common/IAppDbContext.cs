@@ -107,4 +107,23 @@ public interface IAppDbContext
     DbSet<IntegrityCheckRun> IntegrityCheckRuns { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Runs <paramref name="work"/> in one transaction holding a database lock per key (PostgreSQL advisory locks), so
+    /// concurrent requests over the same keys run one after another. Read the guarded rows inside <paramref name="work"/>
+    /// (after the lock), never before. Notifications go out only after the commit.
+    /// </summary>
+    Task<T> SerializedAsync<T>(IEnumerable<string> lockKeys, Func<Task<T>> work, CancellationToken ct);
+
+    /// <summary>
+    /// Next value of a per-prefix, per-year document counter, allocated atomically. Outside a transaction the value is
+    /// committed at once, so a request that fails afterwards leaves a gap in the numbering (never a duplicate).
+    /// </summary>
+    Task<int> NextNumberAsync(string prefix, int year, CancellationToken ct);
+
+    /// <summary>
+    /// Records a request signature atomically: true the first time, false for a replay — whichever API instance saw it
+    /// first. Signatures older than <paramref name="keepFor"/> are purged.
+    /// </summary>
+    Task<bool> TryUseRequestSignatureAsync(string signature, DateTimeOffset now, TimeSpan keepFor, CancellationToken ct);
 }

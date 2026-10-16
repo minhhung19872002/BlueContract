@@ -21,6 +21,7 @@ public sealed record ContractListItemDto(
     DateOnly? EffectiveDate,
     DateOnly? ExpiryDate,
     decimal ReceivedPercent,
+    bool RequiresWarehouseReceipt,
     DateTimeOffset CreatedAt);
 
 public sealed record ContractFilter(

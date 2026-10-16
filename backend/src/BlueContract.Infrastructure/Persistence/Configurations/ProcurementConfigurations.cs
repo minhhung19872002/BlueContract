@@ -43,6 +43,10 @@ internal sealed class ItemConfiguration : IEntityTypeConfiguration<Item>
         b.Property(x => x.RegistrationNumber).HasMaxLength(100);
         b.Property(x => x.BidGroup).HasMaxLength(40);
         b.HasIndex(x => new { x.BidDecisionId, x.SupplierId, x.Code });
+
+        // Catalogue items outside a bid: one code per supplier (null supplier counts as one value).
+        b.HasIndex(x => new { x.Code, x.SupplierId }, "ux_items_free_code").IsUnique().HasDatabaseName("ux_items_free_code").AreNullsDistinct(false)
+            .HasFilter("bid_decision_id IS NULL AND is_deleted = false");
         b.HasIndex(x => x.HisKey);
         b.HasIndex(x => new { x.CategoryId, x.IsActive });
         b.HasIndex(x => x.SupplierId);
@@ -155,6 +159,7 @@ internal sealed class ContractAppendixConfiguration : IEntityTypeConfiguration<C
         b.Property(x => x.Reason).HasMaxLength(2000).IsRequired();
         b.Property(x => x.InfoChanges).HasMaxLength(4000);
         b.HasIndex(x => new { x.ContractId, x.Number }).IsUnique().HasFilter("is_deleted = false");
+        b.HasIndex(x => x.ContractId, "ux_contract_appendices_contract_open").IsUnique().HasDatabaseName("ux_contract_appendices_contract_open").HasFilter("status IN ('Draft', 'InWorkflow') AND is_deleted = false");
         b.HasIndex(x => x.DocumentId);
         b.HasMany(x => x.Lines).WithOne().HasForeignKey(l => l.AppendixId).OnDelete(DeleteBehavior.Cascade);
     }

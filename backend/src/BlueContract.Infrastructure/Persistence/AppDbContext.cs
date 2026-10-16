@@ -37,6 +37,49 @@ public sealed class AppDbContext : DbContext, IAppDbContext, IDataProtectionKeyC
     /// <summary>The caller's supplier id (Guid.Empty for internal callers, which never matches).</summary>
     public Guid CallerSupplierId => _currentUser?.SupplierId ?? Guid.Empty;
 
+    public async Task<T> SerializedAsync<T>(IEnumerable<string> lockKeys, Func<Task<T>> work, CancellationToken ct)
+    {
+        // Nested call: the locks join the outer transaction and are released when it ends.
+        var outer = Database.CurrentTransaction is not null;
+        await using var transaction = outer ? null : await Database.BeginTransactionAsync(ct);
+
+        // Sorted so two requests locking overlapping keys always take them in the same order (no deadlock).
+        foreach (var key in lockKeys.Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal))
+        {
+            await Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({key}, 0))", ct);
+        }
+
+        var result = await work();
+        if (transaction is not null)
+        {
+            await transaction.CommitAsync(ct);
+        }
+
+        return result;
+    }
+
+    public async Task<int> NextNumberAsync(string prefix, int year, CancellationToken ct)
+    {
+        // One atomic statement: concurrent allocations queue on the row instead of failing on its xmin.
+        var values = await Database.SqlQuery<int>($"""
+            INSERT INTO number_sequences (prefix, year, last) VALUES ({prefix}, {year}, 1)
+            ON CONFLICT (prefix, year) DO UPDATE SET last = number_sequences.last + 1
+            RETURNING last AS "Value"
+            """).ToListAsync(ct);
+        return values.Single();
+    }
+
+    public async Task<bool> TryUseRequestSignatureAsync(string signature, DateTimeOffset now, TimeSpan keepFor, CancellationToken ct)
+    {
+        var cutoff = now - keepFor;
+        await Database.ExecuteSqlInterpolatedAsync($"DELETE FROM used_request_signatures WHERE received_at < {cutoff}", ct);
+        var inserted = await Database.ExecuteSqlInterpolatedAsync(
+            $"INSERT INTO used_request_signatures (signature, received_at) VALUES ({signature}, {now}) ON CONFLICT (signature) DO NOTHING", ct);
+        return inserted == 1;
+    }
+
+    public DbSet<UsedRequestSignature> UsedRequestSignatures => Set<UsedRequestSignature>();
+
     public DbSet<SystemSetting> SystemSettings => Set<SystemSetting>();
 
     public DbSet<Organization> Organizations => Set<Organization>();
@@ -135,6 +178,14 @@ public sealed class AppDbContext : DbContext, IAppDbContext, IDataProtectionKeyC
         foreach (var entityType in modelBuilder.Model.GetEntityTypes().ToList())
         {
             var clr = entityType.ClrType;
+
+            // Every Guid "Id" is a UUIDv7 made by the application, never by the database: a child row added to a loaded
+            // aggregate (e.g. a user's data scope) must be inserted, not taken for an existing row (AUDIT-1, found in §10.7).
+            if (entityType.FindPrimaryKey()?.Properties is [{ Name: "Id", ClrType: var keyType }] && keyType == typeof(Guid))
+            {
+                modelBuilder.Entity(clr).Property("Id").ValueGeneratedNever();
+            }
+
             if (!typeof(Entity).IsAssignableFrom(clr))
             {
                 continue;

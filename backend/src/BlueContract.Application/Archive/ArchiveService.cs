@@ -67,13 +67,13 @@ public interface IArchiveIndexRenderer
 /// Hồ sơ lưu trữ (spec §9.1-12): tìm theo hợp đồng hoặc số quyết định → cây tài liệu QĐ → HĐ (+phụ lục) → Đề xuất / Tổng
 /// hợp / Gọi hàng → Phiếu nhập kho → Nghiệm thu → 08a + UNC → Thanh lý; tải ZIP kèm mục lục và kiểm tra hash.
 /// </summary>
-public sealed class ArchiveService(IAppDbContext db, IFileStorage storage, IArchiveIndexRenderer indexRenderer, IAuditLogger audit, ICurrentUser current, IClock clock)
+public sealed class ArchiveService(IAppDbContext db, IFileStorage storage, IArchiveIndexRenderer indexRenderer, IAuditLogger audit, ICurrentUser current, IClock clock, DataScope dataScope)
 {
     private static readonly TimeSpan LinkLifetime = TimeSpan.FromMinutes(5);
 
     public async Task<PagedResult<ArchiveSearchItemDto>> SearchAsync(PageQuery q, CancellationToken ct)
     {
-        var query = db.Contracts.AsNoTracking().Where(c => c.Status != ContractStatus.Draft && c.Status != ContractStatus.Cancelled);
+        var query = await dataScope.ContractsAsync(db.Contracts.AsNoTracking().Where(c => c.Status != ContractStatus.Draft && c.Status != ContractStatus.Cancelled), ct);
         if (!string.IsNullOrWhiteSpace(q.Search))
         {
             var p = PagingExtensions.LikePattern(q.Search);
@@ -184,7 +184,7 @@ public sealed class ArchiveService(IAppDbContext db, IFileStorage storage, IArch
     public async Task<Result<ArchiveTreeDto>> SetCompleteAsync(Guid contractId, ArchiveCompleteRequest r, CancellationToken ct)
     {
         var contract = await db.Contracts.FirstOrDefaultAsync(c => c.Id == contractId, ct);
-        if (contract is null)
+        if (contract is null || !await dataScope.CanSeeContractAsync(contractId, ct))
         {
             return Error.NotFound();
         }
@@ -198,7 +198,7 @@ public sealed class ArchiveService(IAppDbContext db, IFileStorage storage, IArch
     private async Task<ArchiveTreeDto?> BuildAsync(Guid contractId, CancellationToken ct)
     {
         var contract = await db.Contracts.AsNoTracking().FirstOrDefaultAsync(c => c.Id == contractId, ct);
-        if (contract is null)
+        if (contract is null || !await dataScope.CanSeeContractAsync(contractId, ct))
         {
             return null;
         }

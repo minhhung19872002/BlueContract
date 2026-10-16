@@ -12888,6 +12888,7 @@
           "effectiveDate",
           "expiryDate",
           "receivedPercent",
+          "requiresWarehouseReceipt",
           "createdAt"
         ],
         "type": "object",
@@ -12952,6 +12953,9 @@
           "receivedPercent": {
             "type": "number",
             "format": "double"
+          },
+          "requiresWarehouseReceipt": {
+            "type": "boolean"
           },
           "createdAt": {
             "type": "string",

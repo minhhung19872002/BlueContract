@@ -107,6 +107,8 @@ server {
 }
 ```
 
+API chỉ tin `X-Forwarded-For` từ proxy khai báo trong `TRUSTED_PROXY_NETWORK` (mặc định dải bridge Docker `172.16.0.0/12`, là container `web`). Nếu có thêm proxy TLS phía trước, nginx của container `web` chuyển tiếp chuỗi địa chỉ, và giới hạn theo IP (đăng nhập, whitelist HIS) áp lên địa chỉ client mà proxy tin cậy báo lại. Không đặt `0.0.0.0/0`: ai cũng sẽ giả được IP.
+
 ONLYOFFICE cần một tên miền riêng (VD `office.benhvien.vn` → `127.0.0.1:47082`) vì trình duyệt tải editor trực tiếp từ đó; `ONLYOFFICE_PUBLIC_URL` trỏ tới tên miền này. Container `web` đã tự gắn các header bảo mật (`X-Content-Type-Options`, `X-Frame-Options`, `Content-Security-Policy: frame-ancestors`, `Referrer-Policy`, `Permissions-Policy`); HSTS đặt ở reverse proxy vì chỉ ở đó mới có TLS.
 
 ## 4. Chữ ký số

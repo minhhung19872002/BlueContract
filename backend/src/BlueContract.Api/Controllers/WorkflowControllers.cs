@@ -118,9 +118,7 @@ public sealed class SigningController(SigningService signing, WorkflowService wo
             return Problem(upload.Error!);
         }
 
-        return FileInspector.Detect(upload.Value.Content) != FileKind.Pdf
-            ? Problem(Error.Validation("DOCUMENT_FILE_TYPE_INVALID"))
-            : signing.Verify(upload.Value.Content);
+        return FromResult(signing.VerifyUpload(upload.Value.Content));
     }
 }
 

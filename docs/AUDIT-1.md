@@ -1,0 +1,89 @@
+# AUDIT-1 — Rà soát mã so với SPEC (commit 7c3a582)
+
+Nguồn: một phiên rà soát khác đọc mã (chưa chạy) và đối chiếu từng gạch đầu dòng của `docs/SPEC.md`. Mỗi mục dưới đây được **tái hiện trước khi sửa** (test đỏ trên mã cũ → xanh sau khi sửa). Mục nào không tái hiện được thì ghi rõ lý do, không bỏ qua.
+
+Trạng thái: ⏳ chưa xử lý · 🔴 đã tái hiện · ✅ đã sửa (test đỏ → xanh) · ⚪ không tái hiện được / không áp dụng (kèm lý do)
+
+## Quy tắc làm việc
+1. Xác minh trước khi sửa; mục sai thì ghi "không tái hiện được + lý do".
+2. Test đỏ trước, xanh sau. Ghi vào commit/PROGRESS là đã thấy đỏ.
+3. Test tranh chấp gửi yêu cầu song song thật (`Task.WhenAll`, ≥ 3 lượt).
+4. Luật "một … một" là ràng buộc duy nhất ở DB; lượt thua nhận câu báo tiếng Việt, không phải 500.
+5. Sửa một chỗ thì quét cả lớp lỗi; nếu được, thêm test quét mã nguồn để chặn lần sau.
+6. Hết mỗi phase: `dotnet test`, `npm lint/test/build`, E2E #1–#4 pass; `docker compose up` và đi lại luồng vừa sửa trên trình duyệt; commit `fix(phase-1x): …`.
+
+## Phase 10 — Lỗ hổng nghiệp vụ & bảo mật
+
+| # | Mục | Trạng thái | Kết quả xác minh / cách sửa |
+|---|---|---|---|
+| 10.1 | Tải PDF phiên bản mới không khởi động lại luồng ký; `UploadVersionAsync` không chặn khi đang trong luồng ký (§5.7 bản đã ký bất biến) | ✅ | Tái hiện bằng `VersionLockTests` (4 ca DOCX/PDF): 3 ca ĐỎ trên mã cũ — PDF sau chữ ký không khởi động lại luồng, cả DOCX lẫn PDF tải lên được khi bước hiện tại không phải của người tải (ca DOCX sau chữ ký vốn đã đúng). Sửa: một hàm `LockedInWorkflowAsync` dùng chung cho editor + tải lên, một hàm `RestartWorkflowsAsync` dùng chung cho DOCX + PDF. |
+| 10.2 | `RequiresWarehouseReceipt` không được cưỡng chế: phiếu ảo tạo được cho HĐ thuốc/VTYT | ✅ | Đúng như mô tả, và còn thêm: phiếu ảo bỏ qua cả kiểm tra HĐ đang hiệu lực. `Virtual_receipt_requires_an_effective_contract_without_warehouse_receipt` ĐỎ trên mã cũ (200 thay vì 400). Chính `PaymentFlowTests` cũng đang dùng phiếu ảo cho HĐ bắt buộc nhập kho, nên đã đổi bước đó sang phiếu HIS ký đủ 5 chữ ký. Sửa: `RECEIPT_VIRTUAL_NOT_ALLOWED` + kiểm hiệu lực cho mọi loại phiếu. Màn lập phiếu chỉ liệt kê HĐ không nhập kho khi bật "phiếu xác nhận khối lượng". |
+| 10.3 | Quyền `contract.sign` / `contract.initial` / `contract.seal` không ai đọc; quét mọi quyền seed mà không có chỗ đọc | ✅ | Đúng: 3 quyền này chỉ có trong `RoleCatalog` (`contract.sign` còn nằm trong một comment). `SigningPermissionTests` (3 ca) ĐỎ trên mã cũ: gỡ quyền khỏi vai trò mà người giữ vai trò vẫn được giao và ký được. Sửa: `DocumentPermissions.Act(loại tài liệu, hành động)`, được `WorkflowAccess.StandingAsync` kiểm cho mọi kiểu người xử lý. Ký thay theo ủy quyền thì kiểm theo quyền của vai trò người ủy quyền. Ký số HĐ/PL → `contract.sign`; ký nháy → `contract.initial`; rà soát HĐ → `contract.review` hoặc `contract.accountant_review`; NCC rà soát → `contract.supplier_review`; đóng dấu (mọi loại tài liệu) → `contract.seal`. Mã lỗi mới `WORKFLOW_PERMISSION_MISSING`. Quét quyền: thêm `PermissionUsageTests`, bỏ qua comment, ĐỎ trên mã cũ (báo đúng 3 quyền), XANH sau sửa; hiện không còn quyền chết nào. |
+| 10.4 | Tranh chấp Σ SL gọi ≤ SL duyệt; đề xuất song song vượt SL còn lại HĐ; phụ lục `AddQuantity` chưa kiểm trần SL QĐ thầu | ✅ | **Gọi hàng:** `Parallel_calls_never_exceed_the_approved_quantity` (4 lượt song song × 4, duyệt 10) ĐỎ trên mã cũ, nhưng lý do khác dự đoán: 3 trên 4 lượt bị 409 chung chung vì xung đột xmin ở bộ đếm số chứng từ, nên lượt hợp lệ thứ hai cũng bị từ chối. Bộ đếm che đi lỗi cộng dồn: khi hai lượt không cấp số cùng lúc thì `CalledQuantity` vẫn bị ghi đè. Sửa: `IAppDbContext.SerializedAsync` = transaction + advisory lock theo phiếu tổng hợp, mặt hàng HĐ và bộ đếm, rồi đọc lại số liệu sau khi khóa. Xác nhận / hủy đơn (trả SL về dòng tổng hợp) dùng cùng khóa. Thông báo/email chỉ gửi sau khi commit (interceptor chờ `TransactionCommitted`). Thêm luật Σ gọi của mọi phiếu tổng hợp ≤ SL HĐ (`CALL_QTY_EXCEEDS_CONTRACT`), test ĐỎ → XANH. **Đề xuất song song:** không tái hiện được. Phiếu đề xuất không giữ chỗ số lượng: mỗi phiếu chỉ cần ≤ SL còn lại của HĐ (SL HĐ − đã nhập), và SL duyệt bị chặn ở bước tổng hợp, SL gọi bị chặn ở bước gọi. **Phụ lục tăng SL:** ĐỎ trên mã cũ (tạo được phụ lục vượt SL trúng thầu còn lại); sửa `APPENDIX_QTY_EXCEEDS_BID`, kiểm khi lập, sửa và gửi ký. |
+| 10.5 | Gọi hàng cho HĐ đã thanh lý / hết hạn / chưa hiệu lực | ✅ | `Calls_need_a_contract_in_force` (3 ca: đã thanh lý, hết hạn, chưa tới ngày hiệu lực) ĐỎ trên mã cũ → sửa `CALL_CONTRACT_NOT_IN_FORCE`. Quét cùng lớp: phiếu đề xuất (`ProposalScope.CallableContracts`) chỉ kiểm trạng thái, chưa kiểm ngày → `Proposals_need_a_contract_in_force` ĐỎ → sửa. Phiếu nhập kho đã kiểm qua validation engine (HĐ chưa hiệu lực / hết hạn so với ngày phiếu); nghiệm thu, 08a, thanh lý cần HĐ `Effective` nhưng được phép sau ngày hết hạn (thanh toán phần đã thực hiện), nên giữ nguyên. |
+| 10.6 | Thiếu chỉ mục duy nhất: thanh lý/HĐ, luồng ký đang chạy/tài liệu, (HĐ, lần thanh toán) 08a, số hóa đơn, `hisReceiptId` song song, `NumberSequence` | ✅ | Migration `Phase10UniqueRules` thêm các chỉ mục duy nhất có điều kiện: `ux_liquidation_records_contract_active`, `ux_workflow_instances_document_open`, `ux_valuation_records_contract_sequence`, `ux_contract_appendices_contract_open` (quét thêm), `ux_warehouse_receipts_invoice_active` (một hóa đơn chỉ thuộc một phiếu chưa hủy và không "Không hợp lệ"), `ux_items_free_code` (quét thêm); số phiếu nhập kho thành unique (quét thêm). `hisReceiptId` đã có unique sẵn. Lượt thua nhận 409 kèm câu tiếng Việt của đúng luật: `UniqueConstraints` ánh xạ tên chỉ mục → mã lỗi, `GlobalExceptionHandler` dùng bảng này, và test quét `Every_unique_index_has_a_business_message` bắt buộc mọi chỉ mục duy nhất trong DB phải có câu báo. Bộ đếm số chứng từ đổi sang một câu upsert nguyên tử (`NextNumberAsync`): không còn 409 khi lập song song; đánh đổi là có thể hụt số khi yêu cầu lỗi sau khi đã cấp số. Lần thanh toán 08a đổi `Count+1` → `Max+1` (lỗi tìm thêm: `Count+1` trùng số khi một 08a ở giữa đã hủy). Nhận phiếu HIS và mọi lối đổi hóa đơn / kiểm tra lại được khóa theo mã phiếu HIS và MST NCC. **Trên mã cũ** (worktree HEAD, 7 test song song ≥3 lượt đều ĐỎ): 3 phiếu cùng hóa đơn đều được nhận là *Hợp lệ*; lập đề xuất song song và HIS gửi lại song song nhận 409 chung chung; lượt thua của luồng ký/thanh lý nhận 409 "dữ liệu đã thay đổi" thay vì lý do; phụ lục song song va vào chỉ mục số phụ lục. Trên mã mới: XANH. |
+| 10.7 | Phạm vi dữ liệu Cơ sở/Mảng chưa áp cho HĐ, phiếu nhập, nghiệm thu, 08a, thanh lý, báo cáo, dashboard, hồ sơ; người ký thay theo phạm vi người ủy quyền | ✅ | Thêm service dùng chung `DataScope`: Cơ sở (gồm cả cơ sở của phạm vi Khoa/Phòng) và Mảng (theo nhóm hàng của HĐ), áp ở **một chỗ** cho cả phép đếm lẫn phép lấy dòng. Quét mọi danh sách và chi tiết: HĐ, phiếu nhập kho (phiếu chưa ghép HĐ chỉ hiện cho người không giới hạn Mảng), nghiệm thu, phiếu chờ nghiệm thu, 08a, thanh lý, xem trước thanh lý, đơn gọi hàng (quét thêm), hồ sơ lưu trữ (tìm, cây, tệp, ZIP, đánh dấu đầy đủ), 4 báo cáo, tổng quan và tài liệu của HĐ. Chi tiết ngoài phạm vi trả 404, trừ khi người dùng tham gia luồng ký của tài liệu đó. Ký thay: `WorkflowAccess` và hộp "Chờ tôi xử lý" kiểm bước được ủy quyền theo phạm vi của **người ủy quyền**; trước đây hộp chờ gộp vai trò được ủy quyền vào phạm vi của chính người được ủy quyền. `DataScopeTests` (3 test) ĐỎ trên mã cũ: người giới hạn Mảng Thuốc vẫn thấy HĐ VTYT; người được ủy quyền không thấy bước của người ủy quyền; admin thêm phạm vi cho user có sẵn bị 409 (lỗi tìm thêm, xem dưới). XANH sau khi sửa. |
+| 10.8 | `SigningService.VerifyVersionAsync` bỏ qua `CanView` | ✅ | `Verifying_a_version_needs_view_rights_on_the_document` ĐỎ trên mã cũ: người dùng Khoa/Phòng không có quyền xem vẫn đọc được chi tiết chữ ký. Quét cùng lớp: `GET /api/workflows/by-document/{id}` (các bước, ý kiến, người ký) cũng không kiểm → sửa cả hai bằng `DocumentService.CanViewAsync(documentId)` (quyền theo loại tài liệu + phạm vi dữ liệu, hoặc người tham gia luồng ký). Các endpoint khác nhận `documentId` (tệp, phiên bản, mở editor, tải lên) vốn đã đi qua `CanViewAsync`. |
+| 10.9 | Chống replay HMAC nhớ trong tiến trình | ✅ | `Replay_is_refused_across_instances_and_under_parallel_arrival` (2 host API dùng chung DB + 4 lượt song song cùng chữ ký) ĐỎ trên mã cũ: instance thứ hai nhận lại request đã dùng. Ngoài ra kiểm tra `TryGetValue` rồi `Set` không nguyên tử, nên ngay trong một tiến trình vẫn có cửa lọt khi các request đến cùng lúc. Sửa: bảng `used_request_signatures` (khóa chính = chữ ký), `INSERT … ON CONFLICT DO NOTHING` trả 1 dòng ⇒ lần đầu; dọn chữ ký cũ hơn 2× độ lệch giờ cho phép. |
+| 10.10 | `ForwardedHeaders` tin X-Forwarded-For từ bất kỳ ai | ✅ | `Forwarded_for_from_an_untrusted_caller_does_not_pass_the_ip_whitelist`: request đến từ 203.0.113.5 tự nhận là HIS 10.9.9.9 qua X-Forwarded-For. Trên mã cũ được nhận (ĐỎ). Sửa: chỉ tin loopback cộng các proxy/dải mạng khai báo trong `ForwardedHeaders:KnownProxies/KnownNetworks`; compose đặt `TRUSTED_PROXY_NETWORK` (mặc định dải bridge Docker 172.16.0.0/12). Ca đối chứng: khi 203.0.113.5 là proxy được khai báo thì IP chuyển tiếp được dùng. Rate limit đăng nhập theo IP dùng cùng địa chỉ nên cũng hết bị né. |
+| 10.11 | Quét mọi lối tải tệp: test âm (giả đuôi, quá dung lượng); XML hóa đơn: XXE / billion laughs | ✅ | Liệt kê đủ **13 lối tải lên** (mẫu biểu: kiểm tra/tạo/phiên bản; phiên bản tài liệu; UNC; chứng từ chốt công nợ; đính kèm QĐ thầu; import xlsx: xem trước/nhập; bản sửa của NCC; tệp hóa đơn; đọc thử XML; xác minh chữ ký). `Every_upload_endpoint_refuses_disguised_and_oversized_files` (tệp EXE mang đuôi đúng + tệp 20 MB + 1 byte, cho cả 13 lối) **không tái hiện được lỗi**: mọi lối đã kiểm magic bytes và dung lượng; test giữ lại làm hàng rào, số lối phải bằng 13. XXE / billion laughs: `InvoiceXmlParser` đã cấm DTD, test xác nhận trả 400 `INVOICE_XML_INVALID` dưới 10 giây. **Tìm thêm 2 lỗi trong cùng lớp:** (1) PDF mở đầu đúng `%PDF` nhưng nội dung hỏng làm `/api/signing/verify` trả **500**, test ĐỎ → `VerifyUpload` trả 400 `PDF_DAMAGED`; (2) UNC và chứng từ chốt công nợ được lưu với `Content-Type` **do client khai báo** (ảnh hợp lệ khai `text/html` sẽ được phục vụ như HTML), sửa: lưu theo kiểu nhận diện từ nội dung (`FileInspector.Storage`), đuôi tệp cũng lấy từ nội dung. |
+
+## Phase 11 — Chức năng spec còn thiếu
+
+| # | Mục | Trạng thái | Ghi chú |
+|---|---|---|---|
+| 11.1 | Menu "Rà soát" + so sánh hai phiên bản (DOCX diff, PDF song song) | ⏳ | |
+| 11.2 | Chi tiết HĐ đủ 9 tab ("Đề xuất & gọi hàng"); tab Lịch sử gồm AuditLog | ⏳ | |
+| 11.3 | `WorkflowTemplate.Condition` được đọc để chọn luồng theo loại HĐ / mảng / cơ sở | ⏳ | |
+| 11.4 | Cấu hình "tổ trưởng sửa SL có trả về người tổng hợp ký lại không" | ⏳ | |
+| 11.5 | Chữ ký hiển thị có ảnh (chữ ký tay, ký nháy, con dấu) | ⏳ | |
+| 11.6 | Chứng thư số tổ chức cấu hình trên Organization | ⏳ | |
+| 11.7 | TSA timestamp thật | ⏳ | |
+| 11.8 | Phụ lục `InfoChange` áp vào HĐ + lịch sử | ⏳ | |
+| 11.9 | HĐ nhiều cơ sở hoặc ADR | ⏳ | |
+| 11.10 | Mẫu email theo sự kiện sửa trên UI; giờ VN trong email/thông báo | ⏳ | |
+| 11.11 | Màn hình cấu hình SMTP + ký số; "Gửi thư thử"; mọi ô có chỗ đọc | ⏳ | |
+| 11.12 | Cổng NCC: đăng ký chứng thư số | ⏳ | |
+| 11.13 | SystemSetting phủ mọi ngưỡng; đổi lịch đăng ký lại job ngay; test quét khóa có chỗ đọc | ⏳ | |
+| 11.14 | `docs/API.md` | ⏳ | |
+
+## Phase 12 — UX theo §9.3 / §15
+
+| # | Mục | Trạng thái | Ghi chú |
+|---|---|---|---|
+| 12.1 | Lưu nháp tự động cho mọi form dài | ⏳ | |
+| 12.2 | Xuất Excel cho mọi bảng còn thiếu | ⏳ | |
+| 12.3 | Phân trang server + lọc trên URL cho các danh sách còn lại; kịch bản đi hết trang; sắp xếp kết thúc bằng khóa duy nhất | ⏳ | |
+| 12.4 | `ItemPicker`, `ReturnDialog`, `WorkflowTimeline` dùng chung; timeline cho đơn gọi hàng | ⏳ | |
+| 12.5 | Không lộ chữ kỹ thuật/tiếng Anh (nhật ký, Placeholder, Import Excel, StatusTag fallback, lỗi plugin USB) | ⏳ | |
+| 12.6 | Gom chuỗi giao diện về `src/i18n/` hoặc ADR | ⏳ | |
+| 12.7 | Trình ký trên 375×812 và 768×1024 không cuộn ngang (Playwright) | ⏳ | |
+
+## Phase 13 — Vận hành / production
+
+| # | Mục | Trạng thái | Ghi chú |
+|---|---|---|---|
+| 13.1 | Link presigned trỏ localhost → qua nginx `/files/` hoặc domain | ⏳ | |
+| 13.2 | SignalR backplane + cache phiên ký phân tán; kiểm `--scale api=2` | ⏳ | |
+| 13.3 | restore.ps1/.sh + chạy thử thật; lịch backup tự động | ⏳ | |
+| 13.4 | Healthcheck api/web/gotenberg/onlyoffice; seed chờ Gotenberg | ⏳ | |
+| 13.5 | Volume log, `logging: max-size` | ⏳ | |
+| 13.6 | Compose prod; api từ chối khởi động ở Production với cờ dev/secret mặc định; TLS + HSTS; S3 không Admin | ⏳ | |
+| 13.7 | CI: E2E trên PR, Trivy, tag image theo commit | ⏳ | |
+| 13.8 | Test bổ sung (NCC từ chối, NCC xác nhận thiếu, phân quyền âm, Application.Tests rule SL, test frontend) | ⏳ | |
+| 13.9 | Ghi chú MinIO → SeaweedFS; sửa README | ⏳ | |
+
+## Tìm thêm khi chạy thật
+
+_(điền sau Phase 13: mỗi vai trò đăng nhập, cố tình đi đường sai.)_
+
+Các lỗi tìm thêm trong lúc làm Phase 10:
+
+| Phát hiện khi | Lỗi | Tái hiện | Cách sửa |
+|---|---|---|---|
+| 10.6 | Lần thanh toán 08a = `Count+1` theo 08a chưa hủy, nên trùng số khi một 08a ở giữa đã hủy | Đọc mã; được chặn bởi chỉ mục `ux_valuation_records_contract_sequence` | `Max+1` |
+| 10.6 | Số phụ lục `Count+1`: hai lần lập song song cùng ra "01" và va vào chỉ mục số phụ lục, nên lượt thua nhận câu báo không đúng nghĩa | Test phụ lục song song (3 lượt) | Khóa theo HĐ khi lập phụ lục |
+| 10.6 | Số phiếu nhập kho do cổng cấp không unique trong DB | Quét chỉ mục | Chỉ mục unique có điều kiện (trừ phiếu HIS: số do HIS cấp, mỗi kho HIS có thể đánh số riêng) |
+| 10.11 | `/api/signing/verify` trả 500 với PDF hỏng; UNC / chứng từ lưu theo Content-Type của client | `A_damaged_pdf_is_refused_not_a_server_error` ĐỎ | `PDF_DAMAGED`; lưu theo kiểu nhận diện |
+| 10.7 | **Không thêm được phạm vi dữ liệu cho người dùng đã có**: EF coi `UserDataScope` mới (Id Guid do app sinh) là bản ghi cũ → UPDATE 0 dòng → 409 | `Admin_adds_a_data_scope_to_an_existing_user` ĐỎ trên mã cũ | Mọi khóa Guid `Id` đều `ValueGeneratedNever` (trước chỉ áp cho lớp kế thừa `Entity`) |
+

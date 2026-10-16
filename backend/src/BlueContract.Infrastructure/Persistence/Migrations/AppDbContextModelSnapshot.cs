@@ -363,6 +363,13 @@ namespace BlueContract.Infrastructure.Persistence.Migrations
                     NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex(new[] { "Name" }, "ix_items_name_trgm"), "gin");
                     NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex(new[] { "Name" }, "ix_items_name_trgm"), new[] { "gin_trgm_ops" });
 
+                    b.HasIndex(new[] { "Code", "SupplierId" }, "ux_items_free_code")
+                        .IsUnique()
+                        .HasDatabaseName("ux_items_free_code")
+                        .HasFilter("bid_decision_id IS NULL AND is_deleted = false");
+
+                    NpgsqlIndexBuilderExtensions.AreNullsDistinct(b.HasIndex(new[] { "Code", "SupplierId" }, "ux_items_free_code"), false);
+
                     b.ToTable("items", (string)null);
                 });
 
@@ -1029,6 +1036,11 @@ namespace BlueContract.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_contract_appendices_contract_id_number")
                         .HasFilter("is_deleted = false");
 
+                    b.HasIndex(new[] { "ContractId" }, "ux_contract_appendices_contract_open")
+                        .IsUnique()
+                        .HasDatabaseName("ux_contract_appendices_contract_open")
+                        .HasFilter("status IN ('Draft', 'InWorkflow') AND is_deleted = false");
+
                     b.ToTable("contract_appendices", (string)null);
                 });
 
@@ -1641,7 +1653,6 @@ namespace BlueContract.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("BlueContract.Domain.Identity.RefreshToken", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -2021,7 +2032,6 @@ namespace BlueContract.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("BlueContract.Domain.Identity.UserDataScope", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -2208,6 +2218,26 @@ namespace BlueContract.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_integration_logs_status_started_at");
 
                     b.ToTable("integration_logs", (string)null);
+                });
+
+            modelBuilder.Entity("BlueContract.Domain.Integration.UsedRequestSignature", b =>
+                {
+                    b.Property<string>("Signature")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("signature");
+
+                    b.Property<DateTimeOffset>("ReceivedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("received_at");
+
+                    b.HasKey("Signature")
+                        .HasName("pk_used_request_signatures");
+
+                    b.HasIndex("ReceivedAt")
+                        .HasDatabaseName("ix_used_request_signatures_received_at");
+
+                    b.ToTable("used_request_signatures", (string)null);
                 });
 
             modelBuilder.Entity("BlueContract.Domain.Organizations.Department", b =>
@@ -2997,6 +3027,11 @@ namespace BlueContract.Infrastructure.Persistence.Migrations
                     b.HasIndex("ContractId", "Status")
                         .HasDatabaseName("ix_liquidation_records_contract_id_status");
 
+                    b.HasIndex(new[] { "ContractId" }, "ux_liquidation_records_contract_active")
+                        .IsUnique()
+                        .HasDatabaseName("ux_liquidation_records_contract_active")
+                        .HasFilter("status <> 'Cancelled'");
+
                     b.ToTable("liquidation_records", (string)null);
                 });
 
@@ -3429,6 +3464,11 @@ namespace BlueContract.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("SupplierId", "PaymentStatus")
                         .HasDatabaseName("ix_valuation_records_supplier_id_payment_status");
+
+                    b.HasIndex(new[] { "ContractId", "PaymentSequence" }, "ux_valuation_records_contract_sequence")
+                        .IsUnique()
+                        .HasDatabaseName("ux_valuation_records_contract_sequence")
+                        .HasFilter("status <> 'Cancelled'");
 
                     b.ToTable("valuation_records", (string)null);
                 });
@@ -4336,6 +4376,16 @@ namespace BlueContract.Infrastructure.Persistence.Migrations
                     b.HasIndex("SupplierTaxCode", "InvoiceSymbol", "InvoiceNumber")
                         .HasDatabaseName("ix_warehouse_receipts_supplier_tax_code_invoice_symbol_invoice");
 
+                    b.HasIndex(new[] { "SupplierTaxCode", "InvoiceSymbol", "InvoiceNumber" }, "ux_warehouse_receipts_invoice_active")
+                        .IsUnique()
+                        .HasDatabaseName("ux_warehouse_receipts_invoice_active")
+                        .HasFilter("invoice_number IS NOT NULL AND status <> 'Cancelled' AND validation_status <> 'Invalid'");
+
+                    b.HasIndex(new[] { "Number" }, "ux_warehouse_receipts_portal_number")
+                        .IsUnique()
+                        .HasDatabaseName("ux_warehouse_receipts_portal_number")
+                        .HasFilter("source <> 'His'");
+
                     b.ToTable("warehouse_receipts", (string)null);
                 });
 
@@ -4992,6 +5042,11 @@ namespace BlueContract.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("Status", "SupplierId")
                         .HasDatabaseName("ix_workflow_instances_status_supplier_id");
+
+                    b.HasIndex(new[] { "DocumentId" }, "ux_workflow_instances_document_open")
+                        .IsUnique()
+                        .HasDatabaseName("ux_workflow_instances_document_open")
+                        .HasFilter("status IN ('Running', 'Returned')");
 
                     b.ToTable("workflow_instances", (string)null);
                 });

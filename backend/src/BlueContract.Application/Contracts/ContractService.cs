@@ -30,7 +30,8 @@ public sealed class ContractService(
     IPdfConverter pdf,
     IAuditLogger audit,
     ICurrentUser current,
-    IClock clock)
+    IClock clock,
+    DataScope dataScope)
 {
     public const string OwnerType = "Contract";
     public const string AppendixOwnerType = "ContractAppendix";
@@ -47,9 +48,9 @@ public sealed class ContractService(
 
     // ---------------- Queries ----------------
 
-    public Task<PagedResult<ContractListItemDto>> ListAsync(PageQuery q, ContractFilter f, CancellationToken ct)
+    public async Task<PagedResult<ContractListItemDto>> ListAsync(PageQuery q, ContractFilter f, CancellationToken ct)
     {
-        var query = Visible(db.Contracts.AsNoTracking());
+        var query = await VisibleAsync(db.Contracts.AsNoTracking(), ct);
         if (!string.IsNullOrWhiteSpace(q.Search))
         {
             var p = PagingExtensions.LikePattern(q.Search);
@@ -94,7 +95,7 @@ public sealed class ContractService(
             query = query.Where(c => c.Status == ContractStatus.Effective && c.ExpiryDate != null && c.ExpiryDate >= today && c.ExpiryDate <= limit);
         }
 
-        return query.ApplySort(q, Sorts, "createdAt", defaultDesc: true)
+        return await query.ApplySort(q, Sorts, "createdAt", defaultDesc: true)
             .Select(c => new ContractListItemDto(
                 c.Id, c.Number, c.Name, c.ProcurementType, c.Kind, c.SupplierId,
                 db.Suppliers.Where(s => s.Id == c.SupplierId).Select(s => s.Name).FirstOrDefault() ?? string.Empty,
@@ -104,13 +105,14 @@ public sealed class ContractService(
                 c.Status, c.TotalAmount, c.EffectiveDate, c.ExpiryDate,
                 c.Items.Sum(i => i.Quantity * i.UnitPrice) == 0 ? 0
                     : Math.Round(c.Items.Sum(i => i.ReceivedQuantity * i.UnitPrice) * 100 / c.Items.Sum(i => i.Quantity * i.UnitPrice), 1),
+                c.RequiresWarehouseReceipt,
                 c.CreatedAt))
             .ToPagedAsync(q, ct);
     }
 
     public async Task<Result<ContractDto>> GetAsync(Guid id, CancellationToken ct)
     {
-        var c = await Visible(db.Contracts.AsNoTracking()).Include(x => x.Items).FirstOrDefaultAsync(x => x.Id == id, ct);
+        var c = await (await VisibleAsync(db.Contracts.AsNoTracking(), ct)).Include(x => x.Items).FirstOrDefaultAsync(x => x.Id == id, ct);
         if (c is null)
         {
             return Error.NotFound();
@@ -433,7 +435,11 @@ public sealed class ContractService(
 
     // ---------------- Appendices ----------------
 
-    public async Task<Result<Guid>> CreateAppendixAsync(Guid contractId, SaveAppendixRequest r, CancellationToken ct)
+    /// <summary>One pending appendix per contract; its number is the next free one — both decided under a lock on the contract.</summary>
+    public Task<Result<Guid>> CreateAppendixAsync(Guid contractId, SaveAppendixRequest r, CancellationToken ct) =>
+        db.SerializedAsync([$"contract-appendix:{contractId}"], () => CreateAppendixLockedAsync(contractId, r, ct), ct);
+
+    private async Task<Result<Guid>> CreateAppendixLockedAsync(Guid contractId, SaveAppendixRequest r, CancellationToken ct)
     {
         var contract = await db.Contracts.Include(c => c.Items).FirstOrDefaultAsync(c => c.Id == contractId, ct);
         if (contract is null)
@@ -448,6 +454,11 @@ public sealed class ContractService(
 
         var count = await db.ContractAppendices.CountAsync(a => a.ContractId == contractId, ct);
         var number = string.IsNullOrWhiteSpace(r.Number) ? (count + 1).ToString("00", System.Globalization.CultureInfo.InvariantCulture) : r.Number.Trim();
+        if (await AppendixBidCeilingAsync(contract, r.Type, [.. r.Lines.Select(l => (l.ContractItemId, l.NewQuantity))], ct) is { } overBid)
+        {
+            return overBid;
+        }
+
         var appendix = new ContractAppendix(contract, number, r.Type, r.Reason);
         appendix.SetContent(contract, r.Reason, r.InfoChanges, r.NewExpiryDate, [.. r.Lines.Select(l => new AppendixLineDraft(l.ContractItemId, l.NewQuantity, l.NewUnitPrice))]);
         db.ContractAppendices.Add(appendix);
@@ -471,6 +482,11 @@ public sealed class ContractService(
         }
 
         var contract = await db.Contracts.Include(c => c.Items).FirstAsync(c => c.Id == appendix.ContractId, ct);
+        if (await AppendixBidCeilingAsync(contract, appendix.Type, [.. r.Lines.Select(l => (l.ContractItemId, l.NewQuantity))], ct) is { } overBid)
+        {
+            return Result.Failure(overBid);
+        }
+
         appendix.SetContent(contract, r.Reason, r.InfoChanges, r.NewExpiryDate, [.. r.Lines.Select(l => new AppendixLineDraft(l.ContractItemId, l.NewQuantity, l.NewUnitPrice))]);
         var generated = await GenerateAppendixDocumentAsync(contract, appendix, r.TemplateId, ct);
         if (!generated.IsSuccess)
@@ -502,7 +518,15 @@ public sealed class ContractService(
             return resubmitted.IsSuccess ? Result.Success() : Result.Failure(resubmitted.Error!);
         }
 
-        var contract = await db.Contracts.AsNoTracking().FirstAsync(c => c.Id == appendix.ContractId, ct);
+        var contract = await db.Contracts.AsNoTracking().Include(c => c.Items).FirstAsync(c => c.Id == appendix.ContractId, ct);
+        // Other contracts of the same bid may have grown since the draft: check the ceiling again before signing starts.
+        var lines = await db.ContractAppendices.AsNoTracking().Where(a => a.Id == appendixId).SelectMany(a => a.Lines)
+            .Select(l => new { l.ContractItemId, l.NewQuantity }).ToListAsync(ct);
+        if (await AppendixBidCeilingAsync(contract, appendix.Type, [.. lines.Select(l => (l.ContractItemId, l.NewQuantity))], ct) is { } overBid)
+        {
+            return Result.Failure(overBid);
+        }
+
         var started = await workflows.StartAsync(new StartWorkflowRequest(docId, null, null, contract.FacilityId, null), ct);
         return started.IsSuccess ? Result.Success() : Result.Failure(started.Error!);
     }
@@ -533,10 +557,11 @@ public sealed class ContractService(
     // ---------------- Helpers ----------------
 
     /// <summary>Suppliers see a contract only once the hospital sends it for their review (drafts stay internal).</summary>
-    private IQueryable<Contract> Visible(IQueryable<Contract> query) =>
+    /// <summary>Suppliers see their contracts once sent to them; internal users see the contracts of their data scope.</summary>
+    private async Task<IQueryable<Contract>> VisibleAsync(IQueryable<Contract> query, CancellationToken ct) =>
         current.IsSupplier
             ? query.Where(c => c.Status != ContractStatus.Draft && c.Status != ContractStatus.InReview && c.Status != ContractStatus.Returned)
-            : query;
+            : await dataScope.ContractsAsync(query, ct);
 
     private async Task<Result<(Supplier Supplier, (User User, string Password)? NewAccount)>> ResolveSupplierAsync(SaveContractRequest r, CancellationToken ct)
     {
@@ -647,6 +672,43 @@ public sealed class ContractService(
         }
 
         return drafts;
+    }
+
+    /// <summary>
+    /// Phụ lục bổ sung số lượng của HĐ trong thầu: SL mới của mỗi mặt hàng + SL của các HĐ khác cùng quyết định thầu
+    /// không vượt SL trúng thầu của NCC (same ceiling as when the contract was created).
+    /// </summary>
+    private async Task<Error?> AppendixBidCeilingAsync(Contract contract, AppendixType type, IReadOnlyList<(Guid ContractItemId, decimal? NewQuantity)> lines, CancellationToken ct)
+    {
+        if (type != AppendixType.AddQuantity || contract.BidDecisionId is not { } bidId)
+        {
+            return null;
+        }
+
+        var bidItems = await db.BidDecisions.AsNoTracking().Where(b => b.Id == bidId).SelectMany(b => b.Items)
+            .Where(i => i.SupplierId == contract.SupplierId).ToListAsync(ct);
+        var itemIds = contract.Items.Select(i => i.ItemId).ToList();
+        var others = await db.Contracts.AsNoTracking()
+            .Where(c => c.BidDecisionId == bidId && c.Id != contract.Id && c.Status != ContractStatus.Cancelled)
+            .SelectMany(c => c.Items).Where(i => itemIds.Contains(i.ItemId))
+            .GroupBy(i => i.ItemId).Select(g => new { g.Key, Qty = g.Sum(i => i.Quantity) })
+            .ToDictionaryAsync(x => x.Key, x => x.Qty, ct);
+        foreach (var (contractItemId, newQuantity) in lines)
+        {
+            var item = contract.Items.FirstOrDefault(i => i.Id == contractItemId);
+            if (item is null || newQuantity is not { } wanted)
+            {
+                continue; // reported by the appendix itself
+            }
+
+            var bidItem = bidItems.FirstOrDefault(b => b.ItemId == item.ItemId);
+            if (bidItem is null || wanted > bidItem.Quantity - others.GetValueOrDefault(item.ItemId))
+            {
+                return Error.Validation("APPENDIX_QTY_EXCEEDS_BID");
+            }
+        }
+
+        return null;
     }
 
     private async Task<Result<List<ContractItemDraft>>> NonBidLinesAsync(Contract contract, SaveContractRequest r, bool persistNewItems, CancellationToken ct)

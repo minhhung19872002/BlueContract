@@ -170,11 +170,35 @@ public class ContractFlowTests(ApiFactory factory)
 
         // Phụ lục bổ sung số lượng → cùng luồng ký → áp dụng vào hợp đồng.
         var item = effective.Items[0];
-        using var appendix = await procurement.PostAsJsonAsync($"/api/contracts/{contractId}/appendices",
-            new SaveAppendixRequest(null, AppendixType.AddQuantity, "Nhu cầu sử dụng tăng", null, null, null,
-                [new AppendixLineRequest(item.Id, item.Quantity + 100, null)]), JsonDefaults.Options);
-        appendix.StatusCode.ShouldBe(HttpStatusCode.OK, await appendix.Content.ReadAsStringAsync());
-        var appendixId = await appendix.Content.ReadFromJsonAsync<Guid>();
+
+        // AUDIT-1 §10.4: the added quantity stays within what is left of the bid decision for this supplier.
+        var bidLeft = (await procurement.GetFromJsonAsync<List<BidItemDto>>($"/api/bid-decisions/{bidId}/items?supplierId={supplierId}", JsonDefaults.Options))!
+            .Single(i => i.ItemId == item.ItemId).RemainingQuantity;
+        using (var overBid = await procurement.PostAsJsonAsync($"/api/contracts/{contractId}/appendices",
+                   new SaveAppendixRequest(null, AppendixType.AddQuantity, "Vượt quyết định thầu", null, null, null,
+                       [new AppendixLineRequest(item.Id, item.Quantity + bidLeft + 1, null)]), JsonDefaults.Options))
+        {
+            overBid.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+            (await overBid.Content.ReadAsStringAsync()).ShouldContain("APPENDIX_QTY_EXCEEDS_BID");
+        }
+
+        bidLeft.ShouldBeGreaterThanOrEqualTo(100);
+
+        // AUDIT-1 §10.6: three simultaneous "Lập phụ lục" → one pending appendix, the others are told why.
+        var appendixRequest = new SaveAppendixRequest(null, AppendixType.AddQuantity, "Nhu cầu sử dụng tăng", null, null, null,
+            [new AppendixLineRequest(item.Id, item.Quantity + 100, null)]);
+        var attempts = await Task.WhenAll(Enumerable.Range(0, 3).Select(_ =>
+            procurement.PostAsJsonAsync($"/api/contracts/{contractId}/appendices", appendixRequest, JsonDefaults.Options)));
+        var attemptBodies = await Task.WhenAll(attempts.Select(a => a.Content.ReadAsStringAsync()));
+        attempts.Count(a => a.IsSuccessStatusCode).ShouldBe(1, string.Join(" | ", attemptBodies));
+        attempts.Where(a => !a.IsSuccessStatusCode).ShouldAllBe(a => a.StatusCode == HttpStatusCode.Conflict, string.Join(" | ", attemptBodies));
+        attemptBodies.Where((_, i) => !attempts[i].IsSuccessStatusCode).ShouldAllBe(b => b.Contains("APPENDIX_PENDING_EXISTS"));
+        var appendixId = await attempts.Single(a => a.IsSuccessStatusCode).Content.ReadFromJsonAsync<Guid>();
+        foreach (var a in attempts)
+        {
+            a.Dispose();
+        }
+
         var withAppendix = await GetContractAsync(procurement, contractId);
         var appendixDoc = withAppendix.Appendices.Single().DocumentId!.Value;
         withAppendix.Appendices.Single().Number.ShouldBe("01");

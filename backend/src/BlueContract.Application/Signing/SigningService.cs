@@ -256,11 +256,35 @@ public sealed class SigningService(
     }
 
     /// <summary>Verifies the signatures of a document version (or an uploaded PDF).</summary>
+    /// <summary>Signature details of a stored version — for users who may view the document (AUDIT-1 §10.8).</summary>
     public async Task<Result<VerifyResultDto>> VerifyVersionAsync(Guid documentId, Guid versionId, CancellationToken ct)
     {
+        if (!await documents.CanViewAsync(documentId, ct))
+        {
+            return Error.NotFound();
+        }
+
         var key = await db.Documents.Where(d => d.Id == documentId).SelectMany(d => d.Versions)
             .Where(v => v.Id == versionId).Select(v => v.PdfFileKey).FirstOrDefaultAsync(ct);
         return key is null ? Error.NotFound() : Verify(await ReadAllAsync(key, ct));
+    }
+
+    /// <summary>Verifies an uploaded PDF: a file that starts like a PDF but cannot be read is the user's error, not a 500.</summary>
+    public Result<VerifyResultDto> VerifyUpload(byte[] content)
+    {
+        if (FileInspector.Detect(content) != FileKind.Pdf)
+        {
+            return Error.Validation("DOCUMENT_FILE_TYPE_INVALID");
+        }
+
+        try
+        {
+            return Verify(content);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException and not OutOfMemoryException)
+        {
+            return Error.Validation("PDF_DAMAGED");
+        }
     }
 
     public VerifyResultDto Verify(byte[] content)

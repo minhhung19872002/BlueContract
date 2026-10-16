@@ -68,6 +68,21 @@ public static class DocumentPermissions
         _ => [Permissions.TemplateManage],
     };
 
+    /// <summary>
+    /// Permission (any of) a signer needs for a workflow action on top of <c>signing.sign</c>; empty when the step assignment
+    /// alone decides. Contract actions follow the permission matrix (spec §4.2); the hospital e-seal is <c>contract.seal</c>
+    /// whatever the document, since it is the only seal permission.
+    /// </summary>
+    public static string[] Act(DocumentType type, WorkflowActionType action) => (type, action) switch
+    {
+        (_, WorkflowActionType.OrgSeal) => [Permissions.ContractSeal],
+        (DocumentType.Contract or DocumentType.Appendix, WorkflowActionType.Sign) => [Permissions.ContractSign],
+        (DocumentType.Contract or DocumentType.Appendix, WorkflowActionType.Initial) => [Permissions.ContractInitial],
+        (DocumentType.Contract or DocumentType.Appendix, WorkflowActionType.Review) => [Permissions.ContractReview, Permissions.ContractAccountantReview],
+        (DocumentType.Contract or DocumentType.Appendix, WorkflowActionType.SupplierReview) => [Permissions.ContractSupplierReview],
+        _ => [],
+    };
+
     public static string[] Edit(DocumentType type, EditorMode mode) => (type, mode) switch
     {
         (_, EditorMode.View) => View(type),
@@ -95,7 +110,8 @@ public sealed class DocumentService(
     IDocxRevisions revisions,
     IServiceProvider services,
     ICurrentUser currentUser,
-    IClock clock)
+    IClock clock,
+    DataScope dataScope)
 {
     public const string DocxContentType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
     private static readonly TimeSpan LinkLifetime = TimeSpan.FromMinutes(5);
@@ -165,6 +181,11 @@ public sealed class DocumentService(
         if (kind is not (FileKind.Docx or FileKind.Pdf))
         {
             return Error.Validation("DOCUMENT_FILE_TYPE_INVALID");
+        }
+
+        if (await LockedInWorkflowAsync(document, ct))
+        {
+            return Error.Forbidden("DOCUMENT_LOCKED_IN_WORKFLOW");
         }
 
         var note = string.IsNullOrWhiteSpace(reason) ? "Tải lên phiên bản mới" : reason.Trim();
@@ -314,19 +335,9 @@ public sealed class DocumentService(
             return Error.Validation("DOCUMENT_CLOSED");
         }
 
-        // While signing is in progress only the assignee of a step that allows editing may change the content.
-        if (r.Mode != EditorMode.View)
+        if (r.Mode != EditorMode.View && await LockedInWorkflowAsync(document, ct))
         {
-            var running = await db.WorkflowInstances.Include("_steps").FirstOrDefaultAsync(w => w.DocumentId == document.Id && w.Status == WorkflowStatus.Running, ct);
-            if (running?.ActiveStep is { } active)
-            {
-                var standing = await workflowAccess.StandingAsync(running, active, ct);
-                var editable = active.AllowEdit || active.ActionType == WorkflowActionType.SupplierReview;
-                if (!standing.CanAct || !editable)
-                {
-                    return Error.Forbidden("DOCUMENT_LOCKED_IN_WORKFLOW");
-                }
-            }
+            return Error.Forbidden("DOCUMENT_LOCKED_IN_WORKFLOW");
         }
 
         var session = new DocumentEditSession(document.Id, current.Id, r.Mode.ToString().ToLowerInvariant(), currentUser.UserId!.Value, clock.UtcNow);
@@ -417,37 +428,65 @@ public sealed class DocumentService(
         version.AttachDocx(stored.ObjectKey, stored.Sha256, stored.Size);
         if (restarts)
         {
-            var instances = await db.WorkflowInstances.Include("_steps").Include("_events")
-                .Where(w => w.DocumentId == document.Id && (w.Status == WorkflowStatus.Running || w.Status == WorkflowStatus.Returned))
-                .ToListAsync(ct);
-            var observers = services.GetServices<IWorkflowObserver>().Where(o => o.Handles(document.Type)).ToList();
-            foreach (var wf in instances)
-            {
-                wf.RestartForNewVersion(userId ?? Guid.Empty, userName ?? "Hệ thống", clock.UtcNow);
-                foreach (var observer in observers)
-                {
-                    await observer.OnChangedAsync(new WorkflowChange(wf, document, WorkflowChangeKind.Restarted, null, null), ct);
-                }
-            }
-
-            if (instances.Count == 0)
-            {
-                document.MarkDraft();
-            }
-            audit.Log("WorkflowReset", nameof(Document), document.Id.ToString(), new { version.VersionNumber }, "Phiên bản mới sau khi đã có chữ ký — luồng ký phải bắt đầu lại.");
+            await RestartWorkflowsAsync(document, version, userId, userName, ct);
         }
 
         return version;
     }
 
+    /// <summary>A new version after a signature invalidates every signature: the workflow restarts from its first step (spec §5.7).</summary>
+    private async Task RestartWorkflowsAsync(Document document, DocumentVersion version, Guid? userId, string? userName, CancellationToken ct)
+    {
+        var instances = await db.WorkflowInstances.Include("_steps").Include("_events")
+            .Where(w => w.DocumentId == document.Id && (w.Status == WorkflowStatus.Running || w.Status == WorkflowStatus.Returned))
+            .ToListAsync(ct);
+        var observers = services.GetServices<IWorkflowObserver>().Where(o => o.Handles(document.Type)).ToList();
+        foreach (var wf in instances)
+        {
+            wf.RestartForNewVersion(userId ?? Guid.Empty, userName ?? "Hệ thống", clock.UtcNow);
+            foreach (var observer in observers)
+            {
+                await observer.OnChangedAsync(new WorkflowChange(wf, document, WorkflowChangeKind.Restarted, null, null), ct);
+            }
+        }
+
+        if (instances.Count == 0)
+        {
+            document.MarkDraft();
+        }
+        audit.Log("WorkflowReset", nameof(Document), document.Id.ToString(), new { version.VersionNumber }, "Phiên bản mới sau khi đã có chữ ký — luồng ký phải bắt đầu lại.");
+    }
+
+    /// <summary>
+    /// While signing is in progress only the assignee of a step that allows editing may change the content — whatever the
+    /// channel (online editor, DOCX or PDF upload).
+    /// </summary>
+    private async Task<bool> LockedInWorkflowAsync(Document document, CancellationToken ct)
+    {
+        var running = await db.WorkflowInstances.Include("_steps").FirstOrDefaultAsync(w => w.DocumentId == document.Id && w.Status == WorkflowStatus.Running, ct);
+        if (running?.ActiveStep is not { } active)
+        {
+            return false;
+        }
+
+        var standing = await workflowAccess.StandingAsync(running, active, ct);
+        var editable = active.AllowEdit || active.ActionType == WorkflowActionType.SupplierReview;
+        return !standing.CanAct || !editable;
+    }
+
     private async Task<DocumentVersion> AddPdfVersionAsync(Document document, byte[] content, string reason, CancellationToken ct)
     {
         var version = new DocumentVersion(document.Id, reason, currentUser.UserId, currentUser.FullName, clock.UtcNow);
-        document.AddVersion(version);
+        var restarts = document.AddVersion(version);
         db.DocumentVersions.Add(version);
         using var stream = new MemoryStream(content);
         var stored = await storage.UploadAsync($"documents/{document.Id:N}/v{version.VersionNumber}/document.pdf", stream, "application/pdf", ct);
         version.AttachPdf(stored.ObjectKey, stored.Sha256, stored.Size);
+        if (restarts)
+        {
+            await RestartWorkflowsAsync(document, version, currentUser.UserId, currentUser.FullName, ct);
+        }
+
         return version;
     }
 
@@ -459,9 +498,16 @@ public sealed class DocumentService(
 
     private bool CanView(Document document) => currentUser.Permissions.Overlaps(DocumentPermissions.View(document.Type));
 
-    /// <summary>Permission on the document type, or taking part in its signing workflow (signers of other departments).</summary>
+    /// <summary>
+    /// Permission on the document type within the user's data scope (contract documents), or taking part in its signing
+    /// workflow (signers of other departments).
+    /// </summary>
+    internal async Task<bool> CanViewAsync(Guid documentId, CancellationToken ct) =>
+        await db.Documents.AsNoTracking().FirstOrDefaultAsync(d => d.Id == documentId, ct) is { } document && await CanViewAsync(document, ct);
+
     private async Task<bool> CanViewAsync(Document document, CancellationToken ct) =>
-        CanView(document) || await workflowAccess.IsParticipantAsync(document.Id, ct);
+        (CanView(document) && (document.ContractId is null || await dataScope.CanSeeContractAsync(document.ContractId, ct)))
+        || await workflowAccess.IsParticipantAsync(document.Id, ct);
 
     private DocumentDto ToDto(Document d, string? templateName) => new(
         d.Id, d.Type, d.Title, d.Status, d.OwnerEntityType, d.OwnerId, d.ContractId, d.TemplateId, templateName, d.CurrentVersionId,

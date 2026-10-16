@@ -21,6 +21,18 @@ public static class FileInspector
 {
     public const long MaxUploadBytes = 20 * 1024 * 1024;
 
+    /// <summary>Media type and extension to store a file with — from its detected content, never from what the client declared.</summary>
+    public static (string MediaType, string Extension) Storage(FileKind kind) => kind switch
+    {
+        FileKind.Pdf => ("application/pdf", ".pdf"),
+        FileKind.Jpeg => ("image/jpeg", ".jpg"),
+        FileKind.Png => ("image/png", ".png"),
+        FileKind.Docx => ("application/vnd.openxmlformats-officedocument.wordprocessingml.document", ".docx"),
+        FileKind.Xlsx => ("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", ".xlsx"),
+        FileKind.Xml => ("application/xml", ".xml"),
+        _ => ("application/octet-stream", ".bin"),
+    };
+
     public static FileKind Detect(byte[] content)
     {
         if (content.Length < 4)

@@ -50,15 +50,16 @@ public class PaymentFlowTests(ApiFactory factory)
             }
         }
 
-        // 2. Phiếu ảo (xác nhận khối lượng, không qua kho) cho mặt hàng 2 — hoàn thành không cần ký.
-        using (var created = await buyer.PostAsJsonAsync("/api/warehouse-receipts",
-                   new SaveReceiptRequest(ReceiptType.Receipt, true, contractId, null, Today, null, "Nhân viên Hồng Lam", "Nghiệm thu nhân công",
-                       [new SaveReceiptLineRequest(second.Id, 1, null, null, null)]), JsonDefaults.Options))
+        // 2. Phiếu thứ hai (mặt hàng 2) cũng từ HIS: HĐ này bắt buộc nhập kho nên không được dùng phiếu ảo (AUDIT-1 §10.2).
+        var secondReceiptId = await PushReceiptAsync(contractNumber, second);
+        using (var anyone = await factory.LoginAsync("thukho"))
         {
-            created.StatusCode.ShouldBe(HttpStatusCode.OK, await created.Content.ReadAsStringAsync());
-            var virtualId = await created.Content.ReadFromJsonAsync<Guid>();
-            (await buyer.PostAsync(new Uri($"/api/warehouse-receipts/{virtualId}/submit", UriKind.Relative), null)).StatusCode.ShouldBe(HttpStatusCode.NoContent);
-            (await buyer.GetFromJsonAsync<ReceiptDto>($"/api/warehouse-receipts/{virtualId}", JsonDefaults.Options))!.Status.ShouldBe(ReceiptStatus.Completed);
+            var receipt = await anyone.GetFromJsonAsync<ReceiptDto>($"/api/warehouse-receipts/{secondReceiptId}", JsonDefaults.Options);
+            foreach (var signer in new[] { "thukho", "ncc3", "ketoankho", "truongkhoa", "ketoantruong" })
+            {
+                using var client = await factory.LoginAsync(signer);
+                await ActAsync(client, receipt!.DocumentId!.Value);
+            }
         }
 
         // 3. Biên bản nghiệm thu từ các phiếu đã ký → Rà soát → NCC → GĐ → Văn thư.
@@ -82,9 +83,18 @@ public class PaymentFlowTests(ApiFactory factory)
             .Numbers.ShouldNotContain(n => n == acceptance.Number);
 
         // 4. 08a + đề nghị thanh toán: giá trị kỳ này, lũy kế, % so với HĐ.
-        using var valuationResponse = await buyer.PostAsJsonAsync("/api/valuations", new SaveValuationRequest(contractId, [acceptanceId], null, 0, 0), JsonDefaults.Options);
-        valuationResponse.StatusCode.ShouldBe(HttpStatusCode.OK, await valuationResponse.Content.ReadAsStringAsync());
-        var valuation = (await valuationResponse.Content.ReadFromJsonAsync<ValuationDto>(JsonDefaults.Options))!;
+        // Sent three times at once (AUDIT-1 §10.6): one 08a, the others get a 4xx with a reason — never a 500.
+        var valuationAttempts = await Task.WhenAll(Enumerable.Range(0, 3).Select(_ =>
+            buyer.PostAsJsonAsync("/api/valuations", new SaveValuationRequest(contractId, [acceptanceId], null, 0, 0), JsonDefaults.Options)));
+        var valuationBodies = await Task.WhenAll(valuationAttempts.Select(a => a.Content.ReadAsStringAsync()));
+        valuationAttempts.Count(a => a.IsSuccessStatusCode).ShouldBe(1, string.Join(" | ", valuationBodies));
+        valuationAttempts.Where(a => !a.IsSuccessStatusCode).ShouldAllBe(a => (int)a.StatusCode >= 400 && (int)a.StatusCode < 500, string.Join(" | ", valuationBodies));
+        var valuation = (await valuationAttempts.Single(a => a.IsSuccessStatusCode).Content.ReadFromJsonAsync<ValuationDto>(JsonDefaults.Options))!;
+        foreach (var a in valuationAttempts)
+        {
+            a.Dispose();
+        }
+
         valuation.PaymentSequence.ShouldBe(1);
         valuation.PreviousCumulative.ShouldBe(0);
         valuation.CurrentPeriodValue.ShouldBe(acceptance.TotalAmount);
@@ -125,9 +135,17 @@ public class PaymentFlowTests(ApiFactory factory)
         preview.ExecutedValue.ShouldBe(valuation.CurrentPeriodValue);
         preview.RemainingAmount.ShouldBe(1_000_000);
         preview.ReductionAmount.ShouldBe(contract.TotalAmount - valuation.CurrentPeriodValue);
-        using var liquidationResponse = await buyer.PostAsJsonAsync("/api/liquidations", new SaveLiquidationRequest(contractId, "Hai bên thống nhất thanh lý."), JsonDefaults.Options);
-        liquidationResponse.StatusCode.ShouldBe(HttpStatusCode.OK, await liquidationResponse.Content.ReadAsStringAsync());
-        var liquidationId = await liquidationResponse.Content.ReadFromJsonAsync<Guid>();
+        var liquidationAttempts = await Task.WhenAll(Enumerable.Range(0, 3).Select(_ =>
+            buyer.PostAsJsonAsync("/api/liquidations", new SaveLiquidationRequest(contractId, "Hai bên thống nhất thanh lý."), JsonDefaults.Options)));
+        var liquidationBodies = await Task.WhenAll(liquidationAttempts.Select(a => a.Content.ReadAsStringAsync()));
+        liquidationAttempts.Count(a => a.IsSuccessStatusCode).ShouldBe(1, string.Join(" | ", liquidationBodies));
+        liquidationBodies.Where((_, i) => !liquidationAttempts[i].IsSuccessStatusCode).ShouldAllBe(b => b.Contains("LIQUIDATION_EXISTS"));
+        var liquidationId = await liquidationAttempts.Single(a => a.IsSuccessStatusCode).Content.ReadFromJsonAsync<Guid>();
+        foreach (var a in liquidationAttempts)
+        {
+            a.Dispose();
+        }
+
         (await buyer.GetFromJsonAsync<LiquidationPreviewDto>($"/api/liquidations/preview?contractId={contractId}", JsonDefaults.Options))!.BlockingCode.ShouldBe("LIQUIDATION_EXISTS");
 
         using (var settle = await buyer.PostAsync(new Uri($"/api/liquidations/{liquidationId}/settlements", UriKind.Relative),
@@ -169,6 +187,45 @@ public class PaymentFlowTests(ApiFactory factory)
         preview!.BlockingCode.ShouldBe("LIQUIDATION_VALUATIONS_REQUIRED");
         using var refused = await buyer.PostAsJsonAsync("/api/liquidations", new SaveLiquidationRequest(contractId, null), JsonDefaults.Options);
         refused.StatusCode.ShouldBe(HttpStatusCode.Conflict);
+    }
+
+    [Fact]
+    public async Task Virtual_receipt_requires_an_effective_contract_without_warehouse_receipt()
+    {
+        using var buyer = await factory.LoginAsync("muasam");
+
+        // HĐ bắt buộc nhập kho: phiếu ảo sẽ bỏ qua 5 chữ ký để đi thẳng tới nghiệm thu.
+        var (stocked, _) = await CreateEffectiveContractAsync(buyer);
+        var stockedItem = (await buyer.GetFromJsonAsync<ContractDto>($"/api/contracts/{stocked}", JsonDefaults.Options))!.Items[0];
+        using (var refused = await buyer.PostAsJsonAsync("/api/warehouse-receipts", new SaveReceiptRequest(ReceiptType.Receipt, true, stocked, null, Today, null, null, null,
+                   [new SaveReceiptLineRequest(stockedItem.Id, 1, null, null, null)]), JsonDefaults.Options))
+        {
+            refused.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+            (await refused.Content.ReadAsStringAsync()).ShouldContain("RECEIPT_VIRTUAL_NOT_ALLOWED");
+        }
+
+        // HĐ dịch vụ không nhập kho nhưng chưa có hiệu lực (bản nháp): cũng không được xác nhận khối lượng.
+        var (draft, item) = await CreateDraftServiceContractAsync(buyer);
+        using var notEffective = await buyer.PostAsJsonAsync("/api/warehouse-receipts", new SaveReceiptRequest(ReceiptType.Receipt, true, draft, null, Today, null, null, null,
+            [new SaveReceiptLineRequest(item, 1, null, null, null)]), JsonDefaults.Options);
+        notEffective.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        (await notEffective.Content.ReadAsStringAsync()).ShouldContain("CONTRACT_NOT_EFFECTIVE");
+    }
+
+    private static async Task<(Guid Id, Guid ItemId)> CreateDraftServiceContractAsync(HttpClient buyer)
+    {
+        var categories = await buyer.GetFromJsonAsync<List<ItemCategoryDto>>("/api/items/categories", JsonDefaults.Options);
+        var templates = await buyer.GetFromJsonAsync<List<TemplateListItemDto>>("/api/templates?kind=Contract", JsonDefaults.Options);
+        var suppliers = await buyer.GetFromJsonAsync<List<LookupItem>>("/api/lookups/suppliers?search=Hồng Lam", JsonDefaults.Options);
+        var code = Guid.NewGuid().ToString("N")[..6].ToUpperInvariant();
+        using var created = await buyer.PostAsJsonAsync("/api/contracts", new SaveContractRequest(
+            ProcurementType.NonBidding, null, suppliers!.First().Id, null, $"DV-{code}/2026/HĐ", "Bảo trì thang máy", ContractKind.LumpSum, false,
+            categories!.Single(c => c.Code == "SUA_CHUA").Id, null, null, Today, Today, Today.AddMonths(3), "30 ngày", null, null, null, null, null, null, null,
+            templates!.Single(t => t.Code == "HD_DICHVU_KHONGTHAU").Id,
+            [new ContractLineRequest(null, new NewItemRequest($"DV-{code}-01", "Bảo trì thang máy tháng", "Lần", null, null, null, null, null), 3, 5_000_000, 8)]), JsonDefaults.Options);
+        created.StatusCode.ShouldBe(HttpStatusCode.OK, await created.Content.ReadAsStringAsync());
+        var id = await created.Content.ReadFromJsonAsync<Guid>();
+        return (id, (await buyer.GetFromJsonAsync<ContractDto>($"/api/contracts/{id}", JsonDefaults.Options))!.Items[0].Id);
     }
 
     private static DateOnly Today => DateOnly.FromDateTime(DateTime.UtcNow.AddHours(7));

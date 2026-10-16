@@ -245,6 +245,55 @@ public class WorkflowSigningApiTests(ApiFactory factory)
         (await edit.Content.ReadAsStringAsync()).ShouldContain("DOCUMENT_LOCKED_IN_WORKFLOW");
     }
 
+    /// <summary>AUDIT-1 §10.8: signature details of a version are shown only to users who may view the document.</summary>
+    [Fact]
+    public async Task Verifying_a_version_needs_view_rights_on_the_document()
+    {
+        using var admin = await factory.LoginAsync("admin");
+        var (docId, _) = await StartSampleAsync(admin);
+        using (var storekeeper = await factory.LoginAsync("thukho"))
+        {
+            await SignAsync(storekeeper, await MyStepAsync(storekeeper, docId));
+        }
+
+        var version = (await admin.GetFromJsonAsync<DocumentDto>($"/api/documents/{docId}", JsonDefaults.Options))!.Versions[0].Id;
+        var url = new Uri($"/api/signing/documents/{docId}/versions/{version}/verify", UriKind.Relative);
+        (await admin.GetAsync(url)).StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        // A department user neither holds the document type's view permission nor takes part in its workflow.
+        using var outsider = await factory.LoginAsync("khoanoi");
+        (await outsider.GetAsync(url)).StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        (await outsider.GetAsync(new Uri($"/api/workflows/by-document/{docId}", UriKind.Relative))).StatusCode.ShouldBe(HttpStatusCode.NotFound);
+
+        // A signer of the document may verify it.
+        using var signer = await factory.LoginAsync("thukho");
+        (await signer.GetAsync(url)).StatusCode.ShouldBe(HttpStatusCode.OK);
+    }
+
+    /// <summary>AUDIT-1 §10.6: one open workflow per document, even when "Gửi ký" is sent three times at once.</summary>
+    [Fact]
+    public async Task Parallel_starts_open_a_single_workflow()
+    {
+        using var admin = await factory.LoginAsync("admin");
+        var templates = await admin.GetFromJsonAsync<List<TemplateListItemDto>>("/api/templates", JsonDefaults.Options);
+        using var created = await admin.PostAsJsonAsync("/api/documents/samples",
+            new CreateSampleDocumentRequest(templates!.Single(t => t.Code == "PHIEU_NHAP_KHO").Id, null));
+        var docId = await created.Content.ReadFromJsonAsync<Guid>();
+        var suppliers = await admin.GetFromJsonAsync<List<LookupItem>>("/api/lookups/suppliers");
+        var workflowTemplates = await admin.GetFromJsonAsync<List<WorkflowTemplateDto>>("/api/workflow-templates", JsonDefaults.Options);
+        var request = new StartWorkflowRequest(docId, workflowTemplates!.Single(t => t.Code == "WF_SAMPLE").Id, suppliers!.Single(s => s.Code == "0101234567").Id, null, null);
+
+        var responses = await Task.WhenAll(Enumerable.Range(0, 3).Select(_ => admin.PostAsJsonAsync("/api/workflows", request, JsonDefaults.Options)));
+        var bodies = await Task.WhenAll(responses.Select(r => r.Content.ReadAsStringAsync()));
+        responses.Count(r => r.IsSuccessStatusCode).ShouldBe(1, string.Join(" | ", bodies));
+        responses.Where(r => !r.IsSuccessStatusCode).ShouldAllBe(r => r.StatusCode == HttpStatusCode.Conflict, string.Join(" | ", bodies));
+        bodies.Where((_, i) => !responses[i].IsSuccessStatusCode).ShouldAllBe(b => b.Contains("WORKFLOW_ALREADY_RUNNING"));
+        foreach (var r in responses)
+        {
+            r.Dispose();
+        }
+    }
+
     private static async Task<(Guid DocumentId, Guid WorkflowId)> StartSampleAsync(HttpClient admin, string workflowCode = "WF_SAMPLE")
     {
         var templates = await admin.GetFromJsonAsync<List<TemplateListItemDto>>("/api/templates", JsonDefaults.Options);

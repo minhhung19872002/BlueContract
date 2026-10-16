@@ -177,7 +177,13 @@ function ReceiptEditor({ receipt }: { receipt?: ReceiptDto }) {
                 valuePropName="checked"
                 tooltip="Dùng cho hợp đồng dịch vụ/sửa chữa không nhập kho nhưng cần nghiệm thu — hoàn thành không cần ký"
               >
-                <Switch disabled={editing || type === 'Return'} />
+                <Switch
+                  disabled={editing || type === 'Return'}
+                  onChange={() => {
+                    form.setFieldValue('contractId', undefined);
+                    setEntries({});
+                  }}
+                />
               </Form.Item>
             </Col>
             <Col xs={24} md={12}>
@@ -187,10 +193,13 @@ function ReceiptEditor({ receipt }: { receipt?: ReceiptDto }) {
                   disabled={editing}
                   optionFilterProp="label"
                   onChange={() => setEntries({})}
-                  options={(contracts.data?.items ?? []).map((c) => ({
-                    value: c.id,
-                    label: `${c.number} — ${c.supplierName}`,
-                  }))}
+                  options={(contracts.data?.items ?? [])
+                    // Phiếu ảo bỏ qua 5 chữ ký: chỉ cho hợp đồng không nhập kho.
+                    .filter((c) => !isVirtual || !c.requiresWarehouseReceipt)
+                    .map((c) => ({
+                      value: c.id,
+                      label: `${c.number} — ${c.supplierName}`,
+                    }))}
                 />
               </Form.Item>
             </Col>

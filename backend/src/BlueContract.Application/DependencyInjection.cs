@@ -3,6 +3,7 @@ using BlueContract.Application.Admin;
 using BlueContract.Application.Auth;
 using BlueContract.Application.Bids;
 using BlueContract.Application.Catalog;
+using BlueContract.Application.Common;
 using BlueContract.Application.Contracts;
 using BlueContract.Application.Documents;
 using BlueContract.Application.Integration;
@@ -58,6 +59,7 @@ public static class DependencyInjection
         services.AddScoped<DocumentNumbers>();
         services.AddScoped<ContractTracking>();
         services.AddScoped<ProposalScope>();
+        services.AddScoped<DataScope>();
         services.AddScoped<ProposalDocumentData>();
         services.AddScoped<ProposalService>();
         services.AddScoped<ProposalSummaryService>();

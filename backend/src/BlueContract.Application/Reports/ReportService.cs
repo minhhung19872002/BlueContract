@@ -63,11 +63,12 @@ public sealed record SigningBacklogRowDto(string Assignee, string AssigneeType, 
 public sealed record SigningReportDto(IReadOnlyList<SigningStepRowDto> Steps, IReadOnlyList<SigningBacklogRowDto> Backlog);
 
 /// <summary>Báo cáo (spec §9.1-13): tình hình thực hiện HĐ, công nợ theo NCC, giá trị thanh toán theo kỳ / mảng / cơ sở, tiến độ ký.</summary>
-public sealed class ReportService(IAppDbContext db, IClock clock)
+/// <summary>Reports (spec §9.1-13); every figure is limited to the user's data scope (spec §4.2, AUDIT-1 §10.7).</summary>
+public sealed class ReportService(IAppDbContext db, IClock clock, DataScope dataScope)
 {
     public async Task<List<ContractExecutionRowDto>> ContractExecutionAsync(ContractExecutionFilter f, CancellationToken ct)
     {
-        var query = db.Contracts.AsNoTracking().Where(c => c.Status != ContractStatus.Draft && c.Status != ContractStatus.Cancelled);
+        var query = await dataScope.ContractsAsync(db.Contracts.AsNoTracking().Where(c => c.Status != ContractStatus.Draft && c.Status != ContractStatus.Cancelled), ct);
         query = f.SupplierId is { } supplier ? query.Where(c => c.SupplierId == supplier) : query;
         query = f.CategoryId is { } category ? query.Where(c => c.CategoryId == category) : query;
         query = f.Status is { } status ? query.Where(c => c.Status == status) : query;
@@ -98,15 +99,26 @@ public sealed class ReportService(IAppDbContext db, IClock clock)
     /// <summary>Công nợ theo NCC: còn phải trả = đã nghiệm thu − đã thanh toán (UNC + chốt công nợ) − thu hồi tạm ứng.</summary>
     public async Task<List<SupplierDebtRowDto>> SupplierDebtAsync(CancellationToken ct)
     {
-        var contracts = await db.Contracts.AsNoTracking().Where(c => c.Status != ContractStatus.Draft && c.Status != ContractStatus.Cancelled)
+        var scoped = await dataScope.ContractIdsAsync(ct);
+        var acceptances = db.AcceptanceRecords.AsNoTracking();
+        var valuations = db.ValuationRecords.AsNoTracking();
+        var liquidations = db.LiquidationRecords.AsNoTracking();
+        if (scoped is not null)
+        {
+            acceptances = acceptances.Where(a => scoped.Contains(a.ContractId));
+            valuations = valuations.Where(v => scoped.Contains(v.ContractId));
+            liquidations = liquidations.Where(l => scoped.Contains(l.ContractId));
+        }
+
+        var contracts = await (await dataScope.ContractsAsync(db.Contracts.AsNoTracking(), ct)).Where(c => c.Status != ContractStatus.Draft && c.Status != ContractStatus.Cancelled)
             .GroupBy(c => c.SupplierId).Select(g => new { g.Key, Count = g.Count(), Value = g.Sum(c => c.TotalAmount) }).ToListAsync(ct);
-        var accepted = await db.AcceptanceRecords.AsNoTracking().Where(a => a.Status == PaymentRecordStatus.Completed)
+        var accepted = await acceptances.Where(a => a.Status == PaymentRecordStatus.Completed)
             .GroupBy(a => a.SupplierId).Select(g => new { g.Key, Value = g.Sum(a => a.TotalAmount) }).ToDictionaryAsync(x => x.Key, x => x.Value, ct);
-        var valued = await db.ValuationRecords.AsNoTracking().Where(v => v.Status == PaymentRecordStatus.Completed)
+        var valued = await valuations.Where(v => v.Status == PaymentRecordStatus.Completed)
             .GroupBy(v => v.SupplierId)
             .Select(g => new { g.Key, Value = g.Sum(v => v.CurrentPeriodValue), Advance = g.Sum(v => v.AdvanceRecovered), Paid = g.Sum(v => v.PaymentOrders.Sum(p => p.Amount)) })
             .ToDictionaryAsync(x => x.Key, ct);
-        var settled = await db.LiquidationRecords.AsNoTracking().Where(l => l.Status == PaymentRecordStatus.Completed)
+        var settled = await liquidations.Where(l => l.Status == PaymentRecordStatus.Completed)
             .GroupBy(l => l.SupplierId).Select(g => new { g.Key, Value = g.Sum(l => l.Settlements.Sum(s => s.Amount)) }).ToDictionaryAsync(x => x.Key, x => x.Value, ct);
         var ids = contracts.Select(c => c.Key).ToList();
         var suppliers = await db.Suppliers.AsNoTracking().Where(s => ids.Contains(s.Id)).ToDictionaryAsync(s => s.Id, s => new { s.Name, s.TaxCode }, ct);
@@ -127,11 +139,12 @@ public sealed class ReportService(IAppDbContext db, IClock clock)
         var year = f.Year ?? clock.UtcNow.ToOffset(TimeSpan.FromHours(7)).Year;
         var start = new DateOnly(f.Period == PaymentPeriod.Year ? year - 4 : year, 1, 1);
         var end = new DateOnly(year, 12, 31);
+        var contracts = await dataScope.ContractsAsync(db.Contracts.AsNoTracking(), ct);
         var orders = await (from v in db.ValuationRecords.AsNoTracking()
                             where v.Status != PaymentRecordStatus.Cancelled
                             from p in v.PaymentOrders
                             where p.Date >= start && p.Date <= end
-                            join c in db.Contracts.AsNoTracking() on v.ContractId equals c.Id
+                            join c in contracts on v.ContractId equals c.Id
                             select new
                             {
                                 p.Date,
@@ -168,8 +181,9 @@ public sealed class ReportService(IAppDbContext db, IClock clock)
     {
         var since = from ?? clock.UtcNow.AddMonths(-6);
         var now = clock.UtcNow;
+        var instances = ScopedWorkflows(await dataScope.MineAsync(ct));
         var done = await (from s in db.WorkflowSteps.AsNoTracking()
-                          join w in db.WorkflowInstances.AsNoTracking() on s.InstanceId equals w.Id
+                          join w in instances on s.InstanceId equals w.Id
                           where s.Status == StepStatus.Done && s.ActivatedAt != null && s.ActedAt != null && s.ActedAt >= since
                           select new { w.TemplateCode, s.Code, s.Name, s.ActivatedAt, s.ActedAt, s.DueAt })
             .ToListAsync(ct);
@@ -183,7 +197,7 @@ public sealed class ReportService(IAppDbContext db, IClock clock)
             .OrderBy(r => r.WorkflowCode).ThenBy(r => r.StepCode).ToList();
 
         var active = await (from s in db.WorkflowSteps.AsNoTracking()
-                            join w in db.WorkflowInstances.AsNoTracking() on s.InstanceId equals w.Id
+                            join w in instances on s.InstanceId equals w.Id
                             where s.Status == StepStatus.Active && w.Status == WorkflowStatus.Running
                             select new { s.AssigneeType, s.RoleCode, s.AssigneeUserId, w.SupplierId, w.StartedByName, s.ActivatedAt, s.DueAt })
             .ToListAsync(ct);
@@ -202,6 +216,25 @@ public sealed class ReportService(IAppDbContext db, IClock clock)
             .Select(g => new SigningBacklogRowDto(g.Key.Item2, g.Key.Item1, g.Count(), g.Count(a => a.DueAt != null && a.DueAt < now), g.Min(a => a.ActivatedAt)))
             .OrderByDescending(r => r.Pending).ToList();
         return new SigningReportDto(steps, backlog);
+    }
+
+    /// <summary>Workflows tied to the user's facilities / domains, or to none.</summary>
+    private IQueryable<WorkflowInstance> ScopedWorkflows(ScopeSet scope)
+    {
+        var query = db.WorkflowInstances.AsNoTracking();
+        if (scope.Facilities.Count > 0)
+        {
+            var facilities = scope.Facilities;
+            query = query.Where(w => w.ScopeFacilityId == null || facilities.Contains(w.ScopeFacilityId.Value));
+        }
+
+        if (scope.Domains.Count > 0)
+        {
+            var domains = scope.Domains.Select(d => d.ToString()).ToList();
+            query = query.Where(w => w.ScopeDomain == null || domains.Contains(w.ScopeDomain));
+        }
+
+        return query;
     }
 
     private static decimal Round(decimal v) => decimal.Round(v, 0, MidpointRounding.AwayFromZero);

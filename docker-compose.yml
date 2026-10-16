@@ -125,6 +125,8 @@ services:
       His__ApiKey: ${HIS_API_KEY:-}
       His__PullEnabled: ${HIS_PULL_ENABLED:-true}
       His__PullCron: ${HIS_PULL_CRON:-*/15 * * * *}
+      # X-Forwarded-For is trusted only from the reverse proxy (the web container's docker network).
+      ForwardedHeaders__KnownNetworks__0: ${TRUSTED_PROXY_NETWORK:-172.16.0.0/12}
       HisInbound__Clients__0__Name: ${HIS_INBOUND_CLIENT_NAME:-HIS}
       HisInbound__Clients__0__ApiKey: ${HIS_INBOUND_API_KEY:-his-dev-key}
       HisInbound__Clients__0__Secret: ${HIS_INBOUND_SECRET:-his-dev-secret-change-me-0123456789}

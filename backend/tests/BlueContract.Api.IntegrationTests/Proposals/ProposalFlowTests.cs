@@ -10,6 +10,9 @@ using BlueContract.Application.Workflows;
 using BlueContract.Domain.Identity;
 using BlueContract.Domain.Proposals;
 using BlueContract.Domain.Workflows;
+using BlueContract.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 
 namespace BlueContract.Api.IntegrationTests.Proposals;
@@ -158,6 +161,217 @@ public class ProposalFlowTests(ApiFactory factory)
         var calls = await supplier.GetFromJsonAsync<PagedResult<CallOrderListItemDto>>("/api/call-orders?status=Sent", JsonDefaults.Options);
         calls!.Items.ShouldNotBeEmpty();
         calls.Items.ShouldAllBe(c => c.SupplierName == "Công ty TNHH Thiết bị Y tế Phương Đông");
+    }
+
+    /// <summary>AUDIT-1 §10.4: Σ SL gọi ≤ SL duyệt must hold under truly parallel requests, the losers get a Vietnamese 4xx.</summary>
+    [Fact]
+    public async Task Parallel_calls_never_exceed_the_approved_quantity()
+    {
+        var (summaryId, lineId, warehouse) = await ApprovedSummaryAsync(10);
+        using var aggregator = await factory.LoginAsync("tonghopvt");
+        var deadline = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(5));
+
+        var responses = await Task.WhenAll(Enumerable.Range(0, 4).Select(_ => aggregator.PostAsJsonAsync("/api/call-orders",
+            new CreateCallsRequest(summaryId, warehouse, deadline, null, null, [new CallLineRequest(lineId, 4)]), JsonDefaults.Options)));
+        try
+        {
+            var ok = responses.Count(r => r.IsSuccessStatusCode);
+            var outcomes = string.Join(" | ", await Task.WhenAll(responses.Select(async r => $"{(int)r.StatusCode} {await r.Content.ReadAsStringAsync()}")));
+            ok.ShouldBe(2, "10 approved fit exactly two calls of 4: " + outcomes);
+            foreach (var failed in responses.Where(r => !r.IsSuccessStatusCode))
+            {
+                ((int)failed.StatusCode).ShouldBeInRange(400, 499);
+                var body = await failed.Content.ReadAsStringAsync();
+                body.ShouldContain("CALL_QTY_EXCEEDS_APPROVED");
+            }
+
+            var summary = await GetSummaryAsync(aggregator, summaryId);
+            summary.Lines.Single(l => l.Id == lineId).CalledQuantity.ShouldBe(8);
+            var orders = await aggregator.GetFromJsonAsync<PagedResult<CallOrderListItemDto>>($"/api/call-orders?summaryId={summaryId}&pageSize=100", JsonDefaults.Options);
+            orders!.Total.ShouldBe(2);
+        }
+        finally
+        {
+            foreach (var r in responses)
+            {
+                r.Dispose();
+            }
+        }
+    }
+
+    /// <summary>AUDIT-1 §10.4: calls from every summary together stay within the contract quantity.</summary>
+    [Fact]
+    public async Task Calls_never_exceed_the_contract_quantity_across_summaries()
+    {
+        var (summaryId, lineId, warehouse) = await ApprovedSummaryAsync(10);
+        using var aggregator = await factory.LoginAsync("tonghopvt");
+        var itemId = (await GetSummaryAsync(aggregator, summaryId)).Lines.Single().ContractItemId;
+
+        // Other summaries already called most of the contract: only 3 are left although this summary approved 10.
+        decimal original;
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            original = await db.Database.SqlQuery<decimal>($"SELECT quantity AS \"Value\" FROM contract_items WHERE id = {itemId}").SingleAsync();
+            var called = await db.CallOrders.Where(o => o.Status != CallOrderStatus.Cancelled && o.Status != CallOrderStatus.Rejected)
+                .SelectMany(o => o.Lines).Where(l => l.ContractItemId == itemId).SumAsync(l => l.ConfirmedQuantity ?? l.Quantity);
+            await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE contract_items SET quantity = {called + 3} WHERE id = {itemId}");
+        }
+
+        try
+        {
+            var deadline = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(5));
+            using var over = await aggregator.PostAsJsonAsync("/api/call-orders",
+                new CreateCallsRequest(summaryId, warehouse, deadline, null, null, [new CallLineRequest(lineId, 4)]), JsonDefaults.Options);
+            over.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+            (await over.Content.ReadAsStringAsync()).ShouldContain("CALL_QTY_EXCEEDS_CONTRACT");
+            using var fits = await aggregator.PostAsJsonAsync("/api/call-orders",
+                new CreateCallsRequest(summaryId, warehouse, deadline, null, null, [new CallLineRequest(lineId, 3)]), JsonDefaults.Options);
+            fits.StatusCode.ShouldBe(HttpStatusCode.OK, await fits.Content.ReadAsStringAsync());
+        }
+        finally
+        {
+            await using var scope = factory.Services.CreateAsyncScope();
+            await scope.ServiceProvider.GetRequiredService<AppDbContext>().Database
+                .ExecuteSqlInterpolatedAsync($"UPDATE contract_items SET quantity = {original} WHERE id = {itemId}");
+        }
+    }
+
+    /// <summary>AUDIT-1 §10.5: no call for a contract that is liquidated, expired or not yet in force.</summary>
+    [Theory]
+    [InlineData("liquidated")]
+    [InlineData("expired")]
+    [InlineData("not-yet-effective")]
+    public async Task Calls_need_a_contract_in_force(string change)
+    {
+        var (summaryId, lineId, warehouse) = await ApprovedSummaryAsync(2);
+        using var aggregator = await factory.LoginAsync("tonghopvt");
+        var contractId = (await GetSummaryAsync(aggregator, summaryId)).Lines.Single().ContractId;
+
+        (string Status, DateOnly? Effective, DateOnly? Expiry) original;
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var c = await db.Contracts.AsNoTracking().SingleAsync(x => x.Id == contractId);
+            original = (c.Status.ToString(), c.EffectiveDate, c.ExpiryDate);
+            FormattableString sql = change switch
+            {
+                "liquidated" => $"UPDATE contracts SET status = 'Liquidated' WHERE id = {contractId}",
+                "expired" => $"UPDATE contracts SET expiry_date = CURRENT_DATE - 1 WHERE id = {contractId}",
+                _ => $"UPDATE contracts SET effective_date = CURRENT_DATE + 30 WHERE id = {contractId}",
+            };
+            await db.Database.ExecuteSqlInterpolatedAsync(sql);
+        }
+
+        try
+        {
+            using var call = await aggregator.PostAsJsonAsync("/api/call-orders", new CreateCallsRequest(summaryId, warehouse,
+                DateOnly.FromDateTime(DateTime.UtcNow.AddDays(5)), null, null, [new CallLineRequest(lineId, 1)]), JsonDefaults.Options);
+            call.StatusCode.ShouldBe(HttpStatusCode.BadRequest, await call.Content.ReadAsStringAsync());
+            (await call.Content.ReadAsStringAsync()).ShouldContain("CALL_CONTRACT_NOT_IN_FORCE");
+        }
+        finally
+        {
+            await using var scope = factory.Services.CreateAsyncScope();
+            await scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.ExecuteSqlInterpolatedAsync(
+                $"UPDATE contracts SET status = {original.Status}, effective_date = {original.Effective}, expiry_date = {original.Expiry} WHERE id = {contractId}");
+        }
+    }
+
+    /// <summary>AUDIT-1 §10.6: document numbers are allocated atomically — parallel creations all succeed with distinct numbers.</summary>
+    [Fact]
+    public async Task Parallel_proposals_get_distinct_numbers()
+    {
+        using var department = await factory.LoginAsync("khoanoi");
+        var departments = await department.GetFromJsonAsync<List<LookupItem>>("/api/lookups/departments");
+        var warehouses = await department.GetFromJsonAsync<List<LookupItem>>("/api/lookups/warehouses");
+        var knoi = departments!.Single(d => d.Code == "KNOI").Id;
+        var warehouse = warehouses!.Single(w => w.Code == "KHO_VTYT").Id;
+        var item = (await department.GetFromJsonAsync<ProposalCandidatesDto>(
+            $"/api/proposals/candidates?domain=MedicalSupply&warehouseId={warehouse}&from=2026-10-01&to=2026-10-31&departmentId={knoi}", JsonDefaults.Options))!.Items[0];
+
+        var responses = await Task.WhenAll(Enumerable.Range(0, 4).Select(_ =>
+            department.PostAsJsonAsync("/api/proposals", Proposal(knoi, warehouse, (item.ContractItemId, 1)), JsonDefaults.Options)));
+        var bodies = await Task.WhenAll(responses.Select(r => r.Content.ReadAsStringAsync()));
+        responses.ShouldAllBe(r => r.StatusCode == HttpStatusCode.OK, string.Join(" | ", bodies));
+        var numbers = new List<string>();
+        foreach (var r in responses)
+        {
+            var id = await r.Content.ReadFromJsonAsync<Guid>();
+            numbers.Add((await department.GetFromJsonAsync<ProposalDto>($"/api/proposals/{id}", JsonDefaults.Options))!.Number);
+            r.Dispose();
+        }
+
+        numbers.Distinct().Count().ShouldBe(4);
+    }
+
+    [Fact]
+    public async Task Proposals_need_a_contract_in_force()
+    {
+        using var department = await factory.LoginAsync("khoanoi");
+        var departments = await department.GetFromJsonAsync<List<LookupItem>>("/api/lookups/departments");
+        var warehouses = await department.GetFromJsonAsync<List<LookupItem>>("/api/lookups/warehouses");
+        var knoi = departments!.Single(d => d.Code == "KNOI").Id;
+        var warehouse = warehouses!.Single(w => w.Code == "KHO_VTYT").Id;
+        const string query = "/api/proposals/candidates?domain=MedicalSupply&from=2026-10-01&to=2026-10-31";
+        var item = (await department.GetFromJsonAsync<ProposalCandidatesDto>($"{query}&warehouseId={warehouse}&departmentId={knoi}", JsonDefaults.Options))!.Items[0];
+
+        DateOnly? expiry;
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            expiry = (await db.Contracts.AsNoTracking().SingleAsync(c => c.Id == item.ContractId)).ExpiryDate;
+            await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE contracts SET expiry_date = CURRENT_DATE - 1 WHERE id = {item.ContractId}");
+        }
+
+        try
+        {
+            var candidates = await department.GetFromJsonAsync<ProposalCandidatesDto>($"{query}&warehouseId={warehouse}&departmentId={knoi}", JsonDefaults.Options);
+            candidates!.Items.ShouldNotContain(i => i.ContractId == item.ContractId);
+            using var refused = await department.PostAsJsonAsync("/api/proposals", Proposal(knoi, warehouse, (item.ContractItemId, 1)), JsonDefaults.Options);
+            (await refused.Content.ReadAsStringAsync()).ShouldContain("PROPOSAL_ITEM_NOT_CALLABLE");
+        }
+        finally
+        {
+            await using var scope = factory.Services.CreateAsyncScope();
+            await scope.ServiceProvider.GetRequiredService<AppDbContext>().Database
+                .ExecuteSqlInterpolatedAsync($"UPDATE contracts SET expiry_date = {expiry} WHERE id = {item.ContractId}");
+        }
+    }
+
+    /// <summary>One signed proposal of <paramref name="quantity"/> for one item, aggregated and approved by the director.</summary>
+    private async Task<(Guid SummaryId, Guid LineId, Guid Warehouse)> ApprovedSummaryAsync(decimal quantity)
+    {
+        using var department = await factory.LoginAsync("khoanoi");
+        var departments = await department.GetFromJsonAsync<List<LookupItem>>("/api/lookups/departments");
+        var warehouses = await department.GetFromJsonAsync<List<LookupItem>>("/api/lookups/warehouses");
+        var knoi = departments!.Single(d => d.Code == "KNOI").Id;
+        var warehouse = warehouses!.Single(w => w.Code == "KHO_VTYT").Id;
+        var candidates = await department.GetFromJsonAsync<ProposalCandidatesDto>(
+            $"/api/proposals/candidates?domain=MedicalSupply&warehouseId={warehouse}&from=2026-10-01&to=2026-10-31&departmentId={knoi}", JsonDefaults.Options);
+        var item = candidates!.Items.First(i => i.ContractRemaining >= quantity);
+        var proposal = await CreateAndSignProposalAsync(department, Proposal(knoi, warehouse, (item.ContractItemId, quantity)));
+
+        using var aggregator = await factory.LoginAsync("tonghopvt");
+        using var created = await aggregator.PostAsJsonAsync("/api/proposal-summaries",
+            new SaveSummaryRequest(ProcurementDomain.MedicalSupply, null, "Thử tranh chấp", null, [proposal]), JsonDefaults.Options);
+        created.StatusCode.ShouldBe(HttpStatusCode.OK, await created.Content.ReadAsStringAsync());
+        var summaryId = await created.Content.ReadFromJsonAsync<Guid>();
+        var summary = await GetSummaryAsync(aggregator, summaryId);
+        (await aggregator.PostAsync(new Uri($"/api/proposal-summaries/{summaryId}/submit", UriKind.Relative), null)).StatusCode.ShouldBe(HttpStatusCode.NoContent);
+        await SignAsync(aggregator, summary.DocumentId!.Value);
+        using (var head = await factory.LoginAsync("totruongvattu"))
+        {
+            await ApproveAsync(head, summary.DocumentId!.Value);
+        }
+
+        using (var director = await factory.LoginAsync("giamdoc"))
+        {
+            await SignAsync(director, summary.DocumentId!.Value);
+        }
+
+        (await GetSummaryAsync(aggregator, summaryId)).Status.ShouldBe(ProposalSummaryStatus.Approved);
+        return (summaryId, summary.Lines.Single().Id, warehouse);
     }
 
     private static SaveProposalRequest Proposal(Guid department, Guid warehouse, params (Guid Item, decimal Qty)[] lines) =>

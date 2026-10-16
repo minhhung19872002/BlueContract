@@ -57,6 +57,7 @@ internal sealed class ValuationRecordConfiguration : IEntityTypeConfiguration<Va
         b.ToTable("valuation_records");
         b.Property(x => x.Number).HasMaxLength(40).IsRequired();
         b.HasIndex(x => x.Number).IsUnique();
+        b.HasIndex(x => new { x.ContractId, x.PaymentSequence }, "ux_valuation_records_contract_sequence").IsUnique().HasDatabaseName("ux_valuation_records_contract_sequence").HasFilter("status <> 'Cancelled'");
         b.Property(x => x.PaymentRequestNumber).HasMaxLength(40).IsRequired();
         b.HasIndex(x => x.PaymentRequestNumber).IsUnique();
         b.Property(x => x.PeriodText).HasMaxLength(100).IsRequired();
@@ -129,6 +130,7 @@ internal sealed class LiquidationRecordConfiguration : IEntityTypeConfiguration<
         b.ToTable("liquidation_records");
         b.Property(x => x.Number).HasMaxLength(40).IsRequired();
         b.HasIndex(x => x.Number).IsUnique();
+        b.HasIndex(x => x.ContractId, "ux_liquidation_records_contract_active").IsUnique().HasDatabaseName("ux_liquidation_records_contract_active").HasFilter("status <> 'Cancelled'");
         b.Property(x => x.Notes).HasMaxLength(4000);
         b.Property(x => x.LastReturnReason).HasMaxLength(2000);
         b.HasIndex(x => new { x.ContractId, x.Status });

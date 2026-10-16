@@ -9458,6 +9458,7 @@ export interface components {
             expiryDate: null | string;
             /** Format: double */
             receivedPercent: number;
+            requiresWarehouseReceipt: boolean;
             /** Format: date-time */
             createdAt: string;
         };

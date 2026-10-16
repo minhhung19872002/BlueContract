@@ -22,14 +22,21 @@ public sealed class ValuationService(
     IFileStorage storage,
     IAuditLogger audit,
     ICurrentUser current,
-    IClock clock)
+    IClock clock,
+    DataScope dataScope,
+    Workflows.WorkflowAccess workflowAccess)
 {
     public const string OwnerType = "Valuation";
     private static readonly TimeSpan LinkLifetime = TimeSpan.FromMinutes(5);
 
-    public Task<PagedResult<ValuationListItemDto>> ListAsync(PageQuery q, ValuationFilter f, CancellationToken ct)
+    public async Task<PagedResult<ValuationListItemDto>> ListAsync(PageQuery q, ValuationFilter f, CancellationToken ct)
     {
         var query = db.ValuationRecords.AsNoTracking();
+        if (await dataScope.ContractIdsAsync(ct) is { } scoped)
+        {
+            query = query.Where(x => scoped.Contains(x.ContractId));
+        }
+
         if (!string.IsNullOrWhiteSpace(q.Search))
         {
             var p = PagingExtensions.LikePattern(q.Search);
@@ -42,7 +49,7 @@ public sealed class ValuationService(
         query = f.ContractId is { } contract ? query.Where(v => v.ContractId == contract) : query;
         query = f.SupplierId is { } supplier ? query.Where(v => v.SupplierId == supplier) : query;
 
-        return query.OrderByDescending(v => v.CreatedAt)
+        return await query.OrderByDescending(v => v.CreatedAt)
             .Select(v => new ValuationListItemDto(
                 v.Id, v.Number, v.PaymentRequestNumber, v.ContractId,
                 db.Contracts.Where(c => c.Id == v.ContractId).Select(c => c.Number).FirstOrDefault() ?? string.Empty,
@@ -57,7 +64,7 @@ public sealed class ValuationService(
     public async Task<Result<ValuationDto>> GetAsync(Guid id, CancellationToken ct)
     {
         var v = await Query().AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, ct);
-        return v is null ? Error.NotFound() : await ToDtoAsync(v, ct);
+        return v is null || !await VisibleAsync(v.ContractId, v.DocumentId, ct) ? Error.NotFound() : await ToDtoAsync(v, ct);
     }
 
     public async Task<Result<ValuationDto>> CreateAsync(SaveValuationRequest r, CancellationToken ct)
@@ -73,7 +80,10 @@ public sealed class ValuationService(
             return Error.Validation("CONTRACT_NOT_EFFECTIVE");
         }
 
-        var sequence = await db.ValuationRecords.CountAsync(v => v.ContractId == contract.Id && v.Status != PaymentRecordStatus.Cancelled, ct) + 1;
+        // Max + 1 (not Count + 1): a cancelled 08a in the middle would otherwise hand out a number still in use. The unique
+        // index (contract, sequence) of active records settles two simultaneous creations.
+        var sequence = (await db.ValuationRecords.Where(v => v.ContractId == contract.Id && v.Status != PaymentRecordStatus.Cancelled)
+            .MaxAsync(v => (int?)v.PaymentSequence, ct) ?? 0) + 1;
         var valuation = new ValuationRecord(await numbers.NextAsync(DocumentNumbers.Valuation, ct), await numbers.NextAsync(DocumentNumbers.PaymentRequest, ct),
             contract.Id, contract.SupplierId, sequence, string.IsNullOrWhiteSpace(r.PeriodText) ? $"Lần {sequence}" : r.PeriodText.Trim());
         db.ValuationRecords.Add(valuation);
@@ -174,14 +184,16 @@ public sealed class ValuationService(
         string? key = null;
         if (file is not null)
         {
-            if (FileInspector.Detect(file.Content) is not (FileKind.Pdf or FileKind.Jpeg or FileKind.Png))
+            var kind = FileInspector.Detect(file.Content);
+            if (kind is not (FileKind.Pdf or FileKind.Jpeg or FileKind.Png))
             {
                 return Error.Validation("PAYMENT_ORDER_FILE_INVALID");
             }
 
+            var stored = FileInspector.Storage(kind);
             using var stream = new MemoryStream(file.Content);
-            key = (await storage.UploadAsync($"valuations/{valuation.Id:N}/unc-{clock.UtcNow:yyyyMMddHHmmss}-{Path.GetExtension(file.FileName)}", stream,
-                file.ContentType, ct)).ObjectKey;
+            key = (await storage.UploadAsync($"valuations/{valuation.Id:N}/unc-{clock.UtcNow:yyyyMMddHHmmss}{stored.Extension}", stream,
+                stored.MediaType, ct)).ObjectKey;
         }
 
         var order = valuation.AddPaymentOrder(r.Number, r.Date, r.Amount, key, file?.FileName, current.FullName, clock.UtcNow);
@@ -306,4 +318,8 @@ public sealed class ValuationService(
             CanCancel: manage && v.IsEditable,
             CanManagePaymentOrders: manage && v.Status != PaymentRecordStatus.Cancelled && v.SettledByLiquidationId is null && v.LiquidationId is null);
     }
+
+    /// <summary>Data scope (spec §4.2): out-of-scope records look missing, unless the user takes part in their signing.</summary>
+    private async Task<bool> VisibleAsync(Guid contractId, Guid? documentId, CancellationToken ct) =>
+        await dataScope.CanSeeContractAsync(contractId, ct) || (documentId is { } doc && await workflowAccess.IsParticipantAsync(doc, ct));
 }

@@ -25,13 +25,15 @@ public sealed class ReceiptService(
     NotificationService notifications,
     IAuditLogger audit,
     ICurrentUser current,
-    IClock clock)
+    IClock clock,
+    DataScope dataScope,
+    Workflows.WorkflowAccess workflowAccess)
 {
     private static readonly TimeSpan LinkLifetime = TimeSpan.FromMinutes(5);
 
-    public Task<PagedResult<ReceiptListItemDto>> ListAsync(PageQuery q, ReceiptFilter f, CancellationToken ct)
+    public async Task<PagedResult<ReceiptListItemDto>> ListAsync(PageQuery q, ReceiptFilter f, CancellationToken ct)
     {
-        var query = db.WarehouseReceipts.AsNoTracking();
+        var query = await dataScope.ReceiptsAsync(db.WarehouseReceipts.AsNoTracking(), ct);
         if (!string.IsNullOrWhiteSpace(q.Search))
         {
             var p = PagingExtensions.LikePattern(q.Search);
@@ -51,7 +53,7 @@ public sealed class ReceiptService(
         query = f.HasInvoice is { } hasInvoice ? query.Where(r => (r.InvoiceNumber != null) == hasInvoice) : query;
         query = f.Accepted is { } accepted ? query.Where(r => r.IsIncludedInAcceptance == accepted) : query;
 
-        return query.OrderByDescending(r => r.ReceiptDate).ThenByDescending(r => r.CreatedAt)
+        return await query.OrderByDescending(r => r.ReceiptDate).ThenByDescending(r => r.CreatedAt)
             .Select(r => new ReceiptListItemDto(
                 r.Id, r.Number, r.Type, r.Source, r.ReceiptDate,
                 db.Warehouses.Where(w => w.Id == r.WarehouseId).Select(w => w.Name).FirstOrDefault() ?? r.WarehouseCode,
@@ -64,8 +66,16 @@ public sealed class ReceiptService(
 
     public async Task<Result<ReceiptDto>> GetAsync(Guid id, CancellationToken ct)
     {
-        var r = await db.WarehouseReceipts.AsNoTracking().Include(x => x.Lines).FirstOrDefaultAsync(x => x.Id == id, ct);
+        var r = await (await dataScope.ReceiptsAsync(db.WarehouseReceipts.AsNoTracking(), ct)).Include(x => x.Lines).FirstOrDefaultAsync(x => x.Id == id, ct)
+            ?? await ParticipantReceiptAsync(id, ct);
         return r is null ? Error.NotFound() : await ToDtoAsync(r, ct);
+    }
+
+    /// <summary>A signer assigned to the receipt's workflow may open it even outside their data scope.</summary>
+    private async Task<WarehouseReceipt?> ParticipantReceiptAsync(Guid id, CancellationToken ct)
+    {
+        var r = await db.WarehouseReceipts.AsNoTracking().Include(x => x.Lines).FirstOrDefaultAsync(x => x.Id == id, ct);
+        return r?.DocumentId is { } docId && await workflowAccess.IsParticipantAsync(docId, ct) ? r : null;
     }
 
     /// <summary>Lập phiếu nhập kho / hoàn trả trên cổng, hoặc phiếu ảo cho hợp đồng không nhập kho.</summary>
@@ -202,7 +212,9 @@ public sealed class ReceiptService(
     }
 
     /// <summary>Bổ sung / sửa thông tin hóa đơn (NCC ở bước người giao hàng, hoặc bệnh viện) — re-runs the validation engine.</summary>
-    public async Task<Result<ReceiptDto>> SetInvoiceAsync(Guid id, InvoiceRequest r, CancellationToken ct)
+    public Task<Result<ReceiptDto>> SetInvoiceAsync(Guid id, InvoiceRequest r, CancellationToken ct) => InvoiceLockedAsync(id, () => SetInvoiceLockedAsync(id, r, ct), ct);
+
+    private async Task<Result<ReceiptDto>> SetInvoiceLockedAsync(Guid id, InvoiceRequest r, CancellationToken ct)
     {
         var receipt = await db.WarehouseReceipts.Include(x => x.Lines).FirstOrDefaultAsync(x => x.Id == id, ct);
         if (receipt is null)
@@ -220,7 +232,9 @@ public sealed class ReceiptService(
     }
 
     /// <summary>Tải file hóa đơn: XML hóa đơn điện tử (tự đọc số/ký hiệu/ngày/tổng tiền) hoặc PDF bản thể hiện.</summary>
-    public async Task<Result<ReceiptDto>> UploadInvoiceFileAsync(Guid id, UploadedFile file, CancellationToken ct)
+    public Task<Result<ReceiptDto>> UploadInvoiceFileAsync(Guid id, UploadedFile file, CancellationToken ct) => InvoiceLockedAsync(id, () => UploadInvoiceFileLockedAsync(id, file, ct), ct);
+
+    private async Task<Result<ReceiptDto>> UploadInvoiceFileLockedAsync(Guid id, UploadedFile file, CancellationToken ct)
     {
         var receipt = await db.WarehouseReceipts.Include(x => x.Lines).FirstOrDefaultAsync(x => x.Id == id, ct);
         if (receipt is null)
@@ -262,6 +276,13 @@ public sealed class ReceiptService(
         return await AfterInvoiceAsync(receipt, ct);
     }
 
+    /// <summary>Invoice changes and re-validation of a supplier's receipts run one at a time (see <see cref="ReceiptLocks"/>).</summary>
+    private async Task<Result<ReceiptDto>> InvoiceLockedAsync(Guid id, Func<Task<Result<ReceiptDto>>> work, CancellationToken ct)
+    {
+        var taxCode = await db.WarehouseReceipts.AsNoTracking().Where(x => x.Id == id).Select(x => x.SupplierTaxCode).FirstOrDefaultAsync(ct);
+        return await db.SerializedAsync([ReceiptLocks.Invoices(taxCode)], work, ct);
+    }
+
     /// <summary>Đọc thử XML hóa đơn (không lưu) để điền sẵn form.</summary>
     public static Result<ParsedInvoiceDto> ParseInvoice(UploadedFile file)
     {
@@ -292,7 +313,9 @@ public sealed class ReceiptService(
     }
 
     /// <summary>"Kiểm tra lại": re-maps (HĐ/mặt hàng may have changed, e.g. after an appendix) and re-runs every rule.</summary>
-    public async Task<Result<ReceiptDto>> RevalidateAsync(Guid id, CancellationToken ct)
+    public Task<Result<ReceiptDto>> RevalidateAsync(Guid id, CancellationToken ct) => InvoiceLockedAsync(id, () => RevalidateLockedAsync(id, ct), ct);
+
+    private async Task<Result<ReceiptDto>> RevalidateLockedAsync(Guid id, CancellationToken ct)
     {
         var receipt = await db.WarehouseReceipts.Include(x => x.Lines).FirstOrDefaultAsync(x => x.Id == id, ct);
         if (receipt is null)
@@ -372,9 +395,15 @@ public sealed class ReceiptService(
 
     private async Task<Result<(string WarehouseCode, Guid? WarehouseId, List<ReceiptLineDraft> Lines)>> BuildAsync(SaveReceiptRequest r, Contract contract, CancellationToken ct)
     {
-        if (!r.Virtual && contract.Status != ContractStatus.Effective)
+        if (contract.Status != ContractStatus.Effective)
         {
             return Error.Validation("CONTRACT_NOT_EFFECTIVE");
+        }
+
+        // A virtual receipt skips the five warehouse signatures, so it is only for contracts that never go through a warehouse.
+        if (r.Virtual && contract.RequiresWarehouseReceipt)
+        {
+            return Error.Validation("RECEIPT_VIRTUAL_NOT_ALLOWED");
         }
 
         if (r.Virtual && r.Type == ReceiptType.Return)

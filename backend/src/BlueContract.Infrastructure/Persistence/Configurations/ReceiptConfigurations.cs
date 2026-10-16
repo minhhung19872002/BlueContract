@@ -47,6 +47,9 @@ internal sealed class WarehouseReceiptConfiguration : IEntityTypeConfiguration<W
         // Idempotency key of the HIS (spec §6.4 B1).
         b.HasIndex(x => x.HisReceiptId).IsUnique().HasFilter("his_receipt_id IS NOT NULL");
         b.HasIndex(x => x.Number);
+
+        // Numbers made by the portal's counter are unique; HIS numbers are the HIS's own (one counter per HIS warehouse).
+        b.HasIndex(x => x.Number, "ux_warehouse_receipts_portal_number").IsUnique().HasDatabaseName("ux_warehouse_receipts_portal_number").HasFilter("source <> 'His'");
         b.HasIndex(x => new { x.ContractId, x.Status });
         b.HasIndex(x => new { x.SupplierId, x.Status });
         b.HasIndex(x => new { x.Status, x.ValidationStatus });
@@ -54,6 +57,10 @@ internal sealed class WarehouseReceiptConfiguration : IEntityTypeConfiguration<W
         b.HasIndex(x => x.DocumentId);
         b.HasIndex(x => x.CallOrderId);
         b.HasIndex(x => new { x.SupplierTaxCode, x.InvoiceSymbol, x.InvoiceNumber });
+
+        // One invoice backs at most one receipt that is not cancelled and not invalid (a duplicate is stored but Invalid).
+        b.HasIndex(x => new { x.SupplierTaxCode, x.InvoiceSymbol, x.InvoiceNumber }, "ux_warehouse_receipts_invoice_active").IsUnique().HasDatabaseName("ux_warehouse_receipts_invoice_active")
+            .HasFilter("invoice_number IS NOT NULL AND status <> 'Cancelled' AND validation_status <> 'Invalid'");
         b.HasIndex(x => x.AcceptanceId);
         b.HasMany(x => x.Lines).WithOne().HasForeignKey(l => l.ReceiptId).OnDelete(DeleteBehavior.Cascade);
         b.Ignore(x => x.HasInvoice);
@@ -126,5 +133,16 @@ internal sealed class IntegrationLogConfiguration : IEntityTypeConfiguration<Int
         b.HasIndex(x => new { x.Status, x.StartedAt });
         b.HasIndex(x => x.ExternalId);
         b.Ignore(x => x.CanRetry);
+    }
+}
+
+internal sealed class UsedRequestSignatureConfiguration : IEntityTypeConfiguration<UsedRequestSignature>
+{
+    public void Configure(EntityTypeBuilder<UsedRequestSignature> b)
+    {
+        b.ToTable("used_request_signatures");
+        b.HasKey(x => x.Signature);
+        b.Property(x => x.Signature).HasMaxLength(128);
+        b.HasIndex(x => x.ReceivedAt);
     }
 }

@@ -22,7 +22,8 @@ public sealed class WorkflowService(
     ICurrentUser current,
     IClock clock,
     IEnumerable<IWorkflowObserver> observers,
-    IEnumerable<IWorkflowGuard> guards)
+    IEnumerable<IWorkflowGuard> guards,
+    DataScope dataScope)
 {
     // ---------------- Templates (Cấu hình luồng ký) ----------------
 
@@ -239,8 +240,8 @@ public sealed class WorkflowService(
 
     public async Task<Result<WorkflowDto?>> GetForDocumentAsync(Guid documentId, CancellationToken ct)
     {
-        var document = await db.Documents.AsNoTracking().FirstOrDefaultAsync(d => d.Id == documentId, ct);
-        if (document is null)
+        // Steps, comments and signers are part of the document: same visibility rule (AUDIT-1 §10.8).
+        if (!await documents.CanViewAsync(documentId, ct))
         {
             return Error.NotFound();
         }
@@ -506,27 +507,40 @@ public sealed class WorkflowService(
     }
 
     /// <summary>Active steps the current user may act on (role/user/supplier/creator, data scope, delegation).</summary>
+    /// <summary>
+    /// Steps waiting for the current user: role steps within the user's data scope, role steps of a delegator within the
+    /// delegator's scope, and steps assigned to the user, the creator or the supplier (AUDIT-1 §10.7).
+    /// </summary>
     private async Task<IQueryable<WorkflowStepInstance>> PendingStepsQueryAsync(CancellationToken ct)
     {
         var me = current.UserId!.Value;
-        var roles = (await access.MyRolesAsync(ct)).ToList();
-        roles.AddRange((await access.MyDelegationsAsync(ct)).SelectMany(d => d.Roles));
         var mySupplier = current.SupplierId;
-        var scopes = current.DataScopes;
-        var facilities = scopes.Where(s => s.Type == DataScopeType.Facility).Select(s => Guid.Parse(s.Value)).ToList();
-        var domains = scopes.Where(s => s.Type == DataScopeType.Domain).Select(s => s.Value).ToList();
         var canSign = current.HasPermission(Permissions.SigningSign);
+        var roleSources = new List<(List<string> Roles, ScopeSet Scope)> { ([.. await access.MyRolesAsync(ct)], await dataScope.MineAsync(ct)) };
+        foreach (var d in await access.MyDelegationsAsync(ct))
+        {
+            roleSources.Add((d.Roles, await dataScope.OfUserAsync(d.Delegator, ct)));
+        }
 
-        return from s in db.WorkflowSteps.AsNoTracking()
-               join w in db.WorkflowInstances.AsNoTracking() on s.InstanceId equals w.Id
-               where canSign && s.Status == StepStatus.Active && w.Status == WorkflowStatus.Running
-                     && ((s.AssigneeType == AssigneeType.Role && roles.Contains(s.RoleCode!)
-                            && (w.ScopeFacilityId == null || facilities.Count == 0 || facilities.Contains(w.ScopeFacilityId.Value))
-                            && (w.ScopeDomain == null || domains.Count == 0 || domains.Contains(w.ScopeDomain)))
-                         || (s.AssigneeType == AssigneeType.User && s.AssigneeUserId == me)
-                         || (s.AssigneeType == AssigneeType.Creator && w.StartedBy == me)
-                         || (s.AssigneeType == AssigneeType.DocumentSupplier && mySupplier != null && w.SupplierId == mySupplier))
-               select s;
+        var steps = from s in db.WorkflowSteps.AsNoTracking()
+                    join w in db.WorkflowInstances.AsNoTracking() on s.InstanceId equals w.Id
+                    where canSign && s.Status == StepStatus.Active && w.Status == WorkflowStatus.Running
+                    select new { Step = s, Workflow = w };
+        var direct = steps.Where(x => (x.Step.AssigneeType == AssigneeType.User && x.Step.AssigneeUserId == me)
+            || (x.Step.AssigneeType == AssigneeType.Creator && x.Workflow.StartedBy == me)
+            || (x.Step.AssigneeType == AssigneeType.DocumentSupplier && mySupplier != null && x.Workflow.SupplierId == mySupplier));
+        var ids = direct.Select(x => x.Step.Id);
+        foreach (var (roles, scope) in roleSources.Where(r => r.Roles.Count > 0))
+        {
+            var facilities = scope.Facilities;
+            var domains = scope.Domains.Select(d => d.ToString()).ToList();
+            ids = ids.Union(steps.Where(x => x.Step.AssigneeType == AssigneeType.Role && roles.Contains(x.Step.RoleCode!)
+                    && (x.Workflow.ScopeFacilityId == null || facilities.Count == 0 || facilities.Contains(x.Workflow.ScopeFacilityId.Value))
+                    && (x.Workflow.ScopeDomain == null || domains.Count == 0 || domains.Contains(x.Workflow.ScopeDomain)))
+                .Select(x => x.Step.Id));
+        }
+
+        return db.WorkflowSteps.AsNoTracking().Where(s => ids.Contains(s.Id));
     }
 
     // ---------------- Helpers shared with SigningService ----------------

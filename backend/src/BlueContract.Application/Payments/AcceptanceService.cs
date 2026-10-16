@@ -23,13 +23,20 @@ public sealed class AcceptanceService(
     ContractTracking tracking,
     NotificationService notifications,
     IAuditLogger audit,
-    ICurrentUser current)
+    ICurrentUser current,
+    DataScope dataScope,
+    Workflows.WorkflowAccess workflowAccess)
 {
     public const string OwnerType = "Acceptance";
 
-    public Task<PagedResult<AcceptanceListItemDto>> ListAsync(PageQuery q, AcceptanceFilter f, CancellationToken ct)
+    public async Task<PagedResult<AcceptanceListItemDto>> ListAsync(PageQuery q, AcceptanceFilter f, CancellationToken ct)
     {
         var query = db.AcceptanceRecords.AsNoTracking();
+        if (await dataScope.ContractIdsAsync(ct) is { } scoped)
+        {
+            query = query.Where(x => scoped.Contains(x.ContractId));
+        }
+
         if (!string.IsNullOrWhiteSpace(q.Search))
         {
             var p = PagingExtensions.LikePattern(q.Search);
@@ -42,7 +49,7 @@ public sealed class AcceptanceService(
         query = f.SupplierId is { } supplier ? query.Where(a => a.SupplierId == supplier) : query;
         query = f.Available == true ? query.Where(a => a.Status == PaymentRecordStatus.Completed && a.ValuationId == null) : query;
 
-        return query.OrderByDescending(a => a.CreatedAt)
+        return await query.OrderByDescending(a => a.CreatedAt)
             .Select(a => new AcceptanceListItemDto(
                 a.Id, a.Number, a.ContractId,
                 db.Contracts.Where(c => c.Id == a.ContractId).Select(c => c.Number).FirstOrDefault() ?? string.Empty,
@@ -57,7 +64,7 @@ public sealed class AcceptanceService(
     public async Task<Result<AcceptanceDto>> GetAsync(Guid id, CancellationToken ct)
     {
         var a = await db.AcceptanceRecords.AsNoTracking().Include(x => x.Receipts).Include(x => x.Items).FirstOrDefaultAsync(x => x.Id == id, ct);
-        if (a is null)
+        if (a is null || !await VisibleAsync(a.ContractId, a.DocumentId, ct))
         {
             return Error.NotFound();
         }
@@ -77,14 +84,19 @@ public sealed class AcceptanceService(
     }
 
     /// <summary>Phiếu nhập kho đã ký đủ, chưa nghiệm thu của hợp đồng (lọc theo khoảng ngày nếu có).</summary>
-    public Task<List<AcceptanceReceiptDto>> CandidatesAsync(Guid contractId, DateOnly? from, DateOnly? to, Guid? acceptanceId, CancellationToken ct)
+    public async Task<List<AcceptanceReceiptDto>> CandidatesAsync(Guid contractId, DateOnly? from, DateOnly? to, Guid? acceptanceId, CancellationToken ct)
     {
+        if (!await dataScope.CanSeeContractAsync(contractId, ct))
+        {
+            return [];
+        }
+
         var query = db.WarehouseReceipts.AsNoTracking()
             .Where(r => r.ContractId == contractId && r.Status == ReceiptStatus.Completed
                 && (!r.IsIncludedInAcceptance || (acceptanceId != null && r.AcceptanceId == acceptanceId)));
         query = from is { } f ? query.Where(r => r.ReceiptDate >= f) : query;
         query = to is { } t ? query.Where(r => r.ReceiptDate <= t) : query;
-        return query.OrderBy(r => r.ReceiptDate).ThenBy(r => r.Number)
+        return await query.OrderBy(r => r.ReceiptDate).ThenBy(r => r.Number)
             .Select(r => new AcceptanceReceiptDto(r.Id, r.Number, r.ReceiptDate, r.Type, r.InvoiceNumber,
                 r.Type == ReceiptType.Return ? -r.Lines.Sum(l => l.Amount) : r.Lines.Sum(l => l.Amount)))
             .ToListAsync(ct);
@@ -296,4 +308,8 @@ public sealed class AcceptanceService(
         !string.IsNullOrWhiteSpace(text) ? text.Trim()
         : from.Day == 1 && to == from.AddMonths(1).AddDays(-1) ? "Tháng " + from.ToString("MM/yyyy", CultureInfo.InvariantCulture)
         : $"Từ {from.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture)} đến {to.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture)}";
+
+    /// <summary>Data scope (spec §4.2): out-of-scope records look missing, unless the user takes part in their signing.</summary>
+    private async Task<bool> VisibleAsync(Guid contractId, Guid? documentId, CancellationToken ct) =>
+        await dataScope.CanSeeContractAsync(contractId, ct) || (documentId is { } doc && await workflowAccess.IsParticipantAsync(doc, ct));
 }

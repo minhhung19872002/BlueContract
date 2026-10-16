@@ -12,6 +12,10 @@ using BlueContract.Application.Signing;
 using BlueContract.Application.Workflows;
 using BlueContract.Domain.Integration;
 using BlueContract.Domain.Receipts;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 
 namespace BlueContract.Api.IntegrationTests.Receipts;
@@ -233,6 +237,139 @@ public class HisInboundTests(ApiFactory factory)
     // ---------------- helpers ----------------
 
     /// <summary>A valid receipt for the effective VTYT contract: an item still called but not yet received, invoice matching.</summary>
+    /// <summary>
+    /// AUDIT-1 §10.10: X-Forwarded-For is believed only from a configured proxy — a caller cannot spoof the HIS's IP to pass
+    /// the whitelist (nor dodge the per-IP login rate limit).
+    /// </summary>
+    [Fact]
+    public async Task Forwarded_for_from_an_untrusted_caller_does_not_pass_the_ip_whitelist()
+    {
+        // The caller connects from 203.0.113.5 (not a proxy) and claims to be the whitelisted HIS at 10.9.9.9.
+        await using var direct = factory.WithWebHostBuilder(b => b
+            .UseSetting("HisInbound:AllowedIps:0", "10.9.9.9")
+            .ConfigureTestServices(s => s.AddSingleton<IStartupFilter>(new RemoteIpStartupFilter("203.0.113.5"))));
+        using (var client = direct.CreateClient())
+        {
+            (await CodeAsync(await client.SendAsync(SignedContractsRequest("10.9.9.9")))).ShouldBe("HIS_AUTH_IP_NOT_ALLOWED");
+        }
+
+        // Through a configured proxy at that address the forwarded client IP is used.
+        await using var proxied = direct.WithWebHostBuilder(b => b.UseSetting("ForwardedHeaders:KnownProxies:0", "203.0.113.5"));
+        using var viaProxy = proxied.CreateClient();
+        using var allowed = await viaProxy.SendAsync(SignedContractsRequest("10.9.9.9"));
+        allowed.StatusCode.ShouldBe(HttpStatusCode.OK, await allowed.Content.ReadAsStringAsync());
+    }
+
+    private static HttpRequestMessage SignedContractsRequest(string forwardedFor)
+    {
+        const string path = "/api/integration/his/contracts?supplierTaxCode=0302345678";
+        var request = new HttpRequestMessage(HttpMethod.Get, new Uri(path, UriKind.Relative));
+        var timestamp = HisRequestSignature.Timestamp(DateTimeOffset.UtcNow);
+        request.Headers.Add("X-Api-Key", ApiFactory.HisApiKey);
+        request.Headers.Add("X-Timestamp", timestamp);
+        request.Headers.Add("X-Signature", HisRequestSignature.Sign(ApiFactory.HisSecret, "GET", path, timestamp, []));
+        request.Headers.Add("X-Forwarded-For", forwardedFor);
+        return request;
+    }
+
+    /// <summary>Gives test requests a real remote address (the test server has none of its own).</summary>
+    private sealed class RemoteIpStartupFilter(string ip) : IStartupFilter
+    {
+        public Action<IApplicationBuilder> Configure(Action<IApplicationBuilder> next) => app =>
+        {
+            app.Use((context, nextMiddleware) =>
+            {
+                context.Connection.RemoteIpAddress = IPAddress.Parse(ip);
+                return nextMiddleware(context);
+            });
+            next(app);
+        };
+    }
+
+    /// <summary>
+    /// AUDIT-1 §10.9: a signed request is accepted once — not once per API instance, and not once per thread when the same
+    /// request arrives several times at the same moment.
+    /// </summary>
+    [Fact]
+    public async Task Replay_is_refused_across_instances_and_under_parallel_arrival()
+    {
+        // Second API instance: its own process memory, the same database.
+        await using var instanceB = factory.WithWebHostBuilder(_ => { });
+        using var clientA = factory.CreateClient();
+        using var clientB = instanceB.CreateClient();
+
+        var body = JsonSerializer.SerializeToUtf8Bytes(await ValidPayloadAsync(1), JsonDefaults.Options);
+        var at = DateTimeOffset.UtcNow;
+        using (var first = await SendAsync(clientA, HttpMethod.Post, ReceiptsPath, body, at: at))
+        {
+            first.StatusCode.ShouldBe(HttpStatusCode.OK, await first.Content.ReadAsStringAsync());
+        }
+
+        (await CodeAsync(await SendAsync(clientB, HttpMethod.Post, ReceiptsPath, body, at: at))).ShouldBe("HIS_AUTH_REPLAY");
+
+        var parallelBody = JsonSerializer.SerializeToUtf8Bytes(await ValidPayloadAsync(1), JsonDefaults.Options);
+        var parallelAt = DateTimeOffset.UtcNow;
+        var responses = await Task.WhenAll(Enumerable.Range(0, 4).Select(i =>
+            SendAsync(i % 2 == 0 ? clientA : clientB, HttpMethod.Post, ReceiptsPath, parallelBody, at: parallelAt)));
+        var bodies = await Task.WhenAll(responses.Select(r => r.Content.ReadAsStringAsync()));
+        responses.Count(r => r.IsSuccessStatusCode).ShouldBe(1, string.Join(" | ", bodies));
+        bodies.Where((_, i) => !responses[i].IsSuccessStatusCode).ShouldAllBe(b => b.Contains("HIS_AUTH_REPLAY"));
+        foreach (var r in responses)
+        {
+            r.Dispose();
+        }
+    }
+
+    /// <summary>AUDIT-1 §10.6: HIS retries racing each other create the receipt once and never answer 500.</summary>
+    [Fact]
+    public async Task Parallel_pushes_of_one_receipt_create_it_once()
+    {
+        var payload = await ValidPayloadAsync(1);
+        using var anonymous = factory.CreateClient();
+        // Different notes: identical bodies in the same second would be refused as replays before reaching the service.
+        var responses = await Task.WhenAll(Enumerable.Range(0, 3).Select(i =>
+            SendAsync(anonymous, HttpMethod.Post, ReceiptsPath, JsonSerializer.SerializeToUtf8Bytes(payload with { Note = $"Lượt {i}" }, JsonDefaults.Options))));
+        var bodies = await Task.WhenAll(responses.Select(r => r.Content.ReadAsStringAsync()));
+        responses.ShouldAllBe(r => r.StatusCode == HttpStatusCode.OK, string.Join(" | ", bodies));
+        var results = await Task.WhenAll(responses.Select(r => r.Content.ReadFromJsonAsync<HisIngestResultDto>(JsonDefaults.Options)));
+        results.Count(r => r!.Outcome == HisIngestOutcome.Created).ShouldBe(1);
+        results.Select(r => r!.ReceiptId).Distinct().ShouldHaveSingleItem();
+        foreach (var r in responses)
+        {
+            r.Dispose();
+        }
+    }
+
+    /// <summary>AUDIT-1 §10.6: three receipts carrying the same invoice at the same time — exactly one keeps it.</summary>
+    [Fact]
+    public async Task Parallel_receipts_sharing_an_invoice_accept_only_one()
+    {
+        var first = await ValidPayloadAsync(1);
+        var payloads = Enumerable.Range(0, 3).Select(i =>
+        {
+            var id = "IT-" + Guid.NewGuid().ToString("N")[..12];
+            return first with { HisReceiptId = id, ReceiptNumber = "PN-" + id[3..] };
+        }).ToList();
+        using var anonymous = factory.CreateClient();
+        var responses = await Task.WhenAll(payloads.Select(p =>
+            SendAsync(anonymous, HttpMethod.Post, ReceiptsPath, JsonSerializer.SerializeToUtf8Bytes(p, JsonDefaults.Options))));
+        var bodies = await Task.WhenAll(responses.Select(r => r.Content.ReadAsStringAsync()));
+        responses.ShouldAllBe(r => r.StatusCode == HttpStatusCode.OK, string.Join(" | ", bodies));
+        var results = await Task.WhenAll(responses.Select(r => r.Content.ReadFromJsonAsync<HisIngestResultDto>(JsonDefaults.Options)));
+        results.Count(r => r!.ValidationStatus != ReceiptValidationStatus.Invalid).ShouldBe(1, string.Join(" | ", bodies));
+
+        using var storekeeper = await factory.LoginAsync("thukho");
+        foreach (var rejected in results.Where(r => r!.ValidationStatus == ReceiptValidationStatus.Invalid))
+        {
+            (await GetReceiptAsync(storekeeper, rejected!.ReceiptId)).Issues.ShouldContain(i => i.Code == "INVOICE_DUPLICATE");
+        }
+
+        foreach (var r in responses)
+        {
+            r.Dispose();
+        }
+    }
+
     private async Task<HisReceiptPayload> ValidPayloadAsync(decimal quantity)
     {
         using var anonymous = factory.CreateClient();

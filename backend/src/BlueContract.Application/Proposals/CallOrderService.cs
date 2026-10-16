@@ -3,6 +3,7 @@ using BlueContract.Application.Documents;
 using BlueContract.Application.Notifications;
 using BlueContract.Domain.Documents;
 using BlueContract.Domain.Identity;
+using BlueContract.Domain.Contracts;
 using BlueContract.Domain.Proposals;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
@@ -94,15 +95,22 @@ public sealed class CallOrderService(
     NotificationService notifications,
     IAuditLogger audit,
     ICurrentUser current,
-    IClock clock)
+    IClock clock,
+    DataScope dataScope)
 {
     public const string OwnerType = "CallOrder";
 
     private DateOnly Today => DateOnly.FromDateTime(clock.UtcNow.ToOffset(TimeSpan.FromHours(7)).DateTime);
 
-    public Task<PagedResult<CallOrderListItemDto>> ListAsync(PageQuery q, CallOrderFilter f, CancellationToken ct)
+    public async Task<PagedResult<CallOrderListItemDto>> ListAsync(PageQuery q, CallOrderFilter f, CancellationToken ct)
     {
         var query = db.CallOrders.AsNoTracking();
+        if (await dataScope.ContractIdsAsync(ct) is { } scoped)
+        {
+            // An order is shown when one of its contracts is in the user's scope.
+            query = query.Where(o => o.Lines.Any(l => scoped.Contains(l.ContractId)));
+        }
+
         if (!string.IsNullOrWhiteSpace(q.Search))
         {
             var p = PagingExtensions.LikePattern(q.Search);
@@ -130,7 +138,7 @@ public sealed class CallOrderService(
             query = query.Where(o => o.Status == CallOrderStatus.Sent && o.DeliveryDeadline < today);
         }
 
-        return query.OrderByDescending(o => o.CreatedAt)
+        return await query.OrderByDescending(o => o.CreatedAt)
             .Select(o => new CallOrderListItemDto(
                 o.Id, o.Number, o.SupplierId,
                 db.Suppliers.Where(s => s.Id == o.SupplierId).Select(s => s.Name).FirstOrDefault() ?? string.Empty,
@@ -145,7 +153,7 @@ public sealed class CallOrderService(
     public async Task<Result<CallOrderDto>> GetAsync(Guid id, CancellationToken ct)
     {
         var o = await db.CallOrders.AsNoTracking().Include(x => x.Lines).FirstOrDefaultAsync(x => x.Id == id, ct);
-        if (o is null)
+        if (o is null || (await dataScope.ContractIdsAsync(ct) is { } scoped && !await scoped.AnyAsync(c => o.Lines.Select(l => l.ContractId).Contains(c), ct)))
         {
             return Error.NotFound();
         }
@@ -164,6 +172,17 @@ public sealed class CallOrderService(
 
     /// <summary>Tạo lần gọi hàng: SL gọi ≤ SL duyệt còn lại; một đơn cho mỗi NCC.</summary>
     public async Task<Result<List<Guid>>> CreateAsync(CreateCallsRequest r, CancellationToken ct)
+    {
+        // Σ SL gọi ≤ SL duyệt (and ≤ SL hợp đồng) must hold when several calls are sent at once: serialize on the summary,
+        // the contract items involved and the document counter, then read the quantities again under the lock.
+        var lineIds = r.Lines.Select(l => l.SummaryLineId).Distinct().ToList();
+        var itemIds = await db.ProposalSummaries.AsNoTracking().Where(s => s.Id == r.SummaryId)
+            .SelectMany(s => s.Lines).Where(l => lineIds.Contains(l.Id)).Select(l => l.ContractItemId).ToListAsync(ct);
+        string[] keys = [$"proposal-summary:{r.SummaryId}", $"number:{DocumentNumbers.CallOrder}", .. itemIds.Select(i => $"contract-item:{i}")];
+        return await db.SerializedAsync(keys, () => CreateLockedAsync(r, ct), ct);
+    }
+
+    private async Task<Result<List<Guid>>> CreateLockedAsync(CreateCallsRequest r, CancellationToken ct)
     {
         var summary = await db.ProposalSummaries.Include(s => s.Lines).FirstOrDefaultAsync(s => s.Id == r.SummaryId, ct);
         if (summary is null)
@@ -185,6 +204,33 @@ public sealed class CallOrderService(
         foreach (var (lineId, quantity) in requested)
         {
             summary.RegisterCall(lineId, quantity);
+        }
+
+        // Only contracts in force today can be called (not liquidated, expired or not yet effective).
+        var contractIds = requested.Select(x => summary.Lines.First(l => l.Id == x.LineId).ContractId).Distinct().ToList();
+        var today = Today;
+        var notInForce = await db.Contracts.AsNoTracking().Where(c => contractIds.Contains(c.Id))
+            .Where(c => c.Status != ContractStatus.Effective || (c.EffectiveDate != null && c.EffectiveDate > today) || (c.ExpiryDate != null && c.ExpiryDate < today))
+            .Select(c => c.Number).ToListAsync(ct);
+        if (notInForce.Count > 0)
+        {
+            return Error.Validation("CALL_CONTRACT_NOT_IN_FORCE");
+        }
+
+        // Several summaries can cover the same contract item: the calls of all of them together stay within the contract.
+        var callItems = requested.Select(x => (summary.Lines.First(l => l.Id == x.LineId).ContractItemId, x.Quantity))
+            .GroupBy(x => x.ContractItemId).ToDictionary(g => g.Key, g => g.Sum(x => x.Quantity));
+        var itemIds = callItems.Keys.ToList();
+        var calledSoFar = await db.CallOrders.AsNoTracking()
+            .Where(o => o.Status != CallOrderStatus.Cancelled && o.Status != CallOrderStatus.Rejected)
+            .SelectMany(o => o.Lines).Where(l => itemIds.Contains(l.ContractItemId))
+            .GroupBy(l => l.ContractItemId).Select(g => new { g.Key, Qty = g.Sum(l => l.ConfirmedQuantity ?? l.Quantity) })
+            .ToDictionaryAsync(x => x.Key, x => x.Qty, ct);
+        var contractQuantities = await db.Contracts.AsNoTracking().SelectMany(c => c.Items).Where(i => itemIds.Contains(i.Id))
+            .Select(i => new { i.Id, i.Quantity }).ToDictionaryAsync(x => x.Id, x => x.Quantity, ct);
+        if (callItems.Any(x => calledSoFar.GetValueOrDefault(x.Key) + x.Value > contractQuantities.GetValueOrDefault(x.Key)))
+        {
+            return Error.Validation("CALL_QTY_EXCEEDS_CONTRACT");
         }
 
         var template = await db.DocumentTemplates.AsNoTracking().Where(t => t.Kind == TemplateKind.CallOrder && t.IsActive).OrderBy(t => t.Code).FirstOrDefaultAsync(ct);
@@ -235,6 +281,11 @@ public sealed class CallOrderService(
             return Result.Failure(Error.Forbidden());
         }
 
+        return await WithSummaryLockAsync(id, () => ConfirmLockedAsync(id, r, ct), ct);
+    }
+
+    private async Task<Result> ConfirmLockedAsync(Guid id, ConfirmCallRequest r, CancellationToken ct)
+    {
         var order = await db.CallOrders.Include(o => o.Lines).FirstOrDefaultAsync(o => o.Id == id, ct);
         if (order is null)
         {
@@ -261,7 +312,16 @@ public sealed class CallOrderService(
         return Result.Success();
     }
 
-    public async Task<Result> CancelAsync(Guid id, CancellationToken ct)
+    public Task<Result> CancelAsync(Guid id, CancellationToken ct) => WithSummaryLockAsync(id, () => CancelLockedAsync(id, ct), ct);
+
+    /// <summary>Released quantities go back to the summary line: same lock as <see cref="CreateAsync"/> so no update is lost.</summary>
+    private async Task<Result> WithSummaryLockAsync(Guid orderId, Func<Task<Result>> work, CancellationToken ct)
+    {
+        var summaryId = await db.CallOrders.AsNoTracking().Where(o => o.Id == orderId).Select(o => (Guid?)o.SummaryId).FirstOrDefaultAsync(ct);
+        return summaryId is null ? Result.Failure(Error.NotFound()) : await db.SerializedAsync([$"proposal-summary:{summaryId}"], work, ct);
+    }
+
+    private async Task<Result> CancelLockedAsync(Guid id, CancellationToken ct)
     {
         var order = await db.CallOrders.Include(o => o.Lines).FirstOrDefaultAsync(o => o.Id == id, ct);
         if (order is null)

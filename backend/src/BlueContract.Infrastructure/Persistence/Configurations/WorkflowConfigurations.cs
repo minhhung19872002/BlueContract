@@ -45,6 +45,9 @@ internal sealed class WorkflowInstanceConfiguration : IEntityTypeConfiguration<W
         b.Property(x => x.StartedByName).HasMaxLength(200);
         b.Property(x => x.ScopeDomain).HasMaxLength(40);
         b.HasIndex(x => x.DocumentId);
+
+        // At most one open (running or returned) signing workflow per document.
+        b.HasIndex(x => x.DocumentId, "ux_workflow_instances_document_open").IsUnique().HasDatabaseName("ux_workflow_instances_document_open").HasFilter("status IN ('Running', 'Returned')");
         b.HasIndex(x => new { x.Status, x.SupplierId });
         b.HasIndex(x => x.StartedBy);
         b.HasMany<WorkflowStepInstance>("_steps").WithOne().HasForeignKey(s => s.InstanceId).OnDelete(DeleteBehavior.Cascade);

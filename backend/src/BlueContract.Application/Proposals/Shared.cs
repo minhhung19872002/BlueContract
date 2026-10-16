@@ -11,7 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace BlueContract.Application.Proposals;
 
-/// <summary>Document numbers "DX-2026-0001" (per prefix and Vietnam calendar year); saved with the caller's unit of work.</summary>
+/// <summary>Document numbers "DX-2026-0001" (per prefix and Vietnam calendar year), allocated atomically in the database.</summary>
 public sealed class DocumentNumbers(IAppDbContext db, IClock clock)
 {
     public const string Proposal = "DX";
@@ -27,15 +27,7 @@ public sealed class DocumentNumbers(IAppDbContext db, IClock clock)
     public async Task<string> NextAsync(string prefix, CancellationToken ct)
     {
         var year = clock.UtcNow.ToOffset(TimeSpan.FromHours(7)).Year;
-        var sequence = db.NumberSequences.Local.FirstOrDefault(s => s.Prefix == prefix && s.Year == year)
-            ?? await db.NumberSequences.FirstOrDefaultAsync(s => s.Prefix == prefix && s.Year == year, ct);
-        if (sequence is null)
-        {
-            sequence = new NumberSequence(prefix, year);
-            db.NumberSequences.Add(sequence);
-        }
-
-        return sequence.Next();
+        return NumberSequence.Format(prefix, year, await db.NextNumberAsync(prefix, year, ct));
     }
 }
 
@@ -128,7 +120,7 @@ public sealed class ContractTracking(IAppDbContext db, PostCommitWork postCommit
 }
 
 /// <summary>Department / domain restrictions of the caller for proposals (spec §4.2 data scope).</summary>
-public sealed class ProposalScope(IAppDbContext db, ICurrentUser current)
+public sealed class ProposalScope(IAppDbContext db, ICurrentUser current, IClock clock)
 {
     private IReadOnlyList<Guid>? _departments;
 
@@ -172,8 +164,15 @@ public sealed class ProposalScope(IAppDbContext db, ICurrentUser current)
         _ => "Hành chính, dịch vụ",
     };
 
-    /// <summary>Callable contracts of a domain: effective, call-off contracts whose category belongs to the domain.</summary>
-    public IQueryable<Contract> CallableContracts(ProcurementDomain domain) =>
-        db.Contracts.Where(c => c.Status == ContractStatus.Effective && c.Kind == ContractKind.UnitPriceCallOff
+    /// <summary>
+    /// Callable contracts of a domain: call-off contracts in force today (effective status, between the effective and the
+    /// expiry date) whose category belongs to the domain.
+    /// </summary>
+    public IQueryable<Contract> CallableContracts(ProcurementDomain domain)
+    {
+        var today = DateOnly.FromDateTime(clock.UtcNow.ToOffset(TimeSpan.FromHours(7)).DateTime);
+        return db.Contracts.Where(c => c.Status == ContractStatus.Effective && c.Kind == ContractKind.UnitPriceCallOff
+            && (c.EffectiveDate == null || c.EffectiveDate <= today) && (c.ExpiryDate == null || c.ExpiryDate >= today)
             && db.ItemCategories.Any(cat => cat.Id == c.CategoryId && cat.Domain == domain));
+    }
 }

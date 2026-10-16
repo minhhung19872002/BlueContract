@@ -47,7 +47,7 @@ public sealed record SupplierDashboardDto(
     IReadOnlyList<MonthAmountDto> Payments);
 
 /// <summary>Tổng quan (spec §9.1-1, §9.2-1): việc chờ xử lý, cảnh báo hợp đồng / phiếu / gọi hàng, thanh toán theo tháng.</summary>
-public sealed class DashboardService(IAppDbContext db, WorkflowService workflows, SettingService settings, ICurrentUser current, IClock clock)
+public sealed class DashboardService(IAppDbContext db, WorkflowService workflows, SettingService settings, ICurrentUser current, IClock clock, DataScope dataScope)
 {
     private DateOnly Today => DateOnly.FromDateTime(clock.UtcNow.ToOffset(TimeSpan.FromHours(7)).DateTime);
 
@@ -59,13 +59,26 @@ public sealed class DashboardService(IAppDbContext db, WorkflowService workflows
         var lowPercent = await settings.GetDecimalAsync(SystemSettingKeys.ContractLowQuantityPercent, 10, ct);
         var horizon = today.AddDays(expiryDays);
 
-        var expiring = await db.Contracts.AsNoTracking()
+        // Every figure below is limited to the user's data scope (spec §4.2, AUDIT-1 §10.7).
+        var contracts = await dataScope.ContractsAsync(db.Contracts.AsNoTracking(), ct);
+        var scoped = await dataScope.ContractIdsAsync(ct);
+        var callOrders = db.CallOrders.AsNoTracking();
+        var valuations = db.ValuationRecords.AsNoTracking();
+        var liquidations = db.LiquidationRecords.AsNoTracking();
+        if (scoped is not null)
+        {
+            callOrders = callOrders.Where(o => o.Lines.Any(l => scoped.Contains(l.ContractId)));
+            valuations = valuations.Where(v => scoped.Contains(v.ContractId));
+            liquidations = liquidations.Where(l => scoped.Contains(l.ContractId));
+        }
+
+        var expiring = await contracts
             .Where(c => c.Status == ContractStatus.Effective && c.ExpiryDate != null && c.ExpiryDate <= horizon)
             .OrderBy(c => c.ExpiryDate).Take(20)
             .Select(c => new { c.Id, c.Number, c.ExpiryDate, Supplier = db.Suppliers.Where(s => s.Id == c.SupplierId).Select(s => s.Name).FirstOrDefault() })
             .ToListAsync(ct);
 
-        var low = await db.Contracts.AsNoTracking().Where(c => c.Status == ContractStatus.Effective)
+        var low = await contracts.Where(c => c.Status == ContractStatus.Effective)
             .SelectMany(c => c.Items.Select(i => new { Contract = c, Item = i }))
             .Where(x => x.Item.Quantity > 0 && (x.Item.Quantity - x.Item.ReceivedQuantity) * 100 <= x.Item.Quantity * lowPercent)
             .OrderBy(x => (x.Item.Quantity - x.Item.ReceivedQuantity) / x.Item.Quantity).Take(20)
@@ -75,8 +88,9 @@ public sealed class DashboardService(IAppDbContext db, WorkflowService workflows
                 Math.Round((x.Item.Quantity - x.Item.ReceivedQuantity) * 100 / x.Item.Quantity, 1)))
             .ToListAsync(ct);
 
-        var openReceipts = db.WarehouseReceipts.AsNoTracking().Where(r => r.Status != ReceiptStatus.Completed && r.Status != ReceiptStatus.Cancelled);
-        var (paid, unpaid, months) = await PaymentsAsync(db.ValuationRecords.AsNoTracking(), db.LiquidationRecords.AsNoTracking(), ct);
+        var openReceipts = (await dataScope.ReceiptsAsync(db.WarehouseReceipts.AsNoTracking(), ct))
+            .Where(r => r.Status != ReceiptStatus.Completed && r.Status != ReceiptStatus.Cancelled);
+        var (paid, unpaid, months) = await PaymentsAsync(valuations, liquidations, ct);
         return new InternalDashboardDto(
             pending.Sum(p => p.Count), pending.Sum(p => p.Overdue),
             [.. pending.OrderByDescending(p => p.Count).Select(p => new PendingTypeDto(p.Type, p.Count, p.Overdue))],
@@ -85,8 +99,8 @@ public sealed class DashboardService(IAppDbContext db, WorkflowService workflows
             lowPercent, low,
             await openReceipts.CountAsync(r => r.ValidationStatus == ReceiptValidationStatus.Warning, ct),
             await openReceipts.CountAsync(r => r.ValidationStatus == ReceiptValidationStatus.Invalid, ct),
-            await db.CallOrders.CountAsync(o => o.Status == CallOrderStatus.Sent && o.DeliveryDeadline < today, ct),
-            await db.CallOrders.CountAsync(o => o.Status == CallOrderStatus.Sent, ct),
+            await callOrders.CountAsync(o => o.Status == CallOrderStatus.Sent && o.DeliveryDeadline < today, ct),
+            await callOrders.CountAsync(o => o.Status == CallOrderStatus.Sent, ct),
             paid, unpaid, months);
     }
 
