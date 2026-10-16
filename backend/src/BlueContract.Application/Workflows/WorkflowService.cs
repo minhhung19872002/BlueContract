@@ -448,6 +448,11 @@ public sealed class WorkflowService(
         if (f.Tab == InboxTab.Pending)
         {
             var steps = await PendingStepsQueryAsync(ct);
+            if (f.ActionType is { } pendingKind)
+            {
+                steps = steps.Where(s => s.ActionType == pendingKind);
+            }
+
             rows = from s in steps
                    join w in instances on s.InstanceId equals w.Id
                    select new InboxRow { Instance = w, Step = s };
@@ -461,6 +466,14 @@ public sealed class WorkflowService(
                 InboxTab.Sent => instances.Where(w => w.StartedBy == me),
                 _ => instances.Where(w => w.StartedBy == me && w.Status == WorkflowStatus.Returned),
             };
+            if (f.ActionType is { } kind)
+            {
+                var kindSteps = db.WorkflowSteps.Where(s => s.ActionType == kind);
+                filtered = f.Tab == InboxTab.Processed
+                    ? filtered.Where(w => db.WorkflowEvents.Any(e => e.InstanceId == w.Id && e.ActorId == me && kindSteps.Any(s => s.Id == e.StepId)))
+                    : filtered.Where(w => kindSteps.Any(s => s.InstanceId == w.Id));
+            }
+
             rows = from w in filtered
                    join s in db.WorkflowSteps.Where(x => x.Status == StepStatus.Active) on w.Id equals s.InstanceId into active
                    from s in active.DefaultIfEmpty()

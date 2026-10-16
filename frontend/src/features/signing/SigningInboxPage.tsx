@@ -68,7 +68,7 @@ const TABS: { key: InboxTab; label: string; supplierLabel: string }[] = [
 ];
 
 /** PDF of the current version + workflow (steps, opinions, actions) side by side. */
-function DocumentReview({ documentId, onDone }: { documentId: string; onDone: () => void }) {
+export function DocumentReview({ documentId, onDone }: { documentId: string; onDone: () => void }) {
   const doc = useDocument(documentId);
   const wf = useDocumentWorkflow(documentId);
   const navigate = useNavigate();

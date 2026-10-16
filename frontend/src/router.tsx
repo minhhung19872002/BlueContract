@@ -24,6 +24,7 @@ import { TemplatesPage } from './features/templates/TemplatesPage';
 import { DocumentPage } from './features/documents/DocumentPage';
 import { SigningInboxPage } from './features/signing/SigningInboxPage';
 import { VerifySignaturePage } from './features/signing/VerifySignaturePage';
+import { ReviewPage } from './features/signing/ReviewPage';
 import { WorkflowTemplatesPage } from './features/admin/WorkflowTemplatesPage';
 import { ItemsPage } from './features/catalog/ItemsPage';
 import { BidDecisionsPage } from './features/bids/BidDecisionsPage';
@@ -93,6 +94,10 @@ export const router = createBrowserRouter([
               { path: '/quan-tri/mau-bieu', element: guard([P.TemplateManage], <TemplatesPage />) },
               { path: '/tai-lieu/:id', element: <DocumentPage /> },
               { path: '/trinh-ky', element: guard([P.SigningInbox], <SigningInboxPage />) },
+              {
+                path: '/ra-soat',
+                element: guard([P.ContractReview, P.ContractAccountantReview], <ReviewPage />),
+              },
               { path: '/quyet-dinh-thau', element: guard([P.BidView], <BidDecisionsPage />) },
               { path: '/quyet-dinh-thau/:id', element: guard([P.BidView], <BidDecisionDetailPage />) },
               { path: '/danh-muc-hang-hoa', element: guard([P.ItemView], <ItemsPage />) },

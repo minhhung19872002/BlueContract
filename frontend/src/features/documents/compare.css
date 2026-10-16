@@ -1,0 +1,112 @@
+/* So sánh phiên bản (spec §9.1-6). */
+.compare {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.compare__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.compare__select {
+  width: min(360px, 100%);
+}
+
+.compare__arrow {
+  color: var(--bp-caption);
+}
+
+.compare__spacer {
+  flex: 1;
+}
+
+.compare__summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--bp-text-2);
+}
+
+.compare__count {
+  font-weight: 600;
+}
+
+.compare__count--added {
+  color: var(--bp-success-fg);
+}
+
+.compare__count--removed {
+  color: var(--bp-danger-fg);
+}
+
+.compare__lines {
+  list-style: none;
+  margin: 0;
+  padding: 8px 0;
+  max-height: 64vh;
+  overflow: auto;
+  border: 1px solid var(--bp-border);
+  border-radius: 8px;
+  background: var(--bp-card);
+  font-family: 'Times New Roman', serif;
+  font-size: 14.5px;
+}
+
+.compare__line {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  padding: 3px 12px 3px 0;
+}
+
+.compare__line--added {
+  background: var(--bp-success-bg);
+  color: var(--bp-success-fg);
+}
+
+.compare__line--removed {
+  background: var(--bp-danger-bg);
+  color: var(--bp-danger-fg);
+  text-decoration: line-through;
+}
+
+.compare__mark {
+  text-align: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+}
+
+.compare__text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.compare__pdfs {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 992px) {
+  .compare__pdfs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.compare__pdfs section {
+  border: 1px solid var(--bp-border);
+  border-radius: 8px;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.compare__pdf-title {
+  padding: 8px 12px;
+  font-weight: 600;
+  border-bottom: 1px solid var(--bp-border);
+}

@@ -52,6 +52,37 @@ internal sealed class DocxRevisions : IDocxRevisions
         }
     });
 
+    public IReadOnlyList<string> Paragraphs(byte[] docx)
+    {
+        var body = Load(AcceptAll(docx)).Root?.Element(W + "body");
+        var lines = new List<string>();
+        if (body is null)
+        {
+            return lines;
+        }
+
+        foreach (var block in body.Descendants().Where(e => e.Name == W + "p" || e.Name == W + "tr"))
+        {
+            // A paragraph inside a table is read with its row.
+            if (block.Name == W + "p" && block.Ancestors(W + "tr").Any())
+            {
+                continue;
+            }
+
+            var text = block.Name == W + "tr"
+                ? string.Join(" | ", block.Elements(W + "tc").Select(c => Normalize(VisibleText(c))))
+                : Normalize(VisibleText(block));
+            if (text.Trim('|', ' ').Length > 0)
+            {
+                lines.Add(text);
+            }
+        }
+
+        return lines;
+    }
+
+    private static string Normalize(string text) => string.Join(' ', text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+
     private static string Key(int index) => "R" + (index + 1).ToString(CultureInfo.InvariantCulture);
 
     private static XDocument Load(byte[] docx)

@@ -114,6 +114,7 @@ public static class ErrorMessages
         ["DOCUMENT_PDF_REQUIRED"] = "Phiên bản chưa có bản PDF để ký.",
         ["DOCUMENT_DOCX_REQUIRED"] = "Phiên bản không có tệp Word để chỉnh sửa hoặc chuyển PDF.",
         ["DOCUMENT_FILE_NOT_FOUND"] = "Phiên bản không có tệp ở định dạng yêu cầu.",
+        ["DOCUMENT_COMPARE_NO_DOCX"] = "Chỉ so sánh được nội dung giữa hai phiên bản có tệp DOCX; với bản PDF hãy xem song song.",
         ["DOCUMENT_FILE_TYPE_INVALID"] = "Chỉ chấp nhận tệp Word (.docx) hoặc PDF.",
         ["EDITOR_CALLBACK_INVALID"] = "Yêu cầu lưu từ trình soạn thảo không hợp lệ.",
         ["PDF_CONVERSION_FAILED"] = "Không chuyển được tài liệu sang PDF. Vui lòng thử lại sau.",

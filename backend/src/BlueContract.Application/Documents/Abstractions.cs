@@ -32,6 +32,12 @@ public interface IDocxRevisions
 
     /// <summary>"Chốt bản": accepts every remaining tracked change.</summary>
     byte[] AcceptAll(byte[] docx);
+
+    /// <summary>
+    /// Text of the document as it reads once every tracked change is accepted: one entry per non-empty paragraph, a table
+    /// row as its cells joined by " | " (version comparison, spec §9.1-6).
+    /// </summary>
+    IReadOnlyList<string> Paragraphs(byte[] docx);
 }
 
 /// <summary>DOCX → PDF conversion (Gotenberg/LibreOffice).</summary>

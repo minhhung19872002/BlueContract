@@ -3250,6 +3250,52 @@
         }
       }
     },
+    "/api/documents/{id}/compare": {
+      "get": {
+        "tags": [
+          "Documents"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentCompareDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/documents/{id}/versions": {
       "post": {
         "tags": [
@@ -10184,6 +10230,13 @@
               "type": "string",
               "format": "date-time"
             }
+          },
+          {
+            "name": "ActionType",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/WorkflowActionType"
+            }
           }
         ],
         "responses": {
@@ -13462,6 +13515,29 @@
           }
         }
       },
+      "DiffKind": {
+        "enum": [
+          "Same",
+          "Added",
+          "Removed"
+        ]
+      },
+      "DiffLine": {
+        "required": [
+          "kind",
+          "text"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/DiffKind"
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "description": "One paragraph of a comparison: kept, only in the newer version, or only in the older one."
+      },
       "DisableTwoFactorRequest": {
         "required": [
           "password"
@@ -13472,6 +13548,41 @@
             "type": "string"
           }
         }
+      },
+      "DocumentCompareDto": {
+        "required": [
+          "fromVersion",
+          "toVersion",
+          "added",
+          "removed",
+          "lines"
+        ],
+        "type": "object",
+        "properties": {
+          "fromVersion": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "toVersion": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "added": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "removed": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DiffLine"
+            }
+          }
+        },
+        "description": "Result of comparing two versions of a document (spec §9.1-6 \"so sánh phiên bản\")."
       },
       "DocumentDto": {
         "required": [

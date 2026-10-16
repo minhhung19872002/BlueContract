@@ -2742,6 +2742,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/documents/{id}/compare": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    to?: string;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DocumentCompareDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/documents/{id}/versions": {
         parameters: {
             query?: never;
@@ -8392,6 +8432,7 @@ export interface paths {
                     ContractId?: string;
                     From?: string;
                     To?: string;
+                    ActionType?: components["schemas"]["WorkflowActionType"];
                 };
                 header?: never;
                 path?: never;
@@ -9585,8 +9626,27 @@ export interface components {
         DevHisStatusDto: {
             enabled: boolean;
         };
+        /** @enum {unknown} */
+        DiffKind: "Same" | "Added" | "Removed";
+        /** @description One paragraph of a comparison: kept, only in the newer version, or only in the older one. */
+        DiffLine: {
+            kind: components["schemas"]["DiffKind"];
+            text: string;
+        };
         DisableTwoFactorRequest: {
             password: string;
+        };
+        /** @description Result of comparing two versions of a document (spec §9.1-6 "so sánh phiên bản"). */
+        DocumentCompareDto: {
+            /** Format: int32 */
+            fromVersion: number;
+            /** Format: int32 */
+            toVersion: number;
+            /** Format: int32 */
+            added: number;
+            /** Format: int32 */
+            removed: number;
+            lines: components["schemas"]["DiffLine"][];
         };
         DocumentDto: {
             /** Format: uuid */

@@ -38,7 +38,7 @@ Menu **Trình ký** chứa toàn bộ tài liệu cần ký của bạn, chia ta
 6. **Hồ sơ lưu trữ**: tìm theo số hợp đồng / số quyết định / NCC → cây tài liệu → xem từng file → **Tải toàn bộ hồ sơ (ZIP)** kèm `muc_luc.pdf` (danh sách tệp + mã SHA-256) → bật **Đã đầy đủ** khi hồ sơ hoàn chỉnh.
 
 ### Tổ Rà soát (`rasoat`)
-Nhận hợp đồng, phụ lục, biên bản nghiệm thu / 08a / thanh lý trong **Trình ký** → kiểm tra (được sửa trực tiếp trên ONLYOFFICE với chế độ theo dõi thay đổi) → **Đồng ý** hoặc **Trả lại**.
+Menu **Rà soát** liệt kê hợp đồng, phụ lục, biên bản nghiệm thu / 08a / thanh lý đang chờ Tổ rà soát (tab *Chờ rà soát / Đã rà soát*; các tài liệu này cũng có trong **Trình ký**). Bấm một dòng để xem PDF và luồng ký → kiểm tra (được sửa trực tiếp trên ONLYOFFICE với chế độ theo dõi thay đổi) → **Đồng ý** hoặc **Trả lại**. Nút **So sánh phiên bản** (cũng có ở trang Tài liệu khi tài liệu có từ 2 phiên bản) cho xem đoạn văn thêm (xanh) / bỏ (đỏ) giữa hai phiên bản bất kỳ, hoặc hai bản PDF đặt song song.
 
 ### Khoa/Phòng (`khoanoi`)
 **Đề xuất → Lập phiếu đề xuất**: chọn mảng, kho, kỳ → lưới mặt hàng của các hợp đồng còn hiệu lực có cột **Xuất – Nhập – Tồn** lấy từ HIS và **SL còn lại của HĐ**; nhập SL đề xuất (vượt còn lại sẽ tô đỏ) → **Lưu phiếu** → **Ký và gửi**.

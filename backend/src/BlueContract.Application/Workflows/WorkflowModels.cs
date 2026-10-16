@@ -132,7 +132,19 @@ public enum InboxTab
     Returned = 3,
 }
 
-public sealed record InboxFilter(InboxTab Tab, DocumentType? DocumentType, Guid? SupplierId, Guid? ContractId, DateTimeOffset? From, DateTimeOffset? To);
+/// <summary>
+/// Inbox filters. <c>ActionType</c> keeps only steps of this kind — the "Rà soát" menu asks for
+/// <see cref="WorkflowActionType.Review"/>. Pending: the step waiting for me; Processed: a step of this kind I acted on;
+/// Sent / Returned: a document whose workflow has such a step.
+/// </summary>
+public sealed record InboxFilter(
+    InboxTab Tab,
+    DocumentType? DocumentType,
+    Guid? SupplierId,
+    Guid? ContractId,
+    DateTimeOffset? From,
+    DateTimeOffset? To,
+    WorkflowActionType? ActionType = null);
 
 public sealed record InboxItemDto(
     Guid InstanceId,

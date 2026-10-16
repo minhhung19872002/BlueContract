@@ -13,6 +13,8 @@ export type DocumentDto = S['DocumentDto'];
 export type DocumentVersionDto = S['DocumentVersionDto'];
 export type EditorMode = S['EditorMode'];
 export type EditorSessionDto = S['EditorSessionDto'];
+export type DocumentCompareDto = S['DocumentCompareDto'];
+export type DiffLine = S['DiffLine'];
 
 const TEMPLATES = '/api/templates';
 const DOCUMENTS = '/api/documents';
@@ -204,5 +206,19 @@ export function downloadDocumentFile(
 ) {
   return downloadFile(`${DOCUMENTS}/${documentId}/versions/${versionId}/file`, fileName, {
     params: { format },
+  });
+}
+
+/** Paragraph diff of two versions (DOCX, tracked changes accepted). */
+export function useDocumentCompare(documentId: string, from?: string, to?: string) {
+  return useQuery({
+    queryKey: [DOCUMENTS, documentId, 'compare', from, to],
+    queryFn: async () =>
+      (
+        await apiClient.get<DocumentCompareDto>(`${DOCUMENTS}/${documentId}/compare`, {
+          params: { from, to },
+        })
+      ).data,
+    enabled: !!from && !!to && from !== to,
   });
 }

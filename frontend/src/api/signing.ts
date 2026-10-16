@@ -126,6 +126,8 @@ export interface InboxQuery {
   supplierId?: string;
   from?: string;
   to?: string;
+  /** Only steps of this kind (the "Rà soát" menu uses Review). */
+  actionType?: WorkflowActionType;
 }
 
 export function useInbox(q: InboxQuery) {

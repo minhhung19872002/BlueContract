@@ -25,7 +25,9 @@ import {
   UploadOutlined,
 } from '@ant-design/icons';
 import { useEffect, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
+import { GitCompareArrows } from 'lucide-react';
+import { CompareVersionsDialog } from './CompareVersionsDialog';
 import {
   downloadDocumentFile,
   fetchDocumentFile,
@@ -158,6 +160,18 @@ export function DocumentPage() {
   const [viewing, setViewing] = useState<DocumentVersionDto | null>(null);
   const [starting, setStarting] = useState(false);
   const [verified, setVerified] = useState<{ version: number; result: VerifyResultDto } | null>(null);
+  const [params, setParams] = useSearchParams();
+  const compareOpen = params.get('compare') === '1';
+  const setCompare = (open: boolean) =>
+    setParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (open) next.set('compare', '1');
+        else next.delete('compare');
+        return next;
+      },
+      { replace: true },
+    );
   const workflow = useDocumentWorkflow(id);
   const wf = workflow.data;
   const { message } = App.useApp();
@@ -324,41 +338,50 @@ export function DocumentPage() {
     />
   );
 
-  const actions = d?.canEdit && (
+  const actions = d && (
     <>
-      {canStart && (
+      {d.versions.length > 1 && (
+        <Button icon={<GitCompareArrows size={16} aria-hidden />} onClick={() => setCompare(true)}>
+          So sánh phiên bản
+        </Button>
+      )}
+      {d.canEdit && canStart && (
         <Button type="primary" icon={<SendOutlined />} onClick={() => setStarting(true)}>
           Gửi ký
         </Button>
       )}
-      <Dropdown.Button
-        type={canStart ? 'default' : 'primary'}
-        icon={<EditOutlined />}
-        loading={startEdit.isPending}
-        disabled={!current?.hasDocx}
-        onClick={() => openEditor('Edit')}
-        menu={{
-          items: [
-            { key: 'Review', label: 'Mở chế độ rà soát (bắt buộc theo dõi thay đổi)' },
-            { key: 'View', label: 'Chỉ xem' },
-          ],
-          onClick: ({ key }) => openEditor(key as EditorMode),
-        }}
-      >
-        Sửa trực tuyến
-      </Dropdown.Button>
-      <Upload
-        accept=".docx,.pdf"
-        showUploadList={false}
-        beforeUpload={(file) => {
-          upload.mutateAsync({ file }).then(() => message.success('Đã tải lên phiên bản mới'), onError);
-          return false;
-        }}
-      >
-        <Button icon={<UploadOutlined />} loading={upload.isPending}>
-          Tải lên phiên bản
-        </Button>
-      </Upload>
+      {d.canEdit && (
+        <>
+          <Dropdown.Button
+            type={canStart ? 'default' : 'primary'}
+            icon={<EditOutlined />}
+            loading={startEdit.isPending}
+            disabled={!current?.hasDocx}
+            onClick={() => openEditor('Edit')}
+            menu={{
+              items: [
+                { key: 'Review', label: 'Mở chế độ rà soát (bắt buộc theo dõi thay đổi)' },
+                { key: 'View', label: 'Chỉ xem' },
+              ],
+              onClick: ({ key }) => openEditor(key as EditorMode),
+            }}
+          >
+            Sửa trực tuyến
+          </Dropdown.Button>
+          <Upload
+            accept=".docx,.pdf"
+            showUploadList={false}
+            beforeUpload={(file) => {
+              upload.mutateAsync({ file }).then(() => message.success('Đã tải lên phiên bản mới'), onError);
+              return false;
+            }}
+          >
+            <Button icon={<UploadOutlined />} loading={upload.isPending}>
+              Tải lên phiên bản
+            </Button>
+          </Upload>
+        </>
+      )}
     </>
   );
 
@@ -442,6 +465,15 @@ export function DocumentPage() {
           )
         }
       />
+      {compareOpen && (
+        <CompareVersionsDialog
+          documentId={d.id}
+          versions={d.versions}
+          open={compareOpen}
+          onClose={() => setCompare(false)}
+        />
+      )}
+
       <Modal
         title={`Soạn thảo — ${d?.title ?? ''}`}
         open={!!session}

@@ -288,6 +288,33 @@ public sealed class DocumentService(
         return new FileLinkDto(url, $"{Slug(document.Title)}_v{version.VersionNumber}.{extension}", clock.UtcNow.Add(LinkLifetime));
     }
 
+    /// <summary>Compares the DOCX of two versions paragraph by paragraph (tracked changes accepted), spec §9.1-6.</summary>
+    public async Task<Result<DocumentCompareDto>> CompareAsync(Guid id, Guid fromVersionId, Guid toVersionId, CancellationToken ct)
+    {
+        var document = await db.Documents.AsNoTracking().Include(d => d.Versions).FirstOrDefaultAsync(d => d.Id == id, ct);
+        var from = document?.Versions.FirstOrDefault(v => v.Id == fromVersionId);
+        var to = document?.Versions.FirstOrDefault(v => v.Id == toVersionId);
+        if (document is null || from is null || to is null || !await CanViewAsync(document, ct))
+        {
+            return Error.NotFound();
+        }
+
+        if (from.DocxFileKey is null || to.DocxFileKey is null)
+        {
+            return Error.Validation("DOCUMENT_COMPARE_NO_DOCX");
+        }
+
+        var older = revisions.Paragraphs(await ReadAllAsync(from.DocxFileKey, ct));
+        var newer = revisions.Paragraphs(await ReadAllAsync(to.DocxFileKey, ct));
+        var lines = TextDiff.Lines(older, newer);
+        return new DocumentCompareDto(
+            from.VersionNumber,
+            to.VersionNumber,
+            lines.Count(l => l.Kind == DiffKind.Added),
+            lines.Count(l => l.Kind == DiffKind.Removed),
+            lines);
+    }
+
     /// <summary>Streams a version's file through the API (used by the PDF viewer to avoid cross-origin issues).</summary>
     public async Task<Result<(byte[] Content, string ContentType, string FileName)>> ReadFileAsync(Guid id, Guid versionId, string format, CancellationToken ct)
     {

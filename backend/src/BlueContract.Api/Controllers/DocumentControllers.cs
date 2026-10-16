@@ -115,6 +115,10 @@ public sealed class DocumentsController(DocumentService service, IOptions<OnlyOf
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<DocumentDto>> Get(Guid id, CancellationToken ct) => FromResult(await service.GetAsync(id, ct));
 
+    [HttpGet("{id:guid}/compare")]
+    public async Task<ActionResult<DocumentCompareDto>> Compare(Guid id, [FromQuery] Guid from, [FromQuery] Guid to, CancellationToken ct) =>
+        FromResult(await service.CompareAsync(id, from, to, ct));
+
     [HttpPost("{id:guid}/versions")]
     [RequestSizeLimit(FileInspector.MaxUploadBytes + (1024 * 1024))]
     public async Task<ActionResult<Guid>> UploadVersion(Guid id, IFormFile? file, [FromForm] string? reason, CancellationToken ct)
