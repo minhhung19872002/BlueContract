@@ -44,7 +44,8 @@ test('bid decision to effective contract with the supplier revision loop', async
   await expect(procurement.getByText(/Thêm mới \d+, cập nhật/)).toBeVisible();
   await procurement.getByRole('button', { name: 'OK' }).click();
   await procurement.getByRole('button', { name: 'Ban hành' }).click();
-  await procurement.getByRole('button', { name: 'OK' }).click();
+  // Popconfirm buttons are Vietnamese ("Đồng ý" / "Hủy").
+  await procurement.locator('.ant-popconfirm').getByRole('button', { name: 'Đồng ý' }).click();
   await expect(procurement.getByText('Đã ban hành', { exact: true })).toBeVisible();
 
   // 2. Wizard hợp đồng: chọn 2 mặt hàng, nhập số HĐ, mẫu mặc định, tạo.
@@ -67,7 +68,7 @@ test('bid decision to effective contract with the supplier revision loop', async
   const contractId = contractUrl.split('/').pop()!;
 
   await procurement.getByRole('button', { name: 'Gửi rà soát' }).click();
-  await procurement.getByRole('button', { name: 'OK' }).click();
+  await procurement.locator('.ant-popconfirm').getByRole('button', { name: 'Đồng ý' }).click();
   await expect(procurement.getByText('Tổ rà soát kiểm tra').first()).toBeVisible();
 
   // 3. Tổ rà soát đồng ý → gửi NCC.
