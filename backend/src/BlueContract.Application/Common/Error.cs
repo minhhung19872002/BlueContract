@@ -1,7 +1,7 @@
 namespace BlueContract.Application.Common;
 
 /// <summary>Business error with a stable code; the Vietnamese message is resolved by <see cref="ErrorMessages"/>.</summary>
-public sealed record Error(string Code, ErrorKind Kind = ErrorKind.Validation)
+public sealed record Error(string Code, ErrorKind Kind = ErrorKind.Validation, string? Detail = null)
 {
     public static Error NotFound(string code = "NOT_FOUND") => new(code, ErrorKind.NotFound);
 

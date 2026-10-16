@@ -59,7 +59,7 @@ public sealed class WorkflowReminderJob(AppDbContext db, WorkflowAccess access, 
 
             var title = await db.Documents.IgnoreQueryFilters().Where(d => d.Id == wf.DocumentId).Select(d => d.Title).FirstAsync(ct);
             await notifications.NotifyAsync(await access.AssigneesAsync(wf, step, ct), NotificationTypes.WorkflowOverdue,
-                $"Quá hạn xử lý: {title}", $"Bước \"{step.Name}\" đã quá hạn từ {step.DueAt:dd/MM/yyyy HH:mm} (UTC).", $"/trinh-ky?document={wf.DocumentId}", email: true, ct);
+                $"Quá hạn xử lý: {title}", $"Bước \"{step.Name}\" đã quá hạn từ {VietnamTime.Format(step.DueAt!.Value)}.", $"/trinh-ky?document={wf.DocumentId}", email: true, ct);
             step.MarkReminderSent(now);
         }
 

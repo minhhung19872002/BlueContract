@@ -102,3 +102,15 @@ export const resources = {
   auditLogs: '/api/admin/audit-logs',
   supplierCompany: '/api/supplier/company',
 } as const;
+
+// ---- Mẫu email ----
+
+export type EmailTemplateDto = S['EmailTemplateDto'];
+export type EmailPreviewDto = S['EmailPreviewDto'];
+export const EMAIL_TEMPLATES = '/api/admin/email-templates';
+export const emailTemplateUrl = (eventType: string) => `${EMAIL_TEMPLATES}/${encodeURIComponent(eventType)}`;
+
+/** Renders unsaved subject/body with sample values. */
+export async function previewEmailTemplate(eventType: string, body: { subject: string; bodyHtml: string }) {
+  return (await apiClient.post<EmailPreviewDto>(`${emailTemplateUrl(eventType)}/preview`, body)).data;
+}

@@ -125,6 +125,7 @@ export const internalNav: NavGroup[] = [
           { key: '/quan-tri/luong-ky', label: 'Cấu hình luồng ký', permissions: [P.WorkflowManage] },
           { key: '/quan-tri/tich-hop-his', label: 'Tích hợp HIS', permissions: [P.IntegrationManage] },
           { key: '/quan-tri/tham-so', label: 'Tham số hệ thống', permissions: [P.SettingManage] },
+          { key: '/quan-tri/mau-email', label: 'Mẫu email', permissions: [P.SettingManage] },
           {
             key: '/quan-tri/toan-ven',
             label: 'Kiểm tra toàn vẹn',

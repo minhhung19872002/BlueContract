@@ -1695,6 +1695,149 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/email-templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EmailTemplateDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/email-templates/{eventType}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    eventType: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SaveEmailTemplateRequest"];
+                    "text/json": components["schemas"]["SaveEmailTemplateRequest"];
+                    "application/*+json": components["schemas"]["SaveEmailTemplateRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EmailTemplateDto"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        /** Restores the built-in template. */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    eventType: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/email-templates/{eventType}/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    eventType: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SaveEmailTemplateRequest"];
+                    "text/json": components["schemas"]["SaveEmailTemplateRequest"];
+                    "application/*+json": components["schemas"]["SaveEmailTemplateRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EmailPreviewDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/audit-logs": {
         parameters: {
             query?: never;
@@ -10030,6 +10173,25 @@ export interface components {
             editorScriptUrl: string;
             config: components["schemas"]["JsonObject"];
         };
+        EmailPlaceholder: {
+            key: string;
+            description: string;
+        };
+        EmailPreviewDto: {
+            subject: string;
+            html: string;
+        };
+        EmailTemplateDto: {
+            eventType: string;
+            name: string;
+            group: string;
+            subject: string;
+            bodyHtml: string;
+            isCustomized: boolean;
+            /** Format: date-time */
+            updatedAt: null | string;
+            placeholders: components["schemas"]["EmailPlaceholder"][];
+        };
         EnableTwoFactorRequest: {
             code: string;
         };
@@ -11372,6 +11534,10 @@ export interface components {
             hisDepartmentCode: null | string;
             /** @default true */
             isActive: boolean;
+        };
+        SaveEmailTemplateRequest: {
+            subject: string;
+            bodyHtml: string;
         };
         SaveFacilityRequest: {
             code: string;

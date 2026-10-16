@@ -20,6 +20,8 @@ public interface IAppDbContext
 {
     DbSet<SystemSetting> SystemSettings { get; }
 
+    DbSet<EmailTemplate> EmailTemplates { get; }
+
     DbSet<Organization> Organizations { get; }
 
     DbSet<Facility> Facilities { get; }

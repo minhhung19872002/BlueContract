@@ -1,7 +1,7 @@
 using System.Linq.Expressions;
-using System.Net;
 using BlueContract.Application.Auth;
 using BlueContract.Application.Common;
+using BlueContract.Application.Notifications;
 using BlueContract.Domain.Identity;
 using BlueContract.Domain.Organizations;
 using FluentValidation;
@@ -64,7 +64,8 @@ public sealed class SupplierService(
     IAppDbContext db,
     IPasswordService passwords,
     IEmailSender email,
-    IAppLinkBuilder links)
+    IAppLinkBuilder links,
+    EmailTemplateRenderer templates)
 {
     private static readonly Dictionary<string, Expression<Func<Supplier, object?>>> Sorts = new()
     {
@@ -192,19 +193,14 @@ public sealed class SupplierService(
             return;
         }
 
-        var org = await db.Organizations.AsNoTracking().Select(o => o.Name).FirstOrDefaultAsync(ct) ?? "Bệnh viện";
-        var loginUrl = links.Build("/dang-nhap");
-        var html = $"""
-            <p>Kính gửi {WebUtility.HtmlEncode(user.FullName)} ({WebUtility.HtmlEncode(supplier.Name)}),</p>
-            <p>{WebUtility.HtmlEncode(org)} đã cấp tài khoản truy cập <b>Cổng Quản lý &amp; Thanh toán Mua sắm Hàng hóa Trực tuyến</b> cho Quý công ty.</p>
-            <ul>
-              <li>Tên đăng nhập: <b>{WebUtility.HtmlEncode(user.UserName)}</b></li>
-              <li>Mật khẩu tạm thời: <b>{WebUtility.HtmlEncode(password)}</b></li>
-            </ul>
-            <p>Vui lòng đăng nhập tại <a href="{loginUrl}">{loginUrl}</a> và đổi mật khẩu ngay trong lần đăng nhập đầu tiên.</p>
-            <p>Trân trọng.</p>
-            """;
-        await email.SendAsync(new EmailMessage([user.Email], "Thông tin tài khoản Cổng mua sắm trực tuyến", html), ct);
+        await email.SendAsync(await templates.RenderAsync(EmailTemplateCatalog.SupplierAccount, [user.Email], new Dictionary<string, string?>
+        {
+            ["RecipientName"] = user.FullName,
+            ["SupplierName"] = supplier.Name,
+            ["UserName"] = user.UserName,
+            ["Password"] = password,
+            ["LoginUrl"] = links.Build("/dang-nhap").ToString(),
+        }, ct), ct);
     }
 
     private static void Apply(Supplier s, SaveSupplierRequest r) =>

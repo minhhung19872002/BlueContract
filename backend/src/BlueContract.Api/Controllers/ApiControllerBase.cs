@@ -27,7 +27,7 @@ public abstract class ApiControllerBase : ControllerBase
         var problem = new ProblemDetails
         {
             Status = status,
-            Title = ErrorMessages.Get(error.Code),
+            Title = error.Detail is null ? ErrorMessages.Get(error.Code) : $"{ErrorMessages.Get(error.Code)} {error.Detail}",
             Type = $"https://blueprocure.local/errors/{error.Code}",
         };
         problem.Extensions["code"] = error.Code;

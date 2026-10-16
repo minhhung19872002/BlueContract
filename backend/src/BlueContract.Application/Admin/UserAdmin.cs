@@ -1,7 +1,7 @@
 using System.Linq.Expressions;
-using System.Net;
 using BlueContract.Application.Auth;
 using BlueContract.Application.Common;
+using BlueContract.Application.Notifications;
 using BlueContract.Domain.Common;
 using BlueContract.Domain.Identity;
 using FluentValidation;
@@ -114,7 +114,8 @@ public sealed class UserService(
     IEmailSender email,
     IAppLinkBuilder links,
     IAuditLogger audit,
-    IClock clock)
+    IClock clock,
+    EmailTemplateRenderer templates)
 {
     private static readonly Dictionary<string, Expression<Func<User, object?>>> Sorts = new()
     {
@@ -304,18 +305,14 @@ public sealed class UserService(
             return false;
         }
 
-        var loginUrl = links.Build("/dang-nhap");
-        var intro = isNew ? "Tài khoản của bạn trên Cổng mua sắm trực tuyến đã được tạo." : "Mật khẩu tài khoản của bạn đã được đặt lại.";
-        var html = $"""
-            <p>Xin chào {WebUtility.HtmlEncode(user.FullName)},</p>
-            <p>{intro}</p>
-            <ul>
-              <li>Tên đăng nhập: <b>{WebUtility.HtmlEncode(user.UserName)}</b></li>
-              <li>Mật khẩu tạm thời: <b>{WebUtility.HtmlEncode(password)}</b></li>
-            </ul>
-            <p>Vui lòng đăng nhập tại <a href="{loginUrl}">{loginUrl}</a> và đổi mật khẩu ngay.</p>
-            """;
-        await email.SendAsync(new EmailMessage([user.Email], isNew ? "Tài khoản Cổng mua sắm trực tuyến" : "Đặt lại mật khẩu", html), ct);
+        await email.SendAsync(await templates.RenderAsync(isNew ? EmailTemplateCatalog.AccountCreated : EmailTemplateCatalog.PasswordReset, [user.Email],
+            new Dictionary<string, string?>
+            {
+                ["RecipientName"] = user.FullName,
+                ["UserName"] = user.UserName,
+                ["Password"] = password,
+                ["LoginUrl"] = links.Build("/dang-nhap").ToString(),
+            }, ct), ct);
         return true;
     }
 

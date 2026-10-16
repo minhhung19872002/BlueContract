@@ -82,6 +82,8 @@ public sealed class AppDbContext : DbContext, IAppDbContext, IDataProtectionKeyC
 
     public DbSet<SystemSetting> SystemSettings => Set<SystemSetting>();
 
+    public DbSet<EmailTemplate> EmailTemplates => Set<EmailTemplate>();
+
     public DbSet<Organization> Organizations => Set<Organization>();
 
     public DbSet<Facility> Facilities => Set<Facility>();

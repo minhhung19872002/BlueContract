@@ -48,6 +48,8 @@ public static class DependencyInjection
         services.AddScoped<SigningService>();
         services.AddScoped<SignatureImageService>();
         services.AddScoped<NotificationService>();
+        services.AddScoped<EmailTemplateRenderer>();
+        services.AddScoped<EmailTemplateService>();
         services.AddScoped<NotificationOutbox>();
         services.AddScoped<CatalogService>();
         services.AddScoped<ItemImportValidator>();

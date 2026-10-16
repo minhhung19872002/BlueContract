@@ -1,6 +1,7 @@
 using BlueContract.Api.Auth;
 using BlueContract.Application.Admin;
 using BlueContract.Application.Common;
+using BlueContract.Application.Notifications;
 using BlueContract.Application.Signing;
 using BlueContract.Domain.Identity;
 using BlueContract.Domain.Organizations;
@@ -320,6 +321,29 @@ public sealed class SettingsController(SettingService service) : ApiControllerBa
     [HasPermission(P.SettingManage)]
     public async Task<ActionResult<SystemSettingDto>> Update(string key, UpdateSettingRequest request, CancellationToken ct) =>
         FromResult(await service.UpdateAsync(key, request, ct));
+}
+
+[Route("api/admin/email-templates")]
+public sealed class EmailTemplatesController(EmailTemplateService service) : ApiControllerBase
+{
+    [HttpGet]
+    [HasPermission(P.SettingManage)]
+    public Task<List<EmailTemplateDto>> List(CancellationToken ct) => service.ListAsync(ct);
+
+    [HttpPut("{eventType}")]
+    [HasPermission(P.SettingManage)]
+    public async Task<ActionResult<EmailTemplateDto>> Save(string eventType, SaveEmailTemplateRequest request, CancellationToken ct) =>
+        FromResult(await service.SaveAsync(eventType, request, ct));
+
+    /// <summary>Restores the built-in template.</summary>
+    [HttpDelete("{eventType}")]
+    [HasPermission(P.SettingManage)]
+    public async Task<IActionResult> Reset(string eventType, CancellationToken ct) => FromResult(await service.ResetAsync(eventType, ct));
+
+    [HttpPost("{eventType}/preview")]
+    [HasPermission(P.SettingManage)]
+    public async Task<ActionResult<EmailPreviewDto>> Preview(string eventType, SaveEmailTemplateRequest request, CancellationToken ct) =>
+        FromResult(await service.PreviewAsync(eventType, request, ct));
 }
 
 [Route("api/admin/audit-logs")]

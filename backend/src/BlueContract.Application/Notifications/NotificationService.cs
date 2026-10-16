@@ -1,4 +1,3 @@
-using System.Net;
 using BlueContract.Application.Common;
 using BlueContract.Domain.Workflows;
 using Microsoft.EntityFrameworkCore;
@@ -33,6 +32,9 @@ public sealed class NotificationOutbox(IRealtimeNotifier realtime, IBackgroundJo
     public void Queue(IReadOnlyCollection<Guid> users, RealtimeMessage message) => _pushes.Add((users, message));
 
     public void Queue(EmailMessage email) => _emails.Add(email);
+
+    /// <summary>Emails waiting for the commit (read by tests and diagnostics).</summary>
+    public IReadOnlyList<EmailMessage> PendingEmails => _emails;
 
     public async Task FlushAsync(CancellationToken ct)
     {
@@ -89,7 +91,8 @@ public sealed class NotificationService(
     NotificationOutbox outbox,
     IAppLinkBuilder links,
     ICurrentUser currentUser,
-    IClock clock)
+    IClock clock,
+    EmailTemplateRenderer templates)
 {
     /// <summary>Adds notifications to the unit of work; push + email go out once the caller's SaveChanges commits.</summary>
     public async Task NotifyAsync(IEnumerable<Guid> userIds, string type, string title, string? body, string? link, bool email, CancellationToken ct)
@@ -117,17 +120,16 @@ public sealed class NotificationService(
             .Where(u => targets.Contains(u.Id) && u.Email != null && u.Status == Domain.Identity.UserStatus.Active)
             .Select(u => new { u.Email, u.FullName })
             .ToListAsync(ct);
+        var url = link is null ? null : links.Build(link).ToString();
         foreach (var r in recipients)
         {
-            var url = link is null ? null : links.Build(link);
-            var html = $"""
-                <p>Xin chào {WebUtility.HtmlEncode(r.FullName)},</p>
-                <p><b>{WebUtility.HtmlEncode(title)}</b></p>
-                {(body is null ? string.Empty : $"<p>{WebUtility.HtmlEncode(body)}</p>")}
-                {(url is null ? string.Empty : $"<p><a href=\"{url}\">Mở trên Cổng mua sắm trực tuyến</a></p>")}
-                <p style="color:#888">Email tự động, vui lòng không trả lời.</p>
-                """;
-            outbox.Queue(new EmailMessage([r.Email!], title, html));
+            outbox.Queue(await templates.RenderAsync(type, [r.Email!], new Dictionary<string, string?>
+            {
+                ["RecipientName"] = r.FullName,
+                ["Title"] = title,
+                ["Body"] = body,
+                ["Link"] = url,
+            }, ct));
         }
     }
 
