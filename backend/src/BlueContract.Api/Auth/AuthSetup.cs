@@ -15,10 +15,12 @@ namespace BlueContract.Api.Auth;
 internal static class AuthSetup
 {
     public const string LoginRateLimit = "login";
+    public const string HisRateLimit = "his";
 
     public static IServiceCollection AddAppAuth(this IServiceCollection services, IConfiguration configuration)
     {
         var auth = configuration.GetSection(AuthOptions.SectionName).Get<AuthOptions>() ?? new AuthOptions();
+        var his = configuration.GetSection(Integration.HisInboundOptions.SectionName).Get<Integration.HisInboundOptions>() ?? new Integration.HisInboundOptions();
 
         services.AddHttpContextAccessor();
         services.AddMemoryCache();
@@ -88,7 +90,16 @@ internal static class AuthSetup
             options.AddPolicy(LoginRateLimit, http => RateLimitPartition.GetFixedWindowLimiter(
                 http.Connection.RemoteIpAddress?.ToString() ?? "unknown",
                 _ => new FixedWindowRateLimiterOptions { PermitLimit = auth.LoginRateLimitPerMinute, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
+
+            // HIS inbound API (spec §7.2): per API key (or IP when the key is missing).
+            options.AddPolicy(HisRateLimit, http => RateLimitPartition.GetFixedWindowLimiter(
+                http.Request.Headers["X-Api-Key"].ToString() is { Length: > 0 } key ? "key:" + key : "ip:" + http.Connection.RemoteIpAddress,
+                _ => new FixedWindowRateLimiterOptions { PermitLimit = Math.Max(1, his.RateLimitPerMinute), Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
         });
+
+        // HIS inbound authentication (API key + HMAC-SHA256) and request/response logging.
+        services.Configure<Integration.HisInboundOptions>(configuration.GetSection(Integration.HisInboundOptions.SectionName));
+        services.AddScoped<Integration.HisInboundFilter>();
 
         return services;
     }

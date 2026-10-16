@@ -78,7 +78,7 @@ public class HisClientTests
     [Fact]
     public async Task Mock_client_is_deterministic_and_balances_stock()
     {
-        var mock = new MockHisClient(Options.Create(new HisOptions()));
+        var mock = new MockHisClient(Options.Create(new HisOptions()), new BlueContract.Application.Integration.MockHisReceiptQueue());
         var first = await mock.GetItemsByBidDecisionAsync("125/QĐ-BV", "0101234567", null, CancellationToken.None);
         var second = await mock.GetItemsByBidDecisionAsync("125/QĐ-BV", "0101234567", null, CancellationToken.None);
         second.ShouldBe(first);

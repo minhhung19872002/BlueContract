@@ -91,12 +91,22 @@ pm run lint/test/build pass (23 test) · Trình duyệt (Docker): thủ kho ký 
 
 **Kiểm chứng:** `dotnet test` 264/264 (Domain 123, Application 25, Integration 116 — gồm luồng đề xuất → NCC xác nhận qua API với mọi rule số lượng, cô lập NCC, cột theo dõi HĐ, dữ liệu demo) · `npm run lint/test/build` pass · **E2E #1 + #2 Playwright pass (50 s)**.
 
-## Phase 6 — Nhập kho
-- [ ] API inbound HIS (HMAC, chống replay, whitelist IP, rate limit, idempotent) + IntegrationLog + gửi lại
-- [ ] Pull job Hangfire; endpoint dev simulate-receipt
-- [ ] Validation engine (mỗi rule một class) — Invalid chặn ký / Warning bắt lý do
-- [ ] Parse XML hóa đơn điện tử
-- [ ] Luồng 5 chữ ký; phiếu hoàn trả; phiếu ảo (VirtualPortal)
+## Phase 6 — Nhập kho ✅ (16/10/2026)
+- [x] API inbound HIS `POST /api/integration/his/warehouse-receipts` + `GET contracts / proposal-summaries / items`: API key + chữ ký HMAC-SHA256 (method, path, timestamp, hash body), timestamp ±5 phút, chống replay cho request ghi, whitelist IP (CIDR), rate limit theo key; idempotent theo `hisReceiptId` (trùng → Duplicate, sửa khi chưa ký → Updated, đã ký → 409)
+- [x] `IntegrationLog` ghi mọi lời gọi (kể cả bị từ chối) với request/response, số lần xử lý; màn hình **Quản trị → Tích hợp HIS**: cấu hình, nhật ký, chi tiết, **Gửi lại**, **Kéo phiếu từ HIS ngay**
+- [x] Pull job Hangfire `his-receipt-pull` (cron cấu hình); `IHisClient.GetWarehouseReceipts` cho Mock + REST; endpoint dev `POST /api/dev/his/simulate-receipt` (push/pull, kịch bản Hợp lệ / Cảnh báo / Không hợp lệ) + nút "Giả lập HIS gửi phiếu"
+- [x] Map NCC theo MST, hợp đồng theo Số QĐ + MST, mặt hàng theo HIS key/mã hàng, tự gắn đơn gọi hàng còn mở; kho theo mã kho HIS
+- [x] Validation engine 10 rule (mỗi rule một class): không tìm thấy HĐ/NCC, HĐ hết hạn/chưa hiệu lực/đã thanh lý, mặt hàng ngoài HĐ, đơn giá khác HĐ, vượt SL còn lại HĐ, hoàn trả vượt đã nhập, vượt SL đã gọi, thiếu hóa đơn, tổng tiền hóa đơn lệch (sai số làm tròn cấu hình), hạn dùng hết/gần hết (ngưỡng cấu hình), trùng số hóa đơn
+- [x] `IWorkflowGuard` trong workflow engine: **Không hợp lệ chặn ký**, **Cảnh báo bắt nhập lý do** (lưu vào ý kiến bước), **thiếu hóa đơn chặn từ bước NCC**; UI hiển thị lý do chặn và ô lý do ngay trong khung luồng ký
+- [x] Hóa đơn: NCC/bệnh viện tải **XML hóa đơn điện tử (tự đọc ký hiệu, số, ngày, tiền, MST — chuẩn NĐ123/TT78, chống XXE)**, PDF bản thể hiện, hoặc nhập tay; kiểm tra lại tự động
+- [x] Luồng **5 chữ ký** (Thủ kho → Người giao hàng NCC → Kế toán kho → Trưởng khoa → Kế toán trưởng) do tài khoản dịch vụ HIS khởi tạo; phiếu bị trả lại chờ HIS gửi bản sửa hoặc "Gửi ký lại"; PDF phiếu theo mẫu `PHIEU_NHAP_KHO`
+- [x] Phiếu hoàn trả (trừ lũy kế), phiếu lập trên cổng, **phiếu ảo** xác nhận khối lượng (hoàn thành không cần ký)
+- [x] "Đã nhập kho" của hợp đồng và "đã giao" của đơn gọi hàng tính lại từ phiếu (đơn gọi tự chuyển Đã giao)
+- [x] Màn hình Phiếu nhập kho (lọc trạng thái ký, kiểm tra, loại, nguồn, NCC, kho, ngày, chưa có hóa đơn; xuất Excel), chi tiết (cảnh báo theo dòng, hóa đơn, PDF, luồng ký), lập/sửa phiếu; tab **Nhập kho** trong chi tiết hợp đồng; Cổng NCC: menu Phiếu nhập kho
+- [x] Dữ liệu demo: 1 phiếu từ HIS ký đủ 5 chữ ký, 1 phiếu có cảnh báo chờ thủ kho, 1 phiếu không hợp lệ
+- [x] `docs/HIS_INTEGRATION.md` (xác thực, ví dụ ký bằng PowerShell/bash/C#, schema, mã lỗi, outbound, pull, môi trường thử)
+
+**Kiểm chứng:** `dotnet test` 301/301 (Domain 133, Application 46 — 10 rule validation, parser XML, HMAC; Integration 122 — HMAC/timestamp/replay/idempotent, 5 chữ ký nối tiếp cập nhật HĐ, Invalid chặn ký, cảnh báo cần lý do, NCC tải XML hóa đơn, cô lập NCC, nhật ký + gửi lại, giả lập push/pull) · `npm run lint/build` pass · trình duyệt: thủ kho ký phiếu cảnh báo có lý do, NCC bị chặn khi chưa có hóa đơn → tải XML tự điền → ký được; ví dụ ký request trong tài liệu gọi thành công API docker · E2E #1 + #2 vẫn pass.
 
 ## Phase 7 — Thanh toán
 - [ ] Job nghiệm thu hằng tháng; BB nghiệm thu

@@ -6574,6 +6574,1169 @@
         }
       }
     },
+    "/api/warehouse-receipts": {
+      "get": {
+        "tags": [
+          "WarehouseReceipts"
+        ],
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SortBy",
+            "in": "query",
+            "description": "Property name to sort by (whitelisted per endpoint).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SortDesc",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "ForExport",
+            "in": "query",
+            "description": "Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows).",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "SafePage",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "SafePageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/ReceiptStatus"
+            }
+          },
+          {
+            "name": "Validation",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/ReceiptValidationStatus"
+            }
+          },
+          {
+            "name": "Type",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/ReceiptType"
+            }
+          },
+          {
+            "name": "Source",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/ReceiptSource"
+            }
+          },
+          {
+            "name": "SupplierId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "WarehouseId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "ContractId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "From",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "To",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "HasInvoice",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "Accepted",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResultOfReceiptListItemDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "WarehouseReceipts"
+        ],
+        "summary": "Lập phiếu trên cổng / phiếu ảo (xác nhận khối lượng, không qua kho).",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveReceiptRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveReceiptRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveReceiptRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/warehouse-receipts/export": {
+      "get": {
+        "tags": [
+          "WarehouseReceipts"
+        ],
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SortBy",
+            "in": "query",
+            "description": "Property name to sort by (whitelisted per endpoint).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SortDesc",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "ForExport",
+            "in": "query",
+            "description": "Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows).",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "SafePage",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "SafePageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/ReceiptStatus"
+            }
+          },
+          {
+            "name": "Validation",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/ReceiptValidationStatus"
+            }
+          },
+          {
+            "name": "Type",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/ReceiptType"
+            }
+          },
+          {
+            "name": "Source",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/ReceiptSource"
+            }
+          },
+          {
+            "name": "SupplierId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "WarehouseId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "ContractId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "From",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "To",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "HasInvoice",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "Accepted",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    },
+    "/api/warehouse-receipts/{id}": {
+      "get": {
+        "tags": [
+          "WarehouseReceipts"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceiptDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "WarehouseReceipts"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveReceiptRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveReceiptRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveReceiptRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    },
+    "/api/warehouse-receipts/{id}/submit": {
+      "post": {
+        "tags": [
+          "WarehouseReceipts"
+        ],
+        "summary": "Gửi ký (phiếu cổng) / Gửi ký lại (sau khi bị trả lại) / Xác nhận phiếu ảo.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    },
+    "/api/warehouse-receipts/{id}/revalidate": {
+      "post": {
+        "tags": [
+          "WarehouseReceipts"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceiptDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/warehouse-receipts/{id}/cancel": {
+      "post": {
+        "tags": [
+          "WarehouseReceipts"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/components/schemas/CancelReceiptRequest"
+                  }
+                ]
+              }
+            },
+            "text/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/components/schemas/CancelReceiptRequest"
+                  }
+                ]
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/components/schemas/CancelReceiptRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    },
+    "/api/warehouse-receipts/{id}/invoice": {
+      "put": {
+        "tags": [
+          "WarehouseReceipts"
+        ],
+        "summary": "Bổ sung thông tin hóa đơn (NCC ở bước người giao hàng hoặc bệnh viện).",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvoiceRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvoiceRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvoiceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceiptDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/warehouse-receipts/{id}/invoice-file": {
+      "post": {
+        "tags": [
+          "WarehouseReceipts"
+        ],
+        "summary": "Tải XML hóa đơn điện tử (tự đọc ký hiệu, số, ngày, tổng tiền) hoặc PDF bản thể hiện.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "$ref": "#/components/schemas/IFormFile"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceiptDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/warehouse-receipts/invoice/parse": {
+      "post": {
+        "tags": [
+          "WarehouseReceipts"
+        ],
+        "summary": "Đọc thử XML hóa đơn (không lưu) để điền sẵn form.",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "$ref": "#/components/schemas/IFormFile"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParsedInvoiceDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/warehouse-receipts/{id}/invoice-file/{format}": {
+      "get": {
+        "tags": [
+          "WarehouseReceipts"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "format",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileLinkDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/integration/his/warehouse-receipts": {
+      "post": {
+        "tags": [
+          "HisIntegration"
+        ],
+        "summary": "Đẩy phiếu nhập kho / hoàn trả. Idempotent theo hisReceiptId.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HisReceiptPayload"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HisReceiptPayload"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/HisReceiptPayload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HisIngestResultDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/integration/his/contracts": {
+      "get": {
+        "tags": [
+          "HisIntegration"
+        ],
+        "summary": "Hợp đồng hiệu lực + số lượng còn lại theo Số QĐ / MST.",
+        "parameters": [
+          {
+            "name": "bidDecisionNumber",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "supplierTaxCode",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/HisContractDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/integration/his/proposal-summaries": {
+      "get": {
+        "tags": [
+          "HisIntegration"
+        ],
+        "summary": "Tổng hợp đề xuất đã duyệt (mặc định status=Approved).",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/ProposalSummaryStatus"
+            }
+          },
+          {
+            "name": "approvedSince",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/HisSummaryDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/integration/his/items": {
+      "get": {
+        "tags": [
+          "HisIntegration"
+        ],
+        "summary": "Danh mục hàng hóa (thay đổi từ updatedSince).",
+        "parameters": [
+          {
+            "name": "updatedSince",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/HisItemDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/integration/config": {
+      "get": {
+        "tags": [
+          "IntegrationAdmin"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HisIntegrationConfigDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/integration/logs": {
+      "get": {
+        "tags": [
+          "IntegrationAdmin"
+        ],
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SortBy",
+            "in": "query",
+            "description": "Property name to sort by (whitelisted per endpoint).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SortDesc",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "ForExport",
+            "in": "query",
+            "description": "Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows).",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "SafePage",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "SafePageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Direction",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/IntegrationDirection"
+            }
+          },
+          {
+            "name": "Status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/IntegrationLogStatus"
+            }
+          },
+          {
+            "name": "Operation",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "From",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "To",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResultOfIntegrationLogListItemDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/integration/logs/{id}": {
+      "get": {
+        "tags": [
+          "IntegrationAdmin"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationLogDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/integration/logs/{id}/retry": {
+      "post": {
+        "tags": [
+          "IntegrationAdmin"
+        ],
+        "summary": "Gửi lại: xử lý lại nội dung phiếu đã lưu của một lần nhận lỗi.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HisIngestResultDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/integration/his/pull": {
+      "post": {
+        "tags": [
+          "IntegrationAdmin"
+        ],
+        "summary": "Kéo phiếu từ HIS ngay (không chờ lịch).",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PullResultDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dev/his/status": {
+      "get": {
+        "tags": [
+          "DevHis"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DevHisStatusDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dev/his/simulate-receipt": {
+      "post": {
+        "tags": [
+          "DevHis"
+        ],
+        "summary": "Giả lập HIS đẩy (push) hoặc lập phiếu chờ kéo (pull) cho một hợp đồng hiệu lực.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SimulateReceiptRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SimulateReceiptRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SimulateReceiptRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimulateReceiptResultDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/system/info": {
       "get": {
         "tags": [
@@ -8617,6 +9780,20 @@
           }
         }
       },
+      "CancelReceiptRequest": {
+        "required": [
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "ChangePasswordRequest": {
         "required": [
           "currentPassword",
@@ -9814,6 +10991,17 @@
           "Functional"
         ]
       },
+      "DevHisStatusDto": {
+        "required": [
+          "enabled"
+        ],
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          }
+        }
+      },
       "DisableTwoFactorRequest": {
         "required": [
           "password"
@@ -10144,6 +11332,657 @@
           "expiresAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "HisContractDto": {
+        "required": [
+          "contractNumber",
+          "name",
+          "bidDecisionNumber",
+          "supplierTaxCode",
+          "supplierName",
+          "status",
+          "effectiveDate",
+          "expiryDate",
+          "totalAmount",
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "contractNumber": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "bidDecisionNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "supplierTaxCode": {
+            "type": "string"
+          },
+          "supplierName": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ContractStatus"
+          },
+          "effectiveDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "expiryDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "totalAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HisContractItemDto"
+            }
+          }
+        }
+      },
+      "HisContractItemDto": {
+        "required": [
+          "hisKey",
+          "itemCode",
+          "itemName",
+          "unit",
+          "quantity",
+          "unitPrice",
+          "vatRate",
+          "calledQuantity",
+          "receivedQuantity",
+          "remainingQuantity"
+        ],
+        "type": "object",
+        "properties": {
+          "hisKey": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "vatRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "calledQuantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "receivedQuantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "remainingQuantity": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "HisIngestIssueDto": {
+        "required": [
+          "code",
+          "severity",
+          "message",
+          "lineNo"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/ReceiptValidationStatus"
+          },
+          "message": {
+            "type": "string"
+          },
+          "lineNo": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "HisIngestOutcome": {
+        "enum": [
+          "Created",
+          "Updated",
+          "Duplicate"
+        ]
+      },
+      "HisIngestResultDto": {
+        "required": [
+          "receiptId",
+          "receiptNumber",
+          "outcome",
+          "status",
+          "validationStatus",
+          "contractNumber",
+          "issues"
+        ],
+        "type": "object",
+        "properties": {
+          "receiptId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "receiptNumber": {
+            "type": "string"
+          },
+          "outcome": {
+            "$ref": "#/components/schemas/HisIngestOutcome"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ReceiptStatus"
+          },
+          "validationStatus": {
+            "$ref": "#/components/schemas/ReceiptValidationStatus"
+          },
+          "contractNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HisIngestIssueDto"
+            }
+          }
+        }
+      },
+      "HisIntegrationConfigDto": {
+        "required": [
+          "provider",
+          "displayName",
+          "inboundEnabled",
+          "clients",
+          "allowedIps",
+          "rateLimitPerMinute",
+          "pullEnabled",
+          "pullCron",
+          "pullLookbackDays",
+          "devEndpoints"
+        ],
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "inboundEnabled": {
+            "type": "boolean"
+          },
+          "clients": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "allowedIps": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "rateLimitPerMinute": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pullEnabled": {
+            "type": "boolean"
+          },
+          "pullCron": {
+            "type": "string"
+          },
+          "pullLookbackDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "devEndpoints": {
+            "type": "boolean"
+          }
+        }
+      },
+      "HisInvoicePayload": {
+        "required": [
+          "symbol",
+          "number",
+          "date",
+          "amountBeforeVat",
+          "vatAmount",
+          "totalAmount",
+          "sellerTaxCode"
+        ],
+        "type": "object",
+        "properties": {
+          "symbol": {
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "amountBeforeVat": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "vatAmount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "totalAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "sellerTaxCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "description": "Hóa đơn kèm phiếu (optional: the supplier may add it later on the portal)."
+      },
+      "HisItemDto": {
+        "required": [
+          "hisKey",
+          "code",
+          "name",
+          "unit",
+          "activeIngredient",
+          "strength",
+          "specification",
+          "manufacturer",
+          "country",
+          "registrationNumber",
+          "categoryCode",
+          "bidDecisionNumber",
+          "supplierTaxCode",
+          "winningUnitPrice",
+          "isActive",
+          "updatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "hisKey": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "activeIngredient": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "strength": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "specification": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "manufacturer": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "country": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "registrationNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "categoryCode": {
+            "type": "string"
+          },
+          "bidDecisionNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "supplierTaxCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "winningUnitPrice": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "HisReceiptLinePayload": {
+        "required": [
+          "hisKey",
+          "itemCode",
+          "itemName",
+          "unit",
+          "lotNumber",
+          "expiryDate",
+          "quantity",
+          "unitPrice",
+          "vatRate"
+        ],
+        "type": "object",
+        "properties": {
+          "hisKey": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "unit": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lotNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "expiryDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "vatRate": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "HisReceiptPayload": {
+        "required": [
+          "hisReceiptId",
+          "receiptNumber",
+          "type",
+          "receiptDate",
+          "warehouseCode",
+          "bidDecisionNumber",
+          "supplierTaxCode",
+          "supplierName",
+          "contractNumber",
+          "callOrderNumber",
+          "delivererName",
+          "note",
+          "invoice",
+          "lines"
+        ],
+        "type": "object",
+        "properties": {
+          "hisReceiptId": {
+            "type": "string"
+          },
+          "receiptNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "type": {
+            "$ref": "#/components/schemas/ReceiptType"
+          },
+          "receiptDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "warehouseCode": {
+            "type": "string"
+          },
+          "bidDecisionNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "supplierTaxCode": {
+            "type": "string"
+          },
+          "supplierName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "contractNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "callOrderNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "delivererName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "note": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "invoice": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/HisInvoicePayload"
+              }
+            ]
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HisReceiptLinePayload"
+            }
+          }
+        },
+        "description": "Phiếu nhập kho / hoàn trả as sent by the HIS (spec §6.4 B1, docs/HIS_INTEGRATION.md). Linked to a contract by\r\n(BidDecisionNumber + SupplierTaxCode); idempotent by string HisReceiptPayload.HisReceiptId."
+      },
+      "HisSummaryDto": {
+        "required": [
+          "number",
+          "domain",
+          "periodText",
+          "status",
+          "approvedAt",
+          "lines"
+        ],
+        "type": "object",
+        "properties": {
+          "number": {
+            "type": "string"
+          },
+          "domain": {
+            "$ref": "#/components/schemas/ProcurementDomain"
+          },
+          "periodText": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ProposalSummaryStatus"
+          },
+          "approvedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HisSummaryLineDto"
+            }
+          }
+        }
+      },
+      "HisSummaryLineDto": {
+        "required": [
+          "contractNumber",
+          "supplierTaxCode",
+          "hisKey",
+          "itemCode",
+          "itemName",
+          "unit",
+          "unitPrice",
+          "approvedQuantity",
+          "calledQuantity",
+          "remainingToCall"
+        ],
+        "type": "object",
+        "properties": {
+          "contractNumber": {
+            "type": "string"
+          },
+          "supplierTaxCode": {
+            "type": "string"
+          },
+          "hisKey": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "approvedQuantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "calledQuantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "remainingToCall": {
+            "type": "number",
+            "format": "double"
           }
         }
       },
@@ -10508,6 +12347,297 @@
           "Sent",
           "Returned"
         ]
+      },
+      "IntegrationDirection": {
+        "enum": [
+          "Inbound",
+          "Outbound"
+        ]
+      },
+      "IntegrationLogDto": {
+        "required": [
+          "id",
+          "direction",
+          "system",
+          "operation",
+          "method",
+          "path",
+          "externalId",
+          "status",
+          "responseStatus",
+          "errorCode",
+          "errorMessage",
+          "attempts",
+          "remoteIp",
+          "clientName",
+          "startedAt",
+          "lastAttemptAt",
+          "durationMs",
+          "receiptId",
+          "canRetry",
+          "requestBody",
+          "responseBody"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "direction": {
+            "$ref": "#/components/schemas/IntegrationDirection"
+          },
+          "system": {
+            "type": "string"
+          },
+          "operation": {
+            "type": "string"
+          },
+          "method": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "externalId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/IntegrationLogStatus"
+          },
+          "responseStatus": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "errorCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "errorMessage": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "attempts": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "remoteIp": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "clientName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastAttemptAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "durationMs": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "receiptId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "canRetry": {
+            "type": "boolean"
+          },
+          "requestBody": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "responseBody": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "IntegrationLogListItemDto": {
+        "required": [
+          "id",
+          "direction",
+          "system",
+          "operation",
+          "method",
+          "path",
+          "externalId",
+          "status",
+          "responseStatus",
+          "errorCode",
+          "attempts",
+          "remoteIp",
+          "clientName",
+          "startedAt",
+          "lastAttemptAt",
+          "durationMs",
+          "receiptId",
+          "canRetry"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "direction": {
+            "$ref": "#/components/schemas/IntegrationDirection"
+          },
+          "system": {
+            "type": "string"
+          },
+          "operation": {
+            "type": "string"
+          },
+          "method": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "externalId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/IntegrationLogStatus"
+          },
+          "responseStatus": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "errorCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "attempts": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "remoteIp": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "clientName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastAttemptAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "durationMs": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "receiptId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "canRetry": {
+            "type": "boolean"
+          }
+        }
+      },
+      "IntegrationLogStatus": {
+        "enum": [
+          "Success",
+          "Failed",
+          "Duplicate",
+          "Rejected"
+        ]
+      },
+      "InvoiceRequest": {
+        "required": [
+          "symbol",
+          "number",
+          "date",
+          "amountBeforeVat",
+          "vatAmount",
+          "totalAmount",
+          "sellerTaxCode"
+        ],
+        "type": "object",
+        "properties": {
+          "symbol": {
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "amountBeforeVat": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "vatAmount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "totalAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "sellerTaxCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
       },
       "ItemCategoryDto": {
         "required": [
@@ -11187,6 +13317,35 @@
           }
         }
       },
+      "PagedResultOfIntegrationLogListItemDto": {
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IntegrationLogListItemDto"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "PagedResultOfItemDto": {
         "required": [
           "items",
@@ -11229,6 +13388,35 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ProposalListItemDto"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PagedResultOfReceiptListItemDto": {
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReceiptListItemDto"
             }
           },
           "total": {
@@ -11360,6 +13548,39 @@
             "format": "int32"
           }
         }
+      },
+      "ParsedInvoiceDto": {
+        "required": [
+          "invoice",
+          "sellerName",
+          "buyerTaxCode",
+          "buyerName"
+        ],
+        "type": "object",
+        "properties": {
+          "invoice": {
+            "$ref": "#/components/schemas/InvoiceRequest"
+          },
+          "sellerName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "buyerTaxCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "buyerName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "description": "Kết quả đọc file XML hóa đơn điện tử (điền sẵn form)."
       },
       "PdfSignatureInfo": {
         "required": [
@@ -11901,6 +14122,592 @@
           "Approved",
           "Returned",
           "Cancelled"
+        ]
+      },
+      "PullResultDto": {
+        "required": [
+          "received",
+          "created",
+          "updated",
+          "duplicates",
+          "failed",
+          "errors"
+        ],
+        "type": "object",
+        "properties": {
+          "received": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "created": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "updated": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "duplicates": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "failed": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "ReceiptDto": {
+        "required": [
+          "id",
+          "number",
+          "type",
+          "source",
+          "hisReceiptId",
+          "receiptDate",
+          "warehouseCode",
+          "warehouseId",
+          "warehouseName",
+          "supplierId",
+          "supplierName",
+          "supplierTaxCode",
+          "bidDecisionNumber",
+          "contractId",
+          "contractNumber",
+          "callOrderId",
+          "callOrderNumber",
+          "delivererName",
+          "note",
+          "invoice",
+          "status",
+          "validationStatus",
+          "validatedAt",
+          "issues",
+          "documentId",
+          "completedAt",
+          "lastReturnReason",
+          "isIncludedInAcceptance",
+          "totalAmount",
+          "vatAmount",
+          "lines",
+          "canEdit",
+          "canEditInvoice",
+          "canSubmit",
+          "canCancel",
+          "canRevalidate"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ReceiptType"
+          },
+          "source": {
+            "$ref": "#/components/schemas/ReceiptSource"
+          },
+          "hisReceiptId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "receiptDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "warehouseCode": {
+            "type": "string"
+          },
+          "warehouseId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "warehouseName": {
+            "type": "string"
+          },
+          "supplierId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "supplierName": {
+            "type": "string"
+          },
+          "supplierTaxCode": {
+            "type": "string"
+          },
+          "bidDecisionNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "contractId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "contractNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "callOrderId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "callOrderNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "delivererName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "note": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "invoice": {
+            "$ref": "#/components/schemas/ReceiptInvoiceDto"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ReceiptStatus"
+          },
+          "validationStatus": {
+            "$ref": "#/components/schemas/ReceiptValidationStatus"
+          },
+          "validatedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReceiptIssueDto"
+            }
+          },
+          "documentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "completedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "lastReturnReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isIncludedInAcceptance": {
+            "type": "boolean"
+          },
+          "totalAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "vatAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReceiptLineDto"
+            }
+          },
+          "canEdit": {
+            "type": "boolean"
+          },
+          "canEditInvoice": {
+            "type": "boolean"
+          },
+          "canSubmit": {
+            "type": "boolean"
+          },
+          "canCancel": {
+            "type": "boolean"
+          },
+          "canRevalidate": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ReceiptInvoiceDto": {
+        "required": [
+          "symbol",
+          "number",
+          "date",
+          "amountBeforeVat",
+          "vatAmount",
+          "totalAmount",
+          "sellerTaxCode",
+          "hasXml",
+          "hasPdf",
+          "updatedAt",
+          "updatedByName"
+        ],
+        "type": "object",
+        "properties": {
+          "symbol": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "number": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "date": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "amountBeforeVat": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "vatAmount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "totalAmount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "sellerTaxCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "hasXml": {
+            "type": "boolean"
+          },
+          "hasPdf": {
+            "type": "boolean"
+          },
+          "updatedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "updatedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "ReceiptIssueDto": {
+        "required": [
+          "code",
+          "severity",
+          "message",
+          "lineNo"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/ReceiptValidationStatus"
+          },
+          "message": {
+            "type": "string"
+          },
+          "lineNo": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "ReceiptLineDto": {
+        "required": [
+          "id",
+          "lineNo",
+          "hisKey",
+          "itemCode",
+          "itemName",
+          "unit",
+          "lotNumber",
+          "expiryDate",
+          "quantity",
+          "unitPrice",
+          "vatRate",
+          "amount",
+          "vatAmount",
+          "contractItemId",
+          "contractUnitPrice",
+          "contractRemaining"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lineNo": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hisKey": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "lotNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "expiryDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "vatRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "vatAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "contractItemId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "contractUnitPrice": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "contractRemaining": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "ReceiptListItemDto": {
+        "required": [
+          "id",
+          "number",
+          "type",
+          "source",
+          "receiptDate",
+          "warehouseName",
+          "supplierId",
+          "supplierName",
+          "contractId",
+          "contractNumber",
+          "invoiceNumber",
+          "totalAmount",
+          "status",
+          "validationStatus",
+          "issueCount",
+          "hasInvoice",
+          "isIncludedInAcceptance",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ReceiptType"
+          },
+          "source": {
+            "$ref": "#/components/schemas/ReceiptSource"
+          },
+          "receiptDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "warehouseName": {
+            "type": "string"
+          },
+          "supplierId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "supplierName": {
+            "type": "string"
+          },
+          "contractId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "contractNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "invoiceNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "totalAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ReceiptStatus"
+          },
+          "validationStatus": {
+            "$ref": "#/components/schemas/ReceiptValidationStatus"
+          },
+          "issueCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hasInvoice": {
+            "type": "boolean"
+          },
+          "isIncludedInAcceptance": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ReceiptSource": {
+        "enum": [
+          "His",
+          "Portal",
+          "VirtualPortal"
+        ]
+      },
+      "ReceiptStatus": {
+        "enum": [
+          "Draft",
+          "Signing",
+          "Returned",
+          "Completed",
+          "Cancelled"
+        ]
+      },
+      "ReceiptType": {
+        "enum": [
+          "Receipt",
+          "Return"
+        ]
+      },
+      "ReceiptValidationStatus": {
+        "enum": [
+          "Valid",
+          "Warning",
+          "Invalid"
         ]
       },
       "ResetPasswordResponse": {
@@ -12562,6 +15369,109 @@
           }
         }
       },
+      "SaveReceiptLineRequest": {
+        "required": [
+          "contractItemId",
+          "quantity",
+          "lotNumber",
+          "expiryDate",
+          "unitPrice"
+        ],
+        "type": "object",
+        "properties": {
+          "contractItemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "lotNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "expiryDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "unitPrice": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "SaveReceiptRequest": {
+        "required": [
+          "type",
+          "virtual",
+          "contractId",
+          "warehouseId",
+          "receiptDate",
+          "callOrderId",
+          "delivererName",
+          "note",
+          "lines"
+        ],
+        "type": "object",
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/ReceiptType"
+          },
+          "virtual": {
+            "type": "boolean"
+          },
+          "contractId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "warehouseId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "receiptDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "callOrderId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "delivererName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "note": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SaveReceiptLineRequest"
+            }
+          }
+        },
+        "description": "Phiếu lập trên cổng (Portal) hoặc phiếu ảo xác nhận khối lượng (Virtual = true)."
+      },
       "SaveRoleRequest": {
         "required": [
           "code",
@@ -13067,6 +15977,80 @@
           "Expired",
           "Cancelled"
         ]
+      },
+      "SimulateReceiptRequest": {
+        "required": [
+          "contractId"
+        ],
+        "type": "object",
+        "properties": {
+          "contractId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ReceiptType"
+          },
+          "scenario": {
+            "$ref": "#/components/schemas/SimulationScenario"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/SimulationMode"
+          },
+          "withInvoice": {
+            "type": "boolean",
+            "default": true
+          },
+          "maxLines": {
+            "type": "integer",
+            "format": "int32",
+            "default": 3
+          }
+        }
+      },
+      "SimulateReceiptResultDto": {
+        "required": [
+          "payload",
+          "result",
+          "queued"
+        ],
+        "type": "object",
+        "properties": {
+          "payload": {
+            "$ref": "#/components/schemas/HisReceiptPayload"
+          },
+          "result": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/HisIngestResultDto"
+              }
+            ]
+          },
+          "queued": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SimulationMode": {
+        "enum": [
+          "Push",
+          "Pull"
+        ],
+        "default": "Push"
+      },
+      "SimulationScenario": {
+        "enum": [
+          "Valid",
+          "Warning",
+          "Invalid"
+        ],
+        "default": "Valid"
       },
       "StartEditRequest": {
         "required": [
@@ -14549,7 +17533,8 @@
           "returnTargets",
           "canResubmit",
           "canCancel",
-          "signatures"
+          "signatures",
+          "gate"
         ],
         "type": "object",
         "properties": {
@@ -14626,6 +17611,16 @@
             "items": {
               "$ref": "#/components/schemas/SignatureDto"
             }
+          },
+          "gate": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/WorkflowGateDto"
+              }
+            ]
           }
         }
       },
@@ -14688,6 +17683,30 @@
           "Restarted",
           "Cancelled"
         ]
+      },
+      "WorkflowGateDto": {
+        "required": [
+          "blocked",
+          "reasonRequired",
+          "code",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "blocked": {
+            "type": "boolean"
+          },
+          "reasonRequired": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "description": "Business precondition on the caller's active step (e.g. receipt validation): blocked, or a reason is required."
       },
       "WorkflowStatus": {
         "enum": [
@@ -14999,6 +18018,18 @@
     },
     {
       "name": "CallOrders"
+    },
+    {
+      "name": "WarehouseReceipts"
+    },
+    {
+      "name": "HisIntegration"
+    },
+    {
+      "name": "IntegrationAdmin"
+    },
+    {
+      "name": "DevHis"
     },
     {
       "name": "System"

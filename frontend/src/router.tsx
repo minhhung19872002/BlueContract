@@ -36,6 +36,10 @@ import { ProposalDetailPage } from './features/proposals/ProposalDetailPage';
 import { SummariesPage, SummaryCreatePage } from './features/proposals/SummariesPage';
 import { SummaryDetailPage } from './features/proposals/SummaryDetailPage';
 import { CallCreatePage, CallOrderDetailPage, CallOrdersPage } from './features/proposals/CallOrdersPage';
+import { ReceiptsPage } from './features/receipts/ReceiptsPage';
+import { ReceiptDetailPage } from './features/receipts/ReceiptDetailPage';
+import { ReceiptCreatePage } from './features/receipts/ReceiptCreatePage';
+import { IntegrationPage } from './features/admin/IntegrationPage';
 
 const guard = (permissions: string[], element: React.ReactNode) => (
   <RequirePermission any={permissions}>{element}</RequirePermission>
@@ -97,6 +101,11 @@ export const router = createBrowserRouter([
           { path: '/goi-hang', element: guard([P.CallOrderView], <CallOrdersPage />) },
           { path: '/goi-hang/tao-moi', element: guard([P.CallOrderCreate], <CallCreatePage />) },
           { path: '/goi-hang/:id', element: guard([P.CallOrderView], <CallOrderDetailPage />) },
+          { path: '/nhap-kho', element: guard([P.ReceiptView], <ReceiptsPage />) },
+          { path: '/nhap-kho/tao-moi', element: guard([P.ReceiptManage], <ReceiptCreatePage />) },
+          { path: '/nhap-kho/:id', element: guard([P.ReceiptView], <ReceiptDetailPage />) },
+          { path: '/nhap-kho/:id/sua', element: guard([P.ReceiptManage], <ReceiptCreatePage />) },
+          { path: '/quan-tri/tich-hop-his', element: guard([P.IntegrationManage], <IntegrationPage />) },
           { path: '/xac-minh-chu-ky', element: <VerifySignaturePage /> },
           { path: '/quan-tri/luong-ky', element: guard([P.WorkflowManage], <WorkflowTemplatesPage />) },
         ],
@@ -118,6 +127,8 @@ export const router = createBrowserRouter([
           { path: 'hop-dong/:id', element: guard([P.ContractView], <ContractDetailPage />) },
           { path: 'goi-hang', element: guard([P.CallOrderView], <CallOrdersPage />) },
           { path: 'goi-hang/:id', element: guard([P.CallOrderView], <CallOrderDetailPage />) },
+          { path: 'nhap-kho', element: guard([P.ReceiptView], <ReceiptsPage />) },
+          { path: 'nhap-kho/:id', element: guard([P.ReceiptView], <ReceiptDetailPage />) },
           { path: 'xac-minh-chu-ky', element: <VerifySignaturePage /> },
           { path: 'tai-lieu/:id', element: <DocumentPage /> },
         ],

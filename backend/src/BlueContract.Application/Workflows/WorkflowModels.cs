@@ -111,7 +111,11 @@ public sealed record WorkflowDto(
     IReadOnlyList<ReturnTargetDto> ReturnTargets,
     bool CanResubmit,
     bool CanCancel,
-    IReadOnlyList<SignatureDto> Signatures);
+    IReadOnlyList<SignatureDto> Signatures,
+    WorkflowGateDto? Gate);
+
+/// <summary>Business precondition on the caller's active step (e.g. receipt validation): blocked, or a reason is required.</summary>
+public sealed record WorkflowGateDto(bool Blocked, bool ReasonRequired, string Code, string Message);
 
 public enum InboxTab
 {

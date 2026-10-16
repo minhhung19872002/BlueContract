@@ -145,3 +145,28 @@ Mỗi mục là một ADR ngắn: **Bối cảnh → Quyết định → Hệ qu
 
 ## ADR-039 — Giới hạn đăng nhập và E2E
 - **Quyết định:** Mặc định vẫn là 10 lần đăng nhập/phút/IP (spec §11), cấu hình qua `AUTH_LOGIN_RATE_LIMIT`. Bộ E2E đăng nhập nhiều tài khoản từ cùng một IP nên stack chạy E2E (CI và máy dev) đặt mức 1000.
+
+## ADR-040 — "Đã nhập kho" tính từ phiếu nhập kho
+- **Quyết định:** Cột đã nhập kho của `ContractItem` (và "đã giao" của đơn gọi hàng) luôn được **tính lại từ nguồn**: tổng SL các phiếu nhập trừ phiếu hoàn trả, chỉ gồm phiếu kho đã thực nhận (đang ký, bị trả lại, đã ký đủ, hoặc phiếu HIS chưa trình ký) và **không** gồm phiếu Không hợp lệ hay đã hủy. Hàng đã vào kho từ khi HIS lập phiếu nên không chờ ký đủ mới trừ "còn lại"; nghiệm thu (Phase 7) chỉ lấy phiếu đã ký đủ. Tính lại thay vì cộng dồn nên gửi trùng/hủy phiếu không làm sai số liệu.
+
+## ADR-041 — Validation engine và điều kiện ký (IWorkflowGuard)
+- **Quyết định:** Mỗi rule là một class `IReceiptRule` thuần (không truy cập DB); `ReceiptValidationLoader` nạp dữ liệu (hợp đồng, SL đã nhập của phiếu khác, đơn gọi hàng, hóa đơn trùng, tham số) rồi chạy cả 10 rule. Kết quả lưu trên phiếu (JSONB), mức tổng = mức nặng nhất. Workflow engine có thêm điểm mở rộng `IWorkflowGuard`, được hỏi trước khi duyệt/ký và trả về trong `WorkflowDto.gate` để UI hiển thị:
+  - **Không hợp lệ** → chặn ký ở mọi bước (chỉ có thể Trả lại).
+  - **Thiếu hóa đơn** → chặn từ bước Người giao hàng (NCC) trở đi (spec: NCC bổ sung hóa đơn ở bước này); các bước trước không bắt lý do vì thiếu hóa đơn.
+  - **Cảnh báo khác** → mỗi người ký phải nhập lý do; lý do lưu vào ý kiến của bước (hiện trong lịch sử luồng ký). Chọn "mỗi người ký" thay vì "một lần" để mỗi chữ ký đều có xác nhận chấp nhận rủi ro.
+  Ký hàng loạt không kèm lý do nên phiếu có cảnh báo phải ký từ màn hình chi tiết.
+
+## ADR-042 — API HIS inbound: HMAC, chống replay, nhật ký, tài khoản dịch vụ
+- **Quyết định:** Chuỗi ký `METHOD\nPATH_AND_QUERY\nX-Timestamp\nhex(SHA256(body))`, HMAC-SHA256 bằng secret riêng của từng client (`HisInbound:Clients`), timestamp ±5 phút. Chống phát lại bằng cache chữ ký đã dùng cho request **ghi**; GET là chỉ đọc nên không chặn (tránh từ chối hai lần đọc giống nhau trong cùng giây). Whitelist IP hỗ trợ CIDR; rate limit theo API key. Một resource filter ghi `IntegrationLog` cho **mọi** lời gọi, kể cả bị từ chối, trong unit of work riêng (log không commit nửa nghiệp vụ lỗi, nghiệp vụ lỗi vẫn có log). "Gửi lại" xử lý lại body đã lưu của lần nhận phiếu lỗi.
+- **Người gửi luồng ký** của phiếu từ HIS là tài khoản dịch vụ `his.integration` (tự tạo, trạng thái ngừng hoạt động nên không đăng nhập được). Workflow engine có `StartForSystemAsync` / `ResubmitForModuleAsync` cho module khởi động luồng không qua người dùng.
+- **Idempotent:** theo `HisReceiptId` (unique index) + SHA-256 nội dung: trùng nội dung → `Duplicate`; khác nội dung và chưa ai ký → cập nhật, sinh phiên bản PDF mới (phiếu bị trả lại thì tự trình ký lại); đã có chữ ký → 409, điều chỉnh bằng phiếu hoàn trả.
+
+## ADR-043 — Hóa đơn bổ sung sau chữ ký đầu tiên
+- **Bối cảnh:** Thủ kho ký trước, NCC thường bổ sung hóa đơn ở bước sau; bản PDF đã có chữ ký là bất biến (spec §5.7).
+- **Quyết định:** Thông tin hóa đơn (ký hiệu, số, ngày, tiền) lưu trên phiếu, file XML/PDF hóa đơn lưu kèm phiếu (S3, SHA-256) và đi vào hồ sơ lưu trữ. PDF phiếu chỉ sinh lại khi chưa ai ký; sau đó giữ nguyên PDF và không bắt ký lại cả luồng. Parser XML theo NĐ 123/2020 + TT 78/2021 (`KHMSHDon` + `KHHDon`, `SHDon`, `NLap`, `TToan/TgTTTBSo`…), bỏ qua namespace, cấm DTD (chống XXE).
+
+## ADR-044 — Kéo phiếu định kỳ và HIS giả lập
+- **Quyết định:** `IHisClient.GetWarehouseReceiptsAsync` + job Hangfire `his-receipt-pull` (bật/tắt và cron cấu hình, mặc định 15 phút, hỏi 3 ngày gần nhất). Kéo trùng không sao vì cùng quy trình idempotent với push. Bộ chuyển đổi REST yêu cầu hãng trả đúng schema phiếu của cổng (không ánh xạ từng trường như danh mục vì cấu trúc lồng nhiều cấp). HIS giả lập giữ phiếu trong hàng đợi bộ nhớ; endpoint dev `simulate-receipt` sinh phiếu thực tế cho hợp đồng hiệu lực (SL theo đơn gọi hàng còn mở) với 3 kịch bản Hợp lệ / Cảnh báo / Không hợp lệ, chỉ bật khi `HisInbound:DevEndpoints=true`. Dữ liệu demo cũng sinh bằng chính bộ giả lập này.
+
+## ADR-045 — Phiếu lập trên cổng và phiếu ảo
+- **Quyết định:** Tổ Mua sắm (quyền `receipt.manage`) lập phiếu nhập/hoàn trả trên cổng khi HIS không gửi được: chọn hợp đồng hiệu lực, mặt hàng lấy từ hợp đồng (ánh xạ chính xác), chạy cùng validation engine; phiếu Không hợp lệ không gửi ký được. Phiếu **ảo** (`VirtualPortal`) cho hợp đồng không nhập kho: có PDF "Phiếu xác nhận khối lượng — không qua kho", bấm "Xác nhận khối lượng" là hoàn thành, không qua luồng ký, rồi được dùng cho nghiệm thu như phiếu thường.

@@ -4,8 +4,10 @@ using BlueContract.Domain.Common;
 using BlueContract.Domain.Contracts;
 using BlueContract.Domain.Documents;
 using BlueContract.Domain.Identity;
+using BlueContract.Domain.Integration;
 using BlueContract.Domain.Organizations;
 using BlueContract.Domain.Proposals;
+using BlueContract.Domain.Receipts;
 using BlueContract.Domain.Settings;
 using BlueContract.Domain.Workflows;
 using Microsoft.EntityFrameworkCore;
@@ -90,6 +92,10 @@ public interface IAppDbContext
     DbSet<ProposalSummary> ProposalSummaries { get; }
 
     DbSet<CallOrder> CallOrders { get; }
+
+    DbSet<WarehouseReceipt> WarehouseReceipts { get; }
+
+    DbSet<IntegrationLog> IntegrationLogs { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

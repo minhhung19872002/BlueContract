@@ -6,8 +6,10 @@ using BlueContract.Domain.Common;
 using BlueContract.Domain.Contracts;
 using BlueContract.Domain.Documents;
 using BlueContract.Domain.Identity;
+using BlueContract.Domain.Integration;
 using BlueContract.Domain.Organizations;
 using BlueContract.Domain.Proposals;
+using BlueContract.Domain.Receipts;
 using BlueContract.Domain.Settings;
 using BlueContract.Domain.Workflows;
 using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
@@ -110,6 +112,10 @@ public sealed class AppDbContext : DbContext, IAppDbContext, IDataProtectionKeyC
 
     public DbSet<CallOrder> CallOrders => Set<CallOrder>();
 
+    public DbSet<WarehouseReceipt> WarehouseReceipts => Set<WarehouseReceipt>();
+
+    public DbSet<IntegrationLog> IntegrationLogs => Set<IntegrationLog>();
+
     public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -149,6 +155,7 @@ public sealed class AppDbContext : DbContext, IAppDbContext, IDataProtectionKeyC
         modelBuilder.Entity<User>().HasQueryFilter(SupplierIsolationFilter, u => !IsSupplierCaller || u.SupplierId == CallerSupplierId);
         modelBuilder.Entity<Document>().HasQueryFilter(SupplierIsolationFilter, d => !IsSupplierCaller || d.SupplierId == CallerSupplierId);
         modelBuilder.Entity<WorkflowInstance>().HasQueryFilter(SupplierIsolationFilter, w => !IsSupplierCaller || w.SupplierId == CallerSupplierId);
+        modelBuilder.Entity<WarehouseReceipt>().HasQueryFilter(SupplierIsolationFilter, r => !IsSupplierCaller || r.SupplierId == CallerSupplierId);
 
         // Join rows follow the soft-delete state of their required principal.
         modelBuilder.Entity<UserRole>().HasQueryFilter(SoftDeleteFilter, ur => !ur.Role!.IsDeleted);

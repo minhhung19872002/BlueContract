@@ -38,6 +38,20 @@ public sealed class HisOptions
 
     public string StockArrayPath { get; set; } = "data";
 
+    /// <summary>Relative URL with placeholders {from}, {to} (yyyy-MM-dd) returning receipts in the portal schema (HIS_INTEGRATION.md §4).</summary>
+    public string ReceiptsPath { get; set; } = "api/warehouse-receipts?from={from}&to={to}";
+
+    public string ReceiptsArrayPath { get; set; } = "data";
+
+    /// <summary>Periodic pull of warehouse receipts (alternative/complement to the push API).</summary>
+    public bool PullEnabled { get; set; }
+
+    /// <summary>Cron of the pull job (Hangfire, UTC). Default: every 15 minutes.</summary>
+    public string PullCron { get; set; } = "*/15 * * * *";
+
+    /// <summary>The pull asks for receipts of the last N days (idempotent, so overlaps are harmless).</summary>
+    public int PullLookbackDays { get; set; } = 3;
+
     /// <summary>Our field → the vendor's JSON field name (dotted paths allowed).</summary>
     public Dictionary<string, string> ItemFields { get; set; } = new(StringComparer.Ordinal)
     {
@@ -71,7 +85,7 @@ public sealed class HisOptions
 /// Deterministic HIS (spec §7.3 MockHisClient): the same (decision number, tax code) always yields the same items, so the
 /// demo, E2E tests and HIS-sync screens behave like a real hospital system without one.
 /// </summary>
-internal sealed class MockHisClient(IOptions<HisOptions> options) : IHisClient
+internal sealed class MockHisClient(IOptions<HisOptions> options, IMockHisReceiptQueue queue) : IHisClient
 {
     private sealed record Template(string Code, string Name, string? Ingredient, string? Strength, string? Spec, string Unit, string Maker, string Country,
         string? Reg, string? Group, string Category, decimal Price);
@@ -161,6 +175,10 @@ internal sealed class MockHisClient(IOptions<HisOptions> options) : IHisClient
         return Task.FromResult<IReadOnlyList<HisStockMovement>>(rows);
     }
 
+    /// <summary>Receipts "lập trên HIS giả lập" (queued by the dev simulator in pull mode).</summary>
+    public Task<IReadOnlyList<HisReceiptPayload>> GetWarehouseReceiptsAsync(DateOnly from, DateOnly to, CancellationToken ct) =>
+        Task.FromResult<IReadOnlyList<HisReceiptPayload>>([.. queue.Snapshot().Where(r => r.ReceiptDate >= from && r.ReceiptDate <= to)]);
+
     private static Template[] PoolFor(string taxCode) => taxCode switch
     {
         "0101234567" => Drugs,
@@ -214,6 +232,36 @@ internal sealed class RestHisClient(IHttpClientFactory factory, IOptions<HisOpti
         return [.. rows.Select(r => new HisStockMovement(Text(r, f, "HisKey") ?? string.Empty, Number(r, f, "Opening"), Number(r, f, "Received"),
             Number(r, f, "Issued"), Number(r, f, "Closing")))];
     }
+
+    /// <summary>The vendor returns receipts in the portal's JSON schema (camelCase, enums as strings) — see HIS_INTEGRATION.md.</summary>
+    public async Task<IReadOnlyList<HisReceiptPayload>> GetWarehouseReceiptsAsync(DateOnly from, DateOnly to, CancellationToken ct)
+    {
+        var o = options.Value;
+        var url = Fill(o.ReceiptsPath, ("from", from.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)), ("to", to.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)));
+        var rows = await GetArrayAsync(url, o.ReceiptsArrayPath, ct);
+        var result = new List<HisReceiptPayload>();
+        foreach (var row in rows)
+        {
+            try
+            {
+                if (System.Text.Json.JsonSerializer.Deserialize<HisReceiptPayload>(row, PayloadJson) is { } payload)
+                {
+                    result.Add(payload);
+                }
+            }
+            catch (System.Text.Json.JsonException ex)
+            {
+                logger.LogWarning(ex, "HIS returned a receipt that does not match the schema");
+            }
+        }
+
+        return result;
+    }
+
+    private static readonly System.Text.Json.JsonSerializerOptions PayloadJson = new(System.Text.Json.JsonSerializerDefaults.Web)
+    {
+        Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() },
+    };
 
     private async Task<IReadOnlyList<JsonNode>> GetArrayAsync(string url, string arrayPath, CancellationToken ct)
     {

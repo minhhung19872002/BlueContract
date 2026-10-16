@@ -160,10 +160,35 @@ public sealed class CallOrder : Entity, ISupplierScoped
         }
 
         line.Deliver(quantity);
-        if (Status is CallOrderStatus.SupplierConfirmed or CallOrderStatus.PartiallyConfirmed
-            && _lines.All(l => l.DeliveredQuantity >= (l.ConfirmedQuantity ?? l.Quantity)))
+        RefreshDeliveryStatus();
+    }
+
+    /// <summary>
+    /// Sets the delivered quantity of an item from the receipts linked to this order (recomputed, so re-sent or cancelled
+    /// receipts never double count). A fully delivered order becomes Delivered; a cancelled receipt can reopen it.
+    /// </summary>
+    public void SetDelivered(Guid contractItemId, decimal quantity)
+    {
+        var line = _lines.FirstOrDefault(l => l.ContractItemId == contractItemId);
+        if (line is null)
+        {
+            return;
+        }
+
+        line.SetDelivered(Math.Max(0, quantity));
+        RefreshDeliveryStatus();
+    }
+
+    private void RefreshDeliveryStatus()
+    {
+        var complete = _lines.All(l => l.DeliveredQuantity >= (l.ConfirmedQuantity ?? l.Quantity));
+        if (complete && Status is CallOrderStatus.SupplierConfirmed or CallOrderStatus.PartiallyConfirmed)
         {
             Status = CallOrderStatus.Delivered;
+        }
+        else if (!complete && Status == CallOrderStatus.Delivered)
+        {
+            Status = _lines.All(l => l.ConfirmedQuantity == l.Quantity) ? CallOrderStatus.SupplierConfirmed : CallOrderStatus.PartiallyConfirmed;
         }
     }
 
@@ -249,4 +274,6 @@ public sealed class CallOrderLine
     }
 
     internal void Deliver(decimal quantity) => DeliveredQuantity += quantity;
+
+    internal void SetDelivered(decimal quantity) => DeliveredQuantity = quantity;
 }

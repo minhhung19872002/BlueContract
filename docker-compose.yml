@@ -123,6 +123,14 @@ services:
       His__Provider: ${HIS_PROVIDER:-Mock}
       His__BaseUrl: ${HIS_BASE_URL:-}
       His__ApiKey: ${HIS_API_KEY:-}
+      His__PullEnabled: ${HIS_PULL_ENABLED:-true}
+      His__PullCron: ${HIS_PULL_CRON:-*/15 * * * *}
+      HisInbound__Clients__0__Name: ${HIS_INBOUND_CLIENT_NAME:-HIS}
+      HisInbound__Clients__0__ApiKey: ${HIS_INBOUND_API_KEY:-his-dev-key}
+      HisInbound__Clients__0__Secret: ${HIS_INBOUND_SECRET:-his-dev-secret-change-me-0123456789}
+      HisInbound__AllowedIps__0: ${HIS_INBOUND_ALLOWED_IPS:-}
+      HisInbound__RateLimitPerMinute: ${HIS_INBOUND_RATE_LIMIT:-120}
+      HisInbound__DevEndpoints: ${HIS_DEV_ENDPOINTS:-true}
       Hangfire__DashboardEnabled: ${HANGFIRE_DASHBOARD:-true}
       Email__Host: mailpit
       Email__Port: "1025"

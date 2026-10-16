@@ -1,4 +1,5 @@
 import {
+  ApiOutlined,
   ApartmentOutlined,
   AuditOutlined,
   BankOutlined,
@@ -15,6 +16,7 @@ import {
   FileWordOutlined,
   HomeOutlined,
   IdcardOutlined,
+  InboxOutlined,
   SettingOutlined,
   ShopOutlined,
   TeamOutlined,
@@ -53,6 +55,7 @@ export const internalNav: NavItem[] = [
     permissions: [P.ProposalAggregate, P.ProposalApprove],
   },
   { key: '/goi-hang', label: 'Gọi hàng', icon: <PhoneOutlined />, permissions: [P.CallOrderView] },
+  { key: '/nhap-kho', label: 'Phiếu nhập kho', icon: <InboxOutlined />, permissions: [P.ReceiptView] },
   { key: '/xac-minh-chu-ky', label: 'Xác minh chữ ký', icon: <SafetyCertificateOutlined /> },
   {
     key: '/quan-tri',
@@ -99,6 +102,12 @@ export const internalNav: NavItem[] = [
         icon: <NodeIndexOutlined />,
         permissions: [P.WorkflowManage],
       },
+      {
+        key: '/quan-tri/tich-hop-his',
+        label: 'Tích hợp HIS',
+        icon: <ApiOutlined />,
+        permissions: [P.IntegrationManage],
+      },
       { key: '/quan-tri/tham-so', label: 'Tham số hệ thống', permissions: [P.SettingManage] },
       {
         key: '/quan-tri/nhat-ky',
@@ -122,6 +131,7 @@ export const supplierNav: NavItem[] = [
   },
   { key: '/ncc/hop-dong', label: 'Hợp đồng', icon: <ContainerOutlined />, permissions: [P.ContractView] },
   { key: '/ncc/goi-hang', label: 'Gọi hàng', icon: <PhoneOutlined />, permissions: [P.CallOrderView] },
+  { key: '/ncc/nhap-kho', label: 'Phiếu nhập kho', icon: <InboxOutlined />, permissions: [P.ReceiptView] },
   { key: '/ncc/xac-minh-chu-ky', label: 'Xác minh chữ ký', icon: <SafetyCertificateOutlined /> },
   {
     key: '/ncc/cong-ty',

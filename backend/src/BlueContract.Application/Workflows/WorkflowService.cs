@@ -21,7 +21,8 @@ public sealed class WorkflowService(
     IAuditLogger audit,
     ICurrentUser current,
     IClock clock,
-    IEnumerable<IWorkflowObserver> observers)
+    IEnumerable<IWorkflowObserver> observers,
+    IEnumerable<IWorkflowGuard> guards)
 {
     // ---------------- Templates (Cấu hình luồng ký) ----------------
 
@@ -143,8 +144,88 @@ public sealed class WorkflowService(
             return Error.Validation("DOCUMENT_DOCX_REQUIRED");
         }
 
-        var wf = new WorkflowInstance(document.Id, template, current.UserId!.Value, current.FullName, document.SupplierId, clock.UtcNow);
-        wf.SetScope(r.FacilityId, r.Domain);
+        var wf = await BeginAsync(document, template, current.UserId!.Value, current.FullName, r.FacilityId, r.Domain, ct);
+        await db.SaveChangesAsync(ct);
+        return wf.Id;
+    }
+
+    /// <summary>
+    /// Starts the default workflow of a document on behalf of the system (e.g. a receipt pushed by the HIS, where no user is
+    /// signed in). <paramref name="startedBy"/> is the service account shown as "người gửi". Saved by the caller.
+    /// </summary>
+    internal async Task<Result<WorkflowInstance>> StartForSystemAsync(Document document, Guid startedBy, string startedByName, Guid? facilityId, string? domain, CancellationToken ct)
+    {
+        if (await db.WorkflowInstances.AnyAsync(w => w.DocumentId == document.Id && (w.Status == WorkflowStatus.Running || w.Status == WorkflowStatus.Returned), ct))
+        {
+            return Error.Conflict("WORKFLOW_ALREADY_RUNNING");
+        }
+
+        var template = await db.WorkflowTemplates.Include("_steps").FirstOrDefaultAsync(t => t.DocumentType == document.Type && t.IsDefault && t.IsActive, ct);
+        if (template is null)
+        {
+            return Error.Validation("WORKFLOW_TEMPLATE_NOT_FOUND");
+        }
+
+        if (template.Steps.Any(s => s.AssigneeType == AssigneeType.DocumentSupplier) && document.SupplierId is null)
+        {
+            return Error.Validation("WORKFLOW_SUPPLIER_REQUIRED");
+        }
+
+        return await BeginAsync(document, template, startedBy, startedByName, facilityId, domain, ct);
+    }
+
+    /// <summary>Re-submits a returned workflow for a module (the original sender may be a service account). Saved by the caller.</summary>
+    internal async Task ResubmitForModuleAsync(WorkflowInstance wf, Document document, string actorName, CancellationToken ct)
+    {
+        wf.Resubmit(current.UserId ?? wf.StartedBy, actorName, clock.UtcNow);
+        document.MarkInWorkflow();
+        await PrepareActiveStepAsync(wf, document, ct);
+        await PublishAsync(wf, document, WorkflowChangeKind.Resubmitted, null, null, ct);
+        await NotifyActiveAsync(wf, document, ct);
+    }
+
+    /// <summary>The business precondition of a step for the caller (null = none); used before approving or signing.</summary>
+    internal async Task<WorkflowGateDto?> GateAsync(WorkflowInstance wf, WorkflowStepInstance step, CancellationToken ct)
+    {
+        var applicable = guards.ToList();
+        if (applicable.Count == 0)
+        {
+            return null;
+        }
+
+        var document = await db.Documents.AsNoTracking().FirstAsync(d => d.Id == wf.DocumentId, ct);
+        foreach (var guard in applicable.Where(g => g.Handles(document.Type)))
+        {
+            if (await guard.EvaluateAsync(wf, step, document, ct) is { } gate)
+            {
+                return gate;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>Blocked gate → error; a gate requiring a reason needs a non-empty comment.</summary>
+    internal async Task<Error?> CheckGateAsync(WorkflowInstance wf, WorkflowStepInstance step, string? comment, CancellationToken ct)
+    {
+        var gate = await GateAsync(wf, step, ct);
+        if (gate is null)
+        {
+            return null;
+        }
+
+        if (gate.Blocked)
+        {
+            return Error.Validation(gate.Code);
+        }
+
+        return gate.ReasonRequired && string.IsNullOrWhiteSpace(comment) ? Error.Validation(gate.Code) : null;
+    }
+
+    private async Task<WorkflowInstance> BeginAsync(Document document, WorkflowTemplate template, Guid startedBy, string? startedByName, Guid? facilityId, string? domain, CancellationToken ct)
+    {
+        var wf = new WorkflowInstance(document.Id, template, startedBy, startedByName, document.SupplierId, clock.UtcNow);
+        wf.SetScope(facilityId, domain);
         db.WorkflowInstances.Add(wf);
         document.MarkInWorkflow();
         audit.Log("WorkflowStart", nameof(Document), document.Id.ToString(), new { wf.Id, template.Code });
@@ -153,8 +234,7 @@ public sealed class WorkflowService(
         await documents.PrepareForSigningAsync(document, finalize: wf.ActiveStep?.RequiresSignature == true, ct);
         await PublishAsync(wf, document, WorkflowChangeKind.Started, null, null, ct);
         await NotifyActiveAsync(wf, document, ct);
-        await db.SaveChangesAsync(ct);
-        return wf.Id;
+        return wf;
     }
 
     public async Task<Result<WorkflowDto?>> GetForDocumentAsync(Guid documentId, CancellationToken ct)
@@ -192,6 +272,11 @@ public sealed class WorkflowService(
         if (!standing.CanAct)
         {
             return step.ActedBy == current.UserId ? await ToDtoAsync(wf!, ct) : Error.Forbidden(standing.DenyReason ?? "FORBIDDEN");
+        }
+
+        if (await CheckGateAsync(wf!, step, r.Comment, ct) is { } blocked)
+        {
+            return blocked;
         }
 
         var outcome = wf!.Act(step.Id, current.UserId!.Value, ActorName(standing), standing.OnBehalfOf, r.Comment, null, clock.UtcNow, r.SkipNextOptional);
@@ -550,7 +635,8 @@ public sealed class WorkflowService(
             standing?.CanAct == true ? active!.Id : null, standing?.Caption, returnTargets,
             wf.Status == WorkflowStatus.Returned && wf.StartedBy == current.UserId,
             wf.Status is WorkflowStatus.Running or WorkflowStatus.Returned && (wf.StartedBy == current.UserId || current.HasPermission(Permissions.WorkflowManage)),
-            signatures);
+            signatures,
+            standing?.CanAct == true ? await GateAsync(wf, active!, ct) : null);
     }
 
     private static WorkflowTemplateDto ToDto(WorkflowTemplate t, int running, Dictionary<Guid, string> names) => new(

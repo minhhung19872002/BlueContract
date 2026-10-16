@@ -1930,6 +1930,146 @@ namespace BlueContract.Infrastructure.Persistence.Migrations
                     b.ToTable("user_roles", (string)null);
                 });
 
+            modelBuilder.Entity("BlueContract.Domain.Integration.IntegrationLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("integer")
+                        .HasColumnName("attempts");
+
+                    b.Property<string>("ClientName")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("client_name");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("Direction")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("direction");
+
+                    b.Property<long>("DurationMs")
+                        .HasColumnType("bigint")
+                        .HasColumnName("duration_ms");
+
+                    b.Property<string>("ErrorCode")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("error_code");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("error_message");
+
+                    b.Property<string>("ExternalId")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("external_id");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<DateTimeOffset>("LastAttemptAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_attempt_at");
+
+                    b.Property<string>("Method")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("method");
+
+                    b.Property<string>("Operation")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("operation");
+
+                    b.Property<string>("Path")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("path");
+
+                    b.Property<Guid?>("ReceiptId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("receipt_id");
+
+                    b.Property<string>("RemoteIp")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("remote_ip");
+
+                    b.Property<string>("RequestBody")
+                        .HasColumnType("text")
+                        .HasColumnName("request_body");
+
+                    b.Property<string>("ResponseBody")
+                        .HasColumnType("text")
+                        .HasColumnName("response_body");
+
+                    b.Property<int?>("ResponseStatus")
+                        .HasColumnType("integer")
+                        .HasColumnName("response_status");
+
+                    b.Property<uint>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.Property<DateTimeOffset>("StartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("started_at");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("status");
+
+                    b.Property<string>("System")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("system");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("Id")
+                        .HasName("pk_integration_logs");
+
+                    b.HasIndex("ExternalId")
+                        .HasDatabaseName("ix_integration_logs_external_id");
+
+                    b.HasIndex("StartedAt")
+                        .HasDatabaseName("ix_integration_logs_started_at");
+
+                    b.HasIndex("Status", "StartedAt")
+                        .HasDatabaseName("ix_integration_logs_status_started_at");
+
+                    b.ToTable("integration_logs", (string)null);
+                });
+
             modelBuilder.Entity("BlueContract.Domain.Organizations.Department", b =>
                 {
                     b.Property<Guid>("Id")
@@ -3015,6 +3155,347 @@ namespace BlueContract.Infrastructure.Persistence.Migrations
                     b.ToTable("proposal_summary_sources", (string)null);
                 });
 
+            modelBuilder.Entity("BlueContract.Domain.Receipts.WarehouseReceipt", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("AcceptanceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("acceptance_id");
+
+                    b.Property<string>("BidDecisionNumber")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("bid_decision_number");
+
+                    b.Property<Guid?>("CallOrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("call_order_id");
+
+                    b.Property<DateTimeOffset?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("completed_at");
+
+                    b.Property<Guid?>("ContractId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_id");
+
+                    b.Property<string>("ContractNumber")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("contract_number");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("DelivererName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("deliverer_name");
+
+                    b.Property<Guid?>("DocumentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("document_id");
+
+                    b.Property<string>("HisPayloadHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("his_payload_hash");
+
+                    b.Property<string>("HisReceiptId")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("his_receipt_id");
+
+                    b.Property<decimal?>("InvoiceAmountBeforeVat")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("invoice_amount_before_vat");
+
+                    b.Property<DateOnly?>("InvoiceDate")
+                        .HasColumnType("date")
+                        .HasColumnName("invoice_date");
+
+                    b.Property<string>("InvoiceNumber")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("invoice_number");
+
+                    b.Property<string>("InvoicePdfFileKey")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("invoice_pdf_file_key");
+
+                    b.Property<string>("InvoiceSellerTaxCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("invoice_seller_tax_code");
+
+                    b.Property<string>("InvoiceSymbol")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("invoice_symbol");
+
+                    b.Property<decimal?>("InvoiceTotalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("invoice_total_amount");
+
+                    b.Property<DateTimeOffset?>("InvoiceUpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("invoice_updated_at");
+
+                    b.Property<string>("InvoiceUpdatedByName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("invoice_updated_by_name");
+
+                    b.Property<decimal?>("InvoiceVatAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("invoice_vat_amount");
+
+                    b.Property<string>("InvoiceXmlFileKey")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("invoice_xml_file_key");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<bool>("IsIncludedInAcceptance")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_included_in_acceptance");
+
+                    b.Property<int>("IssueCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("issue_count");
+
+                    b.Property<string>("LastReturnReason")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("last_return_reason");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("note");
+
+                    b.Property<string>("Number")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("number");
+
+                    b.Property<DateOnly>("ReceiptDate")
+                        .HasColumnType("date")
+                        .HasColumnName("receipt_date");
+
+                    b.Property<uint>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("source");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("status");
+
+                    b.Property<Guid?>("SupplierId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("supplier_id");
+
+                    b.Property<string>("SupplierTaxCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("supplier_tax_code");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("type");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.Property<DateTimeOffset?>("ValidatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("validated_at");
+
+                    b.Property<string>("ValidationStatus")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("validation_status");
+
+                    b.Property<string>("WarehouseCode")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("warehouse_code");
+
+                    b.Property<Guid?>("WarehouseId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("warehouse_id");
+
+                    b.Property<string>("_issues")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("issues");
+
+                    b.HasKey("Id")
+                        .HasName("pk_warehouse_receipts");
+
+                    b.HasIndex("AcceptanceId")
+                        .HasDatabaseName("ix_warehouse_receipts_acceptance_id");
+
+                    b.HasIndex("CallOrderId")
+                        .HasDatabaseName("ix_warehouse_receipts_call_order_id");
+
+                    b.HasIndex("DocumentId")
+                        .HasDatabaseName("ix_warehouse_receipts_document_id");
+
+                    b.HasIndex("HisReceiptId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_warehouse_receipts_his_receipt_id")
+                        .HasFilter("his_receipt_id IS NOT NULL");
+
+                    b.HasIndex("Number")
+                        .HasDatabaseName("ix_warehouse_receipts_number");
+
+                    b.HasIndex("ReceiptDate")
+                        .HasDatabaseName("ix_warehouse_receipts_receipt_date");
+
+                    b.HasIndex("ContractId", "Status")
+                        .HasDatabaseName("ix_warehouse_receipts_contract_id_status");
+
+                    b.HasIndex("Status", "ValidationStatus")
+                        .HasDatabaseName("ix_warehouse_receipts_status_validation_status");
+
+                    b.HasIndex("SupplierId", "Status")
+                        .HasDatabaseName("ix_warehouse_receipts_supplier_id_status");
+
+                    b.HasIndex("SupplierTaxCode", "InvoiceSymbol", "InvoiceNumber")
+                        .HasDatabaseName("ix_warehouse_receipts_supplier_tax_code_invoice_symbol_invoice");
+
+                    b.ToTable("warehouse_receipts", (string)null);
+                });
+
+            modelBuilder.Entity("BlueContract.Domain.Receipts.WarehouseReceiptLine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<Guid?>("ContractItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_item_id");
+
+                    b.Property<DateOnly?>("ExpiryDate")
+                        .HasColumnType("date")
+                        .HasColumnName("expiry_date");
+
+                    b.Property<string>("HisKey")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("his_key");
+
+                    b.Property<string>("ItemCode")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("item_code");
+
+                    b.Property<Guid?>("ItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("item_id");
+
+                    b.Property<string>("ItemName")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("item_name");
+
+                    b.Property<int>("LineNo")
+                        .HasColumnType("integer")
+                        .HasColumnName("line_no");
+
+                    b.Property<string>("LotNumber")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("lot_number");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)")
+                        .HasColumnName("quantity");
+
+                    b.Property<Guid>("ReceiptId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("receipt_id");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("unit");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("unit_price");
+
+                    b.Property<decimal>("VatAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("vat_amount");
+
+                    b.Property<decimal>("VatRate")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)")
+                        .HasColumnName("vat_rate");
+
+                    b.HasKey("Id")
+                        .HasName("pk_warehouse_receipt_lines");
+
+                    b.HasIndex("ContractItemId")
+                        .HasDatabaseName("ix_warehouse_receipt_lines_contract_item_id");
+
+                    b.HasIndex("ReceiptId", "LineNo")
+                        .IsUnique()
+                        .HasDatabaseName("ix_warehouse_receipt_lines_receipt_id_line_no");
+
+                    b.ToTable("warehouse_receipt_lines", (string)null);
+                });
+
             modelBuilder.Entity("BlueContract.Domain.Settings.SystemSetting", b =>
                 {
                     b.Property<Guid>("Id")
@@ -4082,6 +4563,16 @@ namespace BlueContract.Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_proposal_summary_sources_proposal_summaries_summary_id");
                 });
 
+            modelBuilder.Entity("BlueContract.Domain.Receipts.WarehouseReceiptLine", b =>
+                {
+                    b.HasOne("BlueContract.Domain.Receipts.WarehouseReceipt", null)
+                        .WithMany("Lines")
+                        .HasForeignKey("ReceiptId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_warehouse_receipt_lines_warehouse_receipts_receipt_id");
+                });
+
             modelBuilder.Entity("BlueContract.Domain.Workflows.WorkflowEvent", b =>
                 {
                     b.HasOne("BlueContract.Domain.Workflows.WorkflowInstance", null)
@@ -4166,6 +4657,11 @@ namespace BlueContract.Infrastructure.Persistence.Migrations
                     b.Navigation("Lines");
 
                     b.Navigation("Sources");
+                });
+
+            modelBuilder.Entity("BlueContract.Domain.Receipts.WarehouseReceipt", b =>
+                {
+                    b.Navigation("Lines");
                 });
 
             modelBuilder.Entity("BlueContract.Domain.Workflows.WorkflowInstance", b =>

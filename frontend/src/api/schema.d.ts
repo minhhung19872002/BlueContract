@@ -5314,6 +5314,928 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/warehouse-receipts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    Page?: number;
+                    PageSize?: number;
+                    Search?: string;
+                    /** @description Property name to sort by (whitelisted per endpoint). */
+                    SortBy?: string;
+                    SortDesc?: boolean;
+                    /** @description Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows). */
+                    ForExport?: boolean;
+                    SafePage?: number;
+                    SafePageSize?: number;
+                    Status?: components["schemas"]["ReceiptStatus"];
+                    Validation?: components["schemas"]["ReceiptValidationStatus"];
+                    Type?: components["schemas"]["ReceiptType"];
+                    Source?: components["schemas"]["ReceiptSource"];
+                    SupplierId?: string;
+                    WarehouseId?: string;
+                    ContractId?: string;
+                    From?: string;
+                    To?: string;
+                    HasInvoice?: boolean;
+                    Accepted?: boolean;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PagedResultOfReceiptListItemDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Lập phiếu trên cổng / phiếu ảo (xác nhận khối lượng, không qua kho). */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SaveReceiptRequest"];
+                    "text/json": components["schemas"]["SaveReceiptRequest"];
+                    "application/*+json": components["schemas"]["SaveReceiptRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": string;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/warehouse-receipts/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    Page?: number;
+                    PageSize?: number;
+                    Search?: string;
+                    /** @description Property name to sort by (whitelisted per endpoint). */
+                    SortBy?: string;
+                    SortDesc?: boolean;
+                    /** @description Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows). */
+                    ForExport?: boolean;
+                    SafePage?: number;
+                    SafePageSize?: number;
+                    Status?: components["schemas"]["ReceiptStatus"];
+                    Validation?: components["schemas"]["ReceiptValidationStatus"];
+                    Type?: components["schemas"]["ReceiptType"];
+                    Source?: components["schemas"]["ReceiptSource"];
+                    SupplierId?: string;
+                    WarehouseId?: string;
+                    ContractId?: string;
+                    From?: string;
+                    To?: string;
+                    HasInvoice?: boolean;
+                    Accepted?: boolean;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/warehouse-receipts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ReceiptDto"];
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SaveReceiptRequest"];
+                    "text/json": components["schemas"]["SaveReceiptRequest"];
+                    "application/*+json": components["schemas"]["SaveReceiptRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/warehouse-receipts/{id}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Gửi ký (phiếu cổng) / Gửi ký lại (sau khi bị trả lại) / Xác nhận phiếu ảo. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/warehouse-receipts/{id}/revalidate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ReceiptDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/warehouse-receipts/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": null | components["schemas"]["CancelReceiptRequest"];
+                    "text/json": null | components["schemas"]["CancelReceiptRequest"];
+                    "application/*+json": null | components["schemas"]["CancelReceiptRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/warehouse-receipts/{id}/invoice": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Bổ sung thông tin hóa đơn (NCC ở bước người giao hàng hoặc bệnh viện). */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["InvoiceRequest"];
+                    "text/json": components["schemas"]["InvoiceRequest"];
+                    "application/*+json": components["schemas"]["InvoiceRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ReceiptDto"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/warehouse-receipts/{id}/invoice-file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Tải XML hóa đơn điện tử (tự đọc ký hiệu, số, ngày, tổng tiền) hoặc PDF bản thể hiện. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "multipart/form-data": {
+                        file?: components["schemas"]["IFormFile"];
+                    };
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ReceiptDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/warehouse-receipts/invoice/parse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Đọc thử XML hóa đơn (không lưu) để điền sẵn form. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "multipart/form-data": {
+                        file?: components["schemas"]["IFormFile"];
+                    };
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ParsedInvoiceDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/warehouse-receipts/{id}/invoice-file/{format}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    format: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["FileLinkDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/integration/his/warehouse-receipts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Đẩy phiếu nhập kho / hoàn trả. Idempotent theo hisReceiptId. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["HisReceiptPayload"];
+                    "text/json": components["schemas"]["HisReceiptPayload"];
+                    "application/*+json": components["schemas"]["HisReceiptPayload"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["HisIngestResultDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/integration/his/contracts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Hợp đồng hiệu lực + số lượng còn lại theo Số QĐ / MST. */
+        get: {
+            parameters: {
+                query?: {
+                    bidDecisionNumber?: string;
+                    supplierTaxCode?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["HisContractDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/integration/his/proposal-summaries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Tổng hợp đề xuất đã duyệt (mặc định status=Approved). */
+        get: {
+            parameters: {
+                query?: {
+                    status?: components["schemas"]["ProposalSummaryStatus"];
+                    approvedSince?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["HisSummaryDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/integration/his/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Danh mục hàng hóa (thay đổi từ updatedSince). */
+        get: {
+            parameters: {
+                query?: {
+                    updatedSince?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["HisItemDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/integration/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["HisIntegrationConfigDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/integration/logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    Page?: number;
+                    PageSize?: number;
+                    Search?: string;
+                    /** @description Property name to sort by (whitelisted per endpoint). */
+                    SortBy?: string;
+                    SortDesc?: boolean;
+                    /** @description Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows). */
+                    ForExport?: boolean;
+                    SafePage?: number;
+                    SafePageSize?: number;
+                    Direction?: components["schemas"]["IntegrationDirection"];
+                    Status?: components["schemas"]["IntegrationLogStatus"];
+                    Operation?: string;
+                    From?: string;
+                    To?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PagedResultOfIntegrationLogListItemDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/integration/logs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["IntegrationLogDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/integration/logs/{id}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Gửi lại: xử lý lại nội dung phiếu đã lưu của một lần nhận lỗi. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["HisIngestResultDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/integration/his/pull": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Kéo phiếu từ HIS ngay (không chờ lịch). */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PullResultDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/dev/his/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DevHisStatusDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/dev/his/simulate-receipt": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Giả lập HIS đẩy (push) hoặc lập phiếu chờ kéo (pull) cho một hợp đồng hiệu lực. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SimulateReceiptRequest"];
+                    "text/json": components["schemas"]["SimulateReceiptRequest"];
+                    "application/*+json": components["schemas"]["SimulateReceiptRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SimulateReceiptResultDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/system/info": {
         parameters: {
             query?: never;
@@ -6519,6 +7441,9 @@ export interface components {
         CancelContractRequest: {
             reason: null | string;
         };
+        CancelReceiptRequest: {
+            reason: null | string;
+        };
         ChangePasswordRequest: {
             currentPassword: string;
             newPassword: string;
@@ -6829,6 +7754,9 @@ export interface components {
         };
         /** @enum {unknown} */
         DepartmentType: "Clinical" | "Paraclinical" | "Functional";
+        DevHisStatusDto: {
+            enabled: boolean;
+        };
         DisableTwoFactorRequest: {
             password: string;
         };
@@ -6914,6 +7842,167 @@ export interface components {
             fileName: string;
             /** Format: date-time */
             expiresAt: string;
+        };
+        HisContractDto: {
+            contractNumber: string;
+            name: string;
+            bidDecisionNumber: null | string;
+            supplierTaxCode: string;
+            supplierName: string;
+            status: components["schemas"]["ContractStatus"];
+            /** Format: date */
+            effectiveDate: null | string;
+            /** Format: date */
+            expiryDate: null | string;
+            /** Format: double */
+            totalAmount: number;
+            items: components["schemas"]["HisContractItemDto"][];
+        };
+        HisContractItemDto: {
+            hisKey: null | string;
+            itemCode: string;
+            itemName: string;
+            unit: string;
+            /** Format: double */
+            quantity: number;
+            /** Format: double */
+            unitPrice: number;
+            /** Format: double */
+            vatRate: number;
+            /** Format: double */
+            calledQuantity: number;
+            /** Format: double */
+            receivedQuantity: number;
+            /** Format: double */
+            remainingQuantity: number;
+        };
+        HisIngestIssueDto: {
+            code: string;
+            severity: components["schemas"]["ReceiptValidationStatus"];
+            message: string;
+            /** Format: int32 */
+            lineNo: null | number;
+        };
+        /** @enum {unknown} */
+        HisIngestOutcome: "Created" | "Updated" | "Duplicate";
+        HisIngestResultDto: {
+            /** Format: uuid */
+            receiptId: string;
+            receiptNumber: string;
+            outcome: components["schemas"]["HisIngestOutcome"];
+            status: components["schemas"]["ReceiptStatus"];
+            validationStatus: components["schemas"]["ReceiptValidationStatus"];
+            contractNumber: null | string;
+            issues: components["schemas"]["HisIngestIssueDto"][];
+        };
+        HisIntegrationConfigDto: {
+            provider: string;
+            displayName: string;
+            inboundEnabled: boolean;
+            clients: string[];
+            allowedIps: string[];
+            /** Format: int32 */
+            rateLimitPerMinute: number;
+            pullEnabled: boolean;
+            pullCron: string;
+            /** Format: int32 */
+            pullLookbackDays: number;
+            devEndpoints: boolean;
+        };
+        /** @description Hóa đơn kèm phiếu (optional: the supplier may add it later on the portal). */
+        HisInvoicePayload: {
+            symbol: string;
+            number: string;
+            /** Format: date */
+            date: string;
+            /** Format: double */
+            amountBeforeVat: null | number;
+            /** Format: double */
+            vatAmount: null | number;
+            /** Format: double */
+            totalAmount: number;
+            sellerTaxCode: null | string;
+        };
+        HisItemDto: {
+            hisKey: null | string;
+            code: string;
+            name: string;
+            unit: string;
+            activeIngredient: null | string;
+            strength: null | string;
+            specification: null | string;
+            manufacturer: null | string;
+            country: null | string;
+            registrationNumber: null | string;
+            categoryCode: string;
+            bidDecisionNumber: null | string;
+            supplierTaxCode: null | string;
+            /** Format: double */
+            winningUnitPrice: null | number;
+            isActive: boolean;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        HisReceiptLinePayload: {
+            hisKey: null | string;
+            itemCode: string;
+            itemName: string;
+            unit: null | string;
+            lotNumber: null | string;
+            /** Format: date */
+            expiryDate: null | string;
+            /** Format: double */
+            quantity: number;
+            /** Format: double */
+            unitPrice: number;
+            /** Format: double */
+            vatRate: null | number;
+        };
+        /**
+         * @description Phiếu nhập kho / hoàn trả as sent by the HIS (spec §6.4 B1, docs/HIS_INTEGRATION.md). Linked to a contract by
+         *     (BidDecisionNumber + SupplierTaxCode); idempotent by string HisReceiptPayload.HisReceiptId.
+         */
+        HisReceiptPayload: {
+            hisReceiptId: string;
+            receiptNumber: null | string;
+            type: components["schemas"]["ReceiptType"];
+            /** Format: date */
+            receiptDate: string;
+            warehouseCode: string;
+            bidDecisionNumber: null | string;
+            supplierTaxCode: string;
+            supplierName: null | string;
+            contractNumber: null | string;
+            callOrderNumber: null | string;
+            delivererName: null | string;
+            note: null | string;
+            invoice: null | components["schemas"]["HisInvoicePayload"];
+            lines: components["schemas"]["HisReceiptLinePayload"][];
+        };
+        HisSummaryDto: {
+            number: string;
+            domain: components["schemas"]["ProcurementDomain"];
+            periodText: string;
+            status: components["schemas"]["ProposalSummaryStatus"];
+            /** Format: date-time */
+            approvedAt: null | string;
+            lines: components["schemas"]["HisSummaryLineDto"][];
+        };
+        HisSummaryLineDto: {
+            contractNumber: string;
+            supplierTaxCode: string;
+            hisKey: null | string;
+            itemCode: string;
+            itemName: string;
+            unit: string;
+            /** Format: double */
+            unitPrice: number;
+            /** Format: double */
+            approvedQuantity: number;
+            /** Format: double */
+            calledQuantity: number;
+            /** Format: double */
+            remainingToCall: number;
         };
         HisSyncResultDto: {
             /** Format: int32 */
@@ -7010,6 +8099,80 @@ export interface components {
         };
         /** @enum {unknown} */
         InboxTab: "Pending" | "Processed" | "Sent" | "Returned";
+        /** @enum {unknown} */
+        IntegrationDirection: "Inbound" | "Outbound";
+        IntegrationLogDto: {
+            /** Format: uuid */
+            id: string;
+            direction: components["schemas"]["IntegrationDirection"];
+            system: string;
+            operation: string;
+            method: string;
+            path: string;
+            externalId: null | string;
+            status: components["schemas"]["IntegrationLogStatus"];
+            /** Format: int32 */
+            responseStatus: null | number;
+            errorCode: null | string;
+            errorMessage: null | string;
+            /** Format: int32 */
+            attempts: number;
+            remoteIp: null | string;
+            clientName: null | string;
+            /** Format: date-time */
+            startedAt: string;
+            /** Format: date-time */
+            lastAttemptAt: string;
+            /** Format: int64 */
+            durationMs: number;
+            /** Format: uuid */
+            receiptId: null | string;
+            canRetry: boolean;
+            requestBody: null | string;
+            responseBody: null | string;
+        };
+        IntegrationLogListItemDto: {
+            /** Format: uuid */
+            id: string;
+            direction: components["schemas"]["IntegrationDirection"];
+            system: string;
+            operation: string;
+            method: string;
+            path: string;
+            externalId: null | string;
+            status: components["schemas"]["IntegrationLogStatus"];
+            /** Format: int32 */
+            responseStatus: null | number;
+            errorCode: null | string;
+            /** Format: int32 */
+            attempts: number;
+            remoteIp: null | string;
+            clientName: null | string;
+            /** Format: date-time */
+            startedAt: string;
+            /** Format: date-time */
+            lastAttemptAt: string;
+            /** Format: int64 */
+            durationMs: number;
+            /** Format: uuid */
+            receiptId: null | string;
+            canRetry: boolean;
+        };
+        /** @enum {unknown} */
+        IntegrationLogStatus: "Success" | "Failed" | "Duplicate" | "Rejected";
+        InvoiceRequest: {
+            symbol: string;
+            number: string;
+            /** Format: date */
+            date: string;
+            /** Format: double */
+            amountBeforeVat: null | number;
+            /** Format: double */
+            vatAmount: null | number;
+            /** Format: double */
+            totalAmount: number;
+            sellerTaxCode: null | string;
+        };
         ItemCategoryDto: {
             /** Format: uuid */
             id: string;
@@ -7184,6 +8347,15 @@ export interface components {
             /** Format: int32 */
             pageSize: number;
         };
+        PagedResultOfIntegrationLogListItemDto: {
+            items: components["schemas"]["IntegrationLogListItemDto"][];
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+        };
         PagedResultOfItemDto: {
             items: components["schemas"]["ItemDto"][];
             /** Format: int32 */
@@ -7195,6 +8367,15 @@ export interface components {
         };
         PagedResultOfProposalListItemDto: {
             items: components["schemas"]["ProposalListItemDto"][];
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+        };
+        PagedResultOfReceiptListItemDto: {
+            items: components["schemas"]["ReceiptListItemDto"][];
             /** Format: int32 */
             total: number;
             /** Format: int32 */
@@ -7237,6 +8418,13 @@ export interface components {
             page: number;
             /** Format: int32 */
             pageSize: number;
+        };
+        /** @description Kết quả đọc file XML hóa đơn điện tử (điền sẵn form). */
+        ParsedInvoiceDto: {
+            invoice: components["schemas"]["InvoiceRequest"];
+            sellerName: null | string;
+            buyerTaxCode: null | string;
+            buyerName: null | string;
         };
         PdfSignatureInfo: {
             fieldName: string;
@@ -7391,6 +8579,157 @@ export interface components {
         ProposalStatus: "Draft" | "Signing" | "Submitted" | "Aggregated" | "Returned" | "Cancelled";
         /** @enum {unknown} */
         ProposalSummaryStatus: "Draft" | "AggregatorSigning" | "DomainHeadReview" | "DirectorSigning" | "Approved" | "Returned" | "Cancelled";
+        PullResultDto: {
+            /** Format: int32 */
+            received: number;
+            /** Format: int32 */
+            created: number;
+            /** Format: int32 */
+            updated: number;
+            /** Format: int32 */
+            duplicates: number;
+            /** Format: int32 */
+            failed: number;
+            errors: string[];
+        };
+        ReceiptDto: {
+            /** Format: uuid */
+            id: string;
+            number: string;
+            type: components["schemas"]["ReceiptType"];
+            source: components["schemas"]["ReceiptSource"];
+            hisReceiptId: null | string;
+            /** Format: date */
+            receiptDate: string;
+            warehouseCode: string;
+            /** Format: uuid */
+            warehouseId: null | string;
+            warehouseName: string;
+            /** Format: uuid */
+            supplierId: null | string;
+            supplierName: string;
+            supplierTaxCode: string;
+            bidDecisionNumber: null | string;
+            /** Format: uuid */
+            contractId: null | string;
+            contractNumber: null | string;
+            /** Format: uuid */
+            callOrderId: null | string;
+            callOrderNumber: null | string;
+            delivererName: null | string;
+            note: null | string;
+            invoice: components["schemas"]["ReceiptInvoiceDto"];
+            status: components["schemas"]["ReceiptStatus"];
+            validationStatus: components["schemas"]["ReceiptValidationStatus"];
+            /** Format: date-time */
+            validatedAt: null | string;
+            issues: components["schemas"]["ReceiptIssueDto"][];
+            /** Format: uuid */
+            documentId: null | string;
+            /** Format: date-time */
+            completedAt: null | string;
+            lastReturnReason: null | string;
+            isIncludedInAcceptance: boolean;
+            /** Format: double */
+            totalAmount: number;
+            /** Format: double */
+            vatAmount: number;
+            lines: components["schemas"]["ReceiptLineDto"][];
+            canEdit: boolean;
+            canEditInvoice: boolean;
+            canSubmit: boolean;
+            canCancel: boolean;
+            canRevalidate: boolean;
+        };
+        ReceiptInvoiceDto: {
+            symbol: null | string;
+            number: null | string;
+            /** Format: date */
+            date: null | string;
+            /** Format: double */
+            amountBeforeVat: null | number;
+            /** Format: double */
+            vatAmount: null | number;
+            /** Format: double */
+            totalAmount: null | number;
+            sellerTaxCode: null | string;
+            hasXml: boolean;
+            hasPdf: boolean;
+            /** Format: date-time */
+            updatedAt: null | string;
+            updatedByName: null | string;
+        };
+        ReceiptIssueDto: {
+            code: string;
+            severity: components["schemas"]["ReceiptValidationStatus"];
+            message: string;
+            /** Format: int32 */
+            lineNo: null | number;
+        };
+        ReceiptLineDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: int32 */
+            lineNo: number;
+            hisKey: null | string;
+            itemCode: string;
+            itemName: string;
+            unit: string;
+            lotNumber: null | string;
+            /** Format: date */
+            expiryDate: null | string;
+            /** Format: double */
+            quantity: number;
+            /** Format: double */
+            unitPrice: number;
+            /** Format: double */
+            vatRate: number;
+            /** Format: double */
+            amount: number;
+            /** Format: double */
+            vatAmount: number;
+            /** Format: uuid */
+            contractItemId: null | string;
+            /** Format: double */
+            contractUnitPrice: null | number;
+            /** Format: double */
+            contractRemaining: null | number;
+        };
+        ReceiptListItemDto: {
+            /** Format: uuid */
+            id: string;
+            number: string;
+            type: components["schemas"]["ReceiptType"];
+            source: components["schemas"]["ReceiptSource"];
+            /** Format: date */
+            receiptDate: string;
+            warehouseName: string;
+            /** Format: uuid */
+            supplierId: null | string;
+            supplierName: string;
+            /** Format: uuid */
+            contractId: null | string;
+            contractNumber: null | string;
+            invoiceNumber: null | string;
+            /** Format: double */
+            totalAmount: number;
+            status: components["schemas"]["ReceiptStatus"];
+            validationStatus: components["schemas"]["ReceiptValidationStatus"];
+            /** Format: int32 */
+            issueCount: number;
+            hasInvoice: boolean;
+            isIncludedInAcceptance: boolean;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        /** @enum {unknown} */
+        ReceiptSource: "His" | "Portal" | "VirtualPortal";
+        /** @enum {unknown} */
+        ReceiptStatus: "Draft" | "Signing" | "Returned" | "Completed" | "Cancelled";
+        /** @enum {unknown} */
+        ReceiptType: "Receipt" | "Return";
+        /** @enum {unknown} */
+        ReceiptValidationStatus: "Valid" | "Warning" | "Invalid";
         ResetPasswordResponse: {
             temporaryPassword: string;
             emailSent: boolean;
@@ -7552,6 +8891,33 @@ export interface components {
             note: null | string;
             lines: components["schemas"]["ProposalLineRequest"][];
         };
+        SaveReceiptLineRequest: {
+            /** Format: uuid */
+            contractItemId: string;
+            /** Format: double */
+            quantity: number;
+            lotNumber: null | string;
+            /** Format: date */
+            expiryDate: null | string;
+            /** Format: double */
+            unitPrice: null | number;
+        };
+        /** @description Phiếu lập trên cổng (Portal) hoặc phiếu ảo xác nhận khối lượng (Virtual = true). */
+        SaveReceiptRequest: {
+            type: components["schemas"]["ReceiptType"];
+            virtual: boolean;
+            /** Format: uuid */
+            contractId: string;
+            /** Format: uuid */
+            warehouseId: null | string;
+            /** Format: date */
+            receiptDate: string;
+            /** Format: uuid */
+            callOrderId: null | string;
+            delivererName: null | string;
+            note: null | string;
+            lines: components["schemas"]["SaveReceiptLineRequest"][];
+        };
         SaveRoleRequest: {
             code: string;
             name: string;
@@ -7669,6 +9035,35 @@ export interface components {
         };
         /** @enum {unknown} */
         SigningRequestStatus: "Pending" | "Completed" | "Failed" | "Expired" | "Cancelled";
+        SimulateReceiptRequest: {
+            /** Format: uuid */
+            contractId: null | string;
+            type?: components["schemas"]["ReceiptType"];
+            scenario?: components["schemas"]["SimulationScenario"];
+            mode?: components["schemas"]["SimulationMode"];
+            /** @default true */
+            withInvoice: boolean;
+            /**
+             * Format: int32
+             * @default 3
+             */
+            maxLines: number;
+        };
+        SimulateReceiptResultDto: {
+            payload: components["schemas"]["HisReceiptPayload"];
+            result: null | components["schemas"]["HisIngestResultDto"];
+            queued: boolean;
+        };
+        /**
+         * @default Push
+         * @enum {unknown}
+         */
+        SimulationMode: "Push" | "Pull";
+        /**
+         * @default Valid
+         * @enum {unknown}
+         */
+        SimulationScenario: "Valid" | "Warning" | "Invalid";
         StartEditRequest: {
             mode: components["schemas"]["EditorMode"];
         };
@@ -8052,6 +9447,7 @@ export interface components {
             canResubmit: boolean;
             canCancel: boolean;
             signatures: components["schemas"]["SignatureDto"][];
+            gate: null | components["schemas"]["WorkflowGateDto"];
         };
         WorkflowEventDto: {
             type: components["schemas"]["WorkflowEventType"];
@@ -8065,6 +9461,13 @@ export interface components {
         };
         /** @enum {unknown} */
         WorkflowEventType: "Started" | "StepActivated" | "Approved" | "SignatureAdded" | "Returned" | "Skipped" | "Commented" | "Completed" | "Resubmitted" | "Restarted" | "Cancelled";
+        /** @description Business precondition on the caller's active step (e.g. receipt validation): blocked, or a reason is required. */
+        WorkflowGateDto: {
+            blocked: boolean;
+            reasonRequired: boolean;
+            code: string;
+            message: string;
+        };
         /** @enum {unknown} */
         WorkflowStatus: "Running" | "Completed" | "Returned" | "Cancelled";
         WorkflowStepDto: {

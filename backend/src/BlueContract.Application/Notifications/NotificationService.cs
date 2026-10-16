@@ -178,4 +178,7 @@ public static class NotificationTypes
     public const string SummaryApproved = "summary.approved";
     public const string CallOrderSent = "callorder.sent";
     public const string CallOrderConfirmed = "callorder.confirmed";
+    public const string ReceiptCompleted = "receipt.completed";
+    public const string ReceiptReturned = "receipt.returned";
+    public const string ReceiptInvoice = "receipt.invoice";
 }

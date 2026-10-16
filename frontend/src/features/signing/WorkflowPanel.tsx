@@ -1,4 +1,5 @@
 import {
+  Alert,
   App,
   Button,
   Card,
@@ -240,6 +241,11 @@ export function WorkflowActions({ wf, onDone }: { wf: WorkflowDto; onDone?: () =
   const { message } = App.useApp();
   const myStep = wf.steps.find((s) => s.id === wf.myStepId);
   const close = () => setDialog(null);
+  // Business precondition of my step (e.g. receipt validation): blocked, or a reason is required to sign/approve.
+  const gate = myStep ? wf.gate : null;
+  const [reason, setReason] = useState('');
+  const blocked = !!gate?.blocked;
+  const reasonMissing = !!gate?.reasonRequired && !reason.trim();
 
   const guarded = async (action: () => Promise<unknown>, success: string) => {
     try {
@@ -252,87 +258,116 @@ export function WorkflowActions({ wf, onDone }: { wf: WorkflowDto; onDone?: () =
     }
   };
 
-  return (
-    <Space wrap>
-      {myStep &&
-        (myStep.requiresSignature ? (
-          <SignButton
-            stepId={myStep.id}
-            label={
-              wf.myCaption
-                ? `Ký (${wf.myCaption})`
-                : myStep.actionType === 'Initial'
-                  ? 'Ký nháy'
-                  : statusLabel('workflowAction', myStep.actionType)
-            }
-            onSigned={onDone}
-          />
-        ) : (
-          <Button type="primary" icon={<CheckOutlined />} onClick={() => setDialog('approve')}>
-            {myStep.actionType === 'Review' || myStep.actionType === 'SupplierReview' ? 'Đồng ý' : 'Duyệt'}
-          </Button>
-        ))}
-      {myStep && wf.returnTargets.length > 0 && (
-        <Button danger icon={<RollbackOutlined />} onClick={() => setDialog('return')}>
-          Trả lại
-        </Button>
-      )}
-      <Button icon={<CommentOutlined />} onClick={() => setDialog('comment')}>
-        Chuyển tiếp ý kiến
-      </Button>
-      {wf.canResubmit && (
-        <Button
-          icon={<SyncOutlined />}
-          loading={resubmit.isPending}
-          onClick={() => guarded(() => resubmit.mutateAsync(wf.instanceId), 'Đã trình ký lại')}
-        >
-          Trình ký lại
-        </Button>
-      )}
-      {wf.canCancel && (
-        <Button icon={<StopOutlined />} onClick={() => setDialog('cancel')}>
-          Hủy luồng ký
-        </Button>
-      )}
+  const signLabel = !myStep
+    ? ''
+    : wf.myCaption
+      ? `Ký (${wf.myCaption})`
+      : myStep.actionType === 'Initial'
+        ? 'Ký nháy'
+        : statusLabel('workflowAction', myStep.actionType);
 
-      <ReturnDialog wf={wf} open={dialog === 'return'} onClose={close} />
-      <TextDialog
-        title="Chuyển tiếp ý kiến"
-        label="Ý kiến"
-        okText="Gửi ý kiến"
-        open={dialog === 'comment'}
-        loading={comment.isPending}
-        onClose={close}
-        onSubmit={(text) =>
-          guarded(() => comment.mutateAsync({ instanceId: wf.instanceId, text }), 'Đã gửi ý kiến')
-        }
-      />
-      <TextDialog
-        title="Đồng ý / duyệt"
-        label="Ý kiến (không bắt buộc)"
-        okText="Xác nhận"
-        required={false}
-        open={dialog === 'approve'}
-        loading={approve.isPending}
-        onClose={close}
-        onSubmit={(text) =>
-          guarded(
-            () => approve.mutateAsync({ stepId: myStep!.id, comment: text || undefined }),
-            'Đã xác nhận',
-          )
-        }
-      />
-      <TextDialog
-        title="Hủy luồng ký"
-        label="Lý do hủy"
-        okText="Hủy luồng"
-        open={dialog === 'cancel'}
-        loading={cancel.isPending}
-        onClose={close}
-        onSubmit={(text) =>
-          guarded(() => cancel.mutateAsync({ instanceId: wf.instanceId, reason: text }), 'Đã hủy luồng ký')
-        }
-      />
+  return (
+    <Space direction="vertical" style={{ width: '100%' }}>
+      {gate && <Alert type={gate.blocked ? 'error' : 'warning'} showIcon message={gate.message} />}
+      {gate?.reasonRequired && !gate.blocked && (
+        <Input.TextArea
+          rows={2}
+          maxLength={2000}
+          status={reasonMissing ? 'warning' : undefined}
+          placeholder="Lý do chấp nhận cảnh báo (bắt buộc để ký) — được lưu vào ý kiến của bước"
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+        />
+      )}
+      <Space wrap>
+        {myStep &&
+          (myStep.requiresSignature ? (
+            blocked || reasonMissing ? (
+              <Tooltip title={blocked ? gate?.message : 'Nhập lý do chấp nhận cảnh báo trước khi ký'}>
+                <Button type="primary" icon={<SafetyCertificateOutlined />} disabled>
+                  {signLabel}
+                </Button>
+              </Tooltip>
+            ) : (
+              <SignButton
+                stepId={myStep.id}
+                label={signLabel}
+                comment={reason.trim() || undefined}
+                onSigned={onDone}
+              />
+            )
+          ) : (
+            <Button
+              type="primary"
+              icon={<CheckOutlined />}
+              disabled={blocked}
+              onClick={() => setDialog('approve')}
+            >
+              {myStep.actionType === 'Review' || myStep.actionType === 'SupplierReview' ? 'Đồng ý' : 'Duyệt'}
+            </Button>
+          ))}
+        {myStep && wf.returnTargets.length > 0 && (
+          <Button danger icon={<RollbackOutlined />} onClick={() => setDialog('return')}>
+            Trả lại
+          </Button>
+        )}
+        <Button icon={<CommentOutlined />} onClick={() => setDialog('comment')}>
+          Chuyển tiếp ý kiến
+        </Button>
+        {wf.canResubmit && (
+          <Button
+            icon={<SyncOutlined />}
+            loading={resubmit.isPending}
+            onClick={() => guarded(() => resubmit.mutateAsync(wf.instanceId), 'Đã trình ký lại')}
+          >
+            Trình ký lại
+          </Button>
+        )}
+        {wf.canCancel && (
+          <Button icon={<StopOutlined />} onClick={() => setDialog('cancel')}>
+            Hủy luồng ký
+          </Button>
+        )}
+
+        <ReturnDialog wf={wf} open={dialog === 'return'} onClose={close} />
+        <TextDialog
+          title="Chuyển tiếp ý kiến"
+          label="Ý kiến"
+          okText="Gửi ý kiến"
+          open={dialog === 'comment'}
+          loading={comment.isPending}
+          onClose={close}
+          onSubmit={(text) =>
+            guarded(() => comment.mutateAsync({ instanceId: wf.instanceId, text }), 'Đã gửi ý kiến')
+          }
+        />
+        <TextDialog
+          title="Đồng ý / duyệt"
+          label={gate?.reasonRequired ? 'Lý do chấp nhận cảnh báo' : 'Ý kiến (không bắt buộc)'}
+          okText="Xác nhận"
+          required={!!gate?.reasonRequired}
+          open={dialog === 'approve'}
+          loading={approve.isPending}
+          onClose={close}
+          onSubmit={(text) =>
+            guarded(
+              () => approve.mutateAsync({ stepId: myStep!.id, comment: text || undefined }),
+              'Đã xác nhận',
+            )
+          }
+        />
+        <TextDialog
+          title="Hủy luồng ký"
+          label="Lý do hủy"
+          okText="Hủy luồng"
+          open={dialog === 'cancel'}
+          loading={cancel.isPending}
+          onClose={close}
+          onSubmit={(text) =>
+            guarded(() => cancel.mutateAsync({ instanceId: wf.instanceId, reason: text }), 'Đã hủy luồng ký')
+          }
+        />
+      </Space>
     </Space>
   );
 }

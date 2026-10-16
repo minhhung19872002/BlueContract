@@ -153,6 +153,7 @@ public static class DependencyInjection
         services.AddScoped<IBackgroundJobs, HangfireBackgroundJobs>();
         services.AddScoped<EmailJob>();
         services.AddScoped<WorkflowReminderJob>();
+        services.AddScoped<HisReceiptPullJob>();
 
         // Storage
         services.Configure<StorageOptions>(configuration.GetSection(StorageOptions.SectionName));

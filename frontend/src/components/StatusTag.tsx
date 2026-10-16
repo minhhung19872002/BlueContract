@@ -192,6 +192,37 @@ const STATUS: Record<string, Record<string, { label: string; color: string }>> =
     Updated: { label: 'Cập nhật', color: 'blue' },
     Deleted: { label: 'Xóa', color: 'red' },
   },
+  receiptStatus: {
+    Draft: { label: 'Chưa gửi ký', color: 'default' },
+    Signing: { label: 'Đang ký', color: 'processing' },
+    Returned: { label: 'Bị trả lại', color: 'red' },
+    Completed: { label: 'Đã ký đủ', color: 'green' },
+    Cancelled: { label: 'Đã hủy', color: 'default' },
+  },
+  receiptValidation: {
+    Valid: { label: 'Hợp lệ', color: 'green' },
+    Warning: { label: 'Cảnh báo', color: 'gold' },
+    Invalid: { label: 'Không hợp lệ', color: 'red' },
+  },
+  receiptType: {
+    Receipt: { label: 'Nhập kho', color: 'blue' },
+    Return: { label: 'Hoàn trả', color: 'volcano' },
+  },
+  receiptSource: {
+    His: { label: 'HIS', color: 'cyan' },
+    Portal: { label: 'Lập trên cổng', color: 'geekblue' },
+    VirtualPortal: { label: 'Phiếu ảo (không qua kho)', color: 'purple' },
+  },
+  integrationStatus: {
+    Success: { label: 'Thành công', color: 'green' },
+    Failed: { label: 'Lỗi', color: 'red' },
+    Duplicate: { label: 'Gửi trùng', color: 'default' },
+    Rejected: { label: 'Bị từ chối', color: 'volcano' },
+  },
+  integrationDirection: {
+    Inbound: { label: 'HIS → Cổng', color: 'blue' },
+    Outbound: { label: 'Cổng → HIS', color: 'purple' },
+  },
 };
 
 export type StatusDomain = keyof typeof STATUS;

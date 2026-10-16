@@ -1,5 +1,6 @@
 using BlueContract.Application.Common;
 using BlueContract.Application.Notifications;
+using BlueContract.Application.Receipts.Validation;
 using BlueContract.Domain.Common;
 using BlueContract.Domain.Contracts;
 using BlueContract.Domain.Identity;
@@ -15,6 +16,8 @@ public sealed class DocumentNumbers(IAppDbContext db, IClock clock)
     public const string Proposal = "DX";
     public const string Summary = "TH";
     public const string CallOrder = "GH";
+    public const string Receipt = "NK";
+    public const string Return = "HT";
 
     public async Task<string> NextAsync(string prefix, CancellationToken ct)
     {
@@ -33,7 +36,7 @@ public sealed class DocumentNumbers(IAppDbContext db, IClock clock)
 
 /// <summary>
 /// Keeps the execution columns of contract items in sync (spec §5.3 "các cột tính toán"): đã đề xuất, đã duyệt, đã gọi.
-/// Received / accepted / paid are owned by the receipt and payment modules and preserved here.
+/// Đã nhập kho comes from the warehouse receipts; accepted / paid are owned by the payment module and preserved here.
 /// </summary>
 public sealed class ContractTracking(IAppDbContext db, PostCommitWork postCommit)
 {
@@ -75,11 +78,34 @@ public sealed class ContractTracking(IAppDbContext db, PostCommitWork postCommit
             .GroupBy(l => l.ContractItemId).Select(g => new { g.Key, Qty = g.Sum(l => l.ConfirmedQuantity ?? l.Quantity) })
             .ToDictionaryAsync(x => x.Key, x => x.Qty, ct);
 
+        var received = await ReceiptValidationLoader.NetReceivedAsync(
+            ReceiptValidationLoader.Counted(db.WarehouseReceipts.AsNoTracking()).Where(r => r.Lines.Any(l => l.ContractItemId != null && ids.Contains(l.ContractItemId.Value))), ct);
+
         var contracts = await db.Contracts.Include(c => c.Items).Where(c => c.Items.Any(i => ids.Contains(i.Id))).ToListAsync(ct);
         foreach (var item in contracts.SelectMany(c => c.Items).Where(i => ids.Contains(i.Id)))
         {
             item.Track(proposed.GetValueOrDefault(item.Id), approved.GetValueOrDefault(item.Id), called.GetValueOrDefault(item.Id),
-                item.ReceivedQuantity, item.AcceptedQuantity, item.PaidQuantity);
+                received.GetValueOrDefault(item.Id), item.AcceptedQuantity, item.PaidQuantity);
+        }
+    }
+
+    /// <summary>"Đã giao" of call orders from the receipts linked to them (spec §6.3 theo dõi giao hàng).</summary>
+    public async Task RecalculateDeliveriesAsync(IReadOnlyCollection<Guid> callOrderIds, CancellationToken ct)
+    {
+        foreach (var orderId in callOrderIds.Distinct())
+        {
+            var order = await db.CallOrders.Include(o => o.Lines).FirstOrDefaultAsync(o => o.Id == orderId, ct);
+            if (order is null)
+            {
+                continue;
+            }
+
+            var delivered = await ReceiptValidationLoader.NetReceivedAsync(
+                ReceiptValidationLoader.Counted(db.WarehouseReceipts.AsNoTracking()).Where(r => r.CallOrderId == orderId), ct);
+            foreach (var line in order.Lines)
+            {
+                order.SetDelivered(line.ContractItemId, delivered.GetValueOrDefault(line.ContractItemId));
+            }
         }
     }
 }

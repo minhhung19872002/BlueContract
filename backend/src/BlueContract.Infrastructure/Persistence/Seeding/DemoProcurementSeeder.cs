@@ -1,11 +1,14 @@
 using BlueContract.Application.Bids;
 using BlueContract.Application.Common;
 using BlueContract.Application.Contracts;
+using BlueContract.Application.Integration;
 using BlueContract.Application.Proposals;
+using BlueContract.Application.Receipts;
 using BlueContract.Application.Signing;
 using BlueContract.Application.Workflows;
 using BlueContract.Domain.Contracts;
 using BlueContract.Domain.Identity;
+using BlueContract.Domain.Receipts;
 using BlueContract.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,15 +32,16 @@ internal sealed class DemoProcurementSeeder(IServiceProvider services, IHttpClie
 
     public async Task SeedAsync(CancellationToken ct)
     {
-        bool contractsSeeded, proposalsSeeded;
+        bool contractsSeeded, proposalsSeeded, receiptsSeeded;
         using (var scope = services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             contractsSeeded = await db.BidDecisions.AnyAsync(b => b.Number == DrugBid, ct);
             proposalsSeeded = await db.Proposals.AnyAsync(ct);
+            receiptsSeeded = await db.WarehouseReceipts.AnyAsync(ct);
         }
 
-        if (contractsSeeded && proposalsSeeded)
+        if (contractsSeeded && proposalsSeeded && receiptsSeeded)
         {
             return;
         }
@@ -57,6 +61,11 @@ internal sealed class DemoProcurementSeeder(IServiceProvider services, IHttpClie
         if (!proposalsSeeded)
         {
             await SeedProposalsAsync(ct);
+        }
+
+        if (!receiptsSeeded)
+        {
+            await SeedReceiptsAsync(ct);
         }
 
         logger.LogInformation("Demo procurement scenarios seeded");
@@ -147,6 +156,44 @@ internal sealed class DemoProcurementSeeder(IServiceProvider services, IHttpClie
             Value(await sp.GetRequiredService<CallOrderService>().CreateAsync(new CreateCallsRequest(summary.Id, warehouse, today.AddDays(5), "Mai Văn Tú",
                 "Giao hàng giờ hành chính, liên hệ thủ kho trước khi giao", [.. summary.Lines.Select(l => new CallLineRequest(l.Id, l.ApprovedQuantity))]), ct));
         }, ct);
+    }
+
+    /// <summary>
+    /// Phiếu nhập kho từ HIS on the effective VTYT contract: one fully signed by the 5 signers (ready for acceptance), one
+    /// with warnings waiting for the storekeeper ("phiếu nhập kho có cảnh báo") and one Invalid (item outside the contract).
+    /// </summary>
+    private async Task SeedReceiptsAsync(CancellationToken ct)
+    {
+        var contractId = await AsSystemAsync(sp => sp.GetRequiredService<AppDbContext>().Contracts
+            .Where(c => c.Number == ContractEffective && c.Status == ContractStatus.Effective).Select(c => (Guid?)c.Id).FirstOrDefaultAsync(ct), ct);
+        if (contractId is null)
+        {
+            return;
+        }
+
+        async Task<HisIngestResultDto> SimulateAsync(SimulationScenario scenario, int lines) =>
+            await AsSystemAsync(async sp => Value(await sp.GetRequiredService<HisSimulator>().SimulateAsync(
+                new SimulateReceiptRequest(contractId, ReceiptType.Receipt, scenario, SimulationMode.Push, true, lines), ct)).Result!, ct);
+
+        // 1. HIS đẩy phiếu hợp lệ (theo đơn gọi hàng còn mở) → ký đủ 5 chữ ký; người ký ghi lý do nếu phiếu có cảnh báo.
+        var signed = await SimulateAsync(SimulationScenario.Valid, 3);
+        var documentId = await AsSystemAsync(sp => sp.GetRequiredService<AppDbContext>().WarehouseReceipts.Where(r => r.Id == signed.ReceiptId)
+            .Select(r => r.DocumentId!.Value).FirstAsync(ct), ct);
+        foreach (var signer in new[] { "thukho", "ncc2", "ketoankho", "truongkhoa", "ketoantruong" })
+        {
+            await AsAsync(signer, sp => SignAsync(sp, documentId, ct, "Đã kiểm tra thực tế hàng nhập, đồng ý"), ct);
+        }
+
+        // 2. Phiếu có cảnh báo (đơn giá thấp hơn HĐ, hạn dùng gần, chưa có hóa đơn) chờ thủ kho; 3. phiếu không hợp lệ.
+        await SimulateAsync(SimulationScenario.Warning, 2);
+        await SimulateAsync(SimulationScenario.Invalid, 1);
+    }
+    /// <summary>Runs without a signed-in user, like a call from the HIS.</summary>
+    private async Task<T> AsSystemAsync<T>(Func<IServiceProvider, Task<T>> action, CancellationToken ct)
+    {
+        ct.ThrowIfCancellationRequested();
+        using var scope = services.CreateScope();
+        return await action(scope.ServiceProvider);
     }
 
     private async Task<bool> GotenbergReadyAsync(CancellationToken ct)
@@ -256,11 +303,12 @@ internal sealed class DemoProcurementSeeder(IServiceProvider services, IHttpClie
         Value(await sp.GetRequiredService<WorkflowService>().ApproveAsync(stepId, new ApproveStepRequest(comment, false), ct));
     }
 
-    private static async Task SignAsync(IServiceProvider sp, Guid documentId, CancellationToken ct)
+    private static async Task SignAsync(IServiceProvider sp, Guid documentId, CancellationToken ct, string? reasonIfRequired = null)
     {
         var wf = Value(await sp.GetRequiredService<WorkflowService>().GetForDocumentAsync(documentId, ct));
         var stepId = wf?.MyStepId ?? throw new InvalidOperationException("Demo seeding: the user has no signing step.");
-        Value(await sp.GetRequiredService<SigningService>().BeginAsync(stepId, new BeginSignRequest("MOCK", null, null), ct));
+        var comment = wf.Gate?.ReasonRequired == true ? reasonIfRequired : null;
+        Value(await sp.GetRequiredService<SigningService>().BeginAsync(stepId, new BeginSignRequest("MOCK", null, comment), ct));
     }
 
     private static T Value<T>(Result<T> result) =>

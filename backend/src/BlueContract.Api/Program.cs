@@ -167,6 +167,20 @@ try
     {
         app.Services.GetRequiredService<IRecurringJobManager>().AddOrUpdate<BlueContract.Infrastructure.Jobs.WorkflowReminderJob>(
             BlueContract.Infrastructure.Jobs.WorkflowReminderJob.Id, job => job.RunAsync(CancellationToken.None), Cron.Hourly());
+
+        // Spec §6.4 B1: optional periodic pull of warehouse receipts from the HIS.
+        var hisOptions = app.Configuration.GetSection(BlueContract.Infrastructure.Integration.HisOptions.SectionName).Get<BlueContract.Infrastructure.Integration.HisOptions>()
+            ?? new BlueContract.Infrastructure.Integration.HisOptions();
+        var recurring = app.Services.GetRequiredService<IRecurringJobManager>();
+        if (hisOptions.PullEnabled)
+        {
+            recurring.AddOrUpdate<BlueContract.Infrastructure.Jobs.HisReceiptPullJob>(
+                BlueContract.Infrastructure.Jobs.HisReceiptPullJob.Id, job => job.RunAsync(CancellationToken.None), hisOptions.PullCron);
+        }
+        else
+        {
+            recurring.RemoveIfExists(BlueContract.Infrastructure.Jobs.HisReceiptPullJob.Id);
+        }
     }
 
     await app.RunAsync();

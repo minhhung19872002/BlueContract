@@ -70,3 +70,20 @@ public sealed class WorkflowReminderJob(AppDbContext db, WorkflowAccess access, 
         }
     }
 }
+
+/// <summary>Periodic pull of warehouse receipts from the HIS (spec §6.4 B1 "pull định kỳ", His:PullEnabled / His:PullCron).</summary>
+public sealed class HisReceiptPullJob(BlueContract.Application.Integration.IntegrationLogService integration, Microsoft.Extensions.Options.IOptions<BlueContract.Infrastructure.Integration.HisOptions> options, ILogger<HisReceiptPullJob> logger)
+{
+    public const string Id = "his-receipt-pull";
+
+    [DisableConcurrentExecution(600)]
+    [AutomaticRetry(Attempts = 0)]
+    public async Task RunAsync(CancellationToken ct)
+    {
+        var result = await integration.PullAsync(options.Value.PullLookbackDays, ct);
+        if (result.Received > 0 || result.Failed > 0)
+        {
+            logger.LogInformation("HIS pull: {Received} receipts, {Created} created, {Updated} updated, {Failed} failed", result.Received, result.Created, result.Updated, result.Failed);
+        }
+    }
+}

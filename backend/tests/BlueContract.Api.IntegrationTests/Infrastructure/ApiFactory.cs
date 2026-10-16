@@ -27,6 +27,10 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         .WithWaitStrategy(Wait.ForUnixContainer().UntilHttpRequestIsSucceeded(r => r.ForPort(3000).ForPath("/health")))
         .Build();
 
+    public const string HisApiKey = "his-test-key";
+
+    public const string HisSecret = "his-test-secret-0123456789abcdef";
+
     public const string OnlyOfficeSecret = "integration-onlyoffice-secret-0123456789abcdef";
 
     public async Task InitializeAsync()
@@ -78,6 +82,10 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         builder.UseSetting("Email:Enabled", "false");
         builder.UseSetting("Hangfire:ServerEnabled", "false");
         builder.UseSetting("Signing:MockRemoteDelaySeconds", "0");
+        builder.UseSetting("HisInbound:Clients:0:Name", "HIS-test");
+        builder.UseSetting("HisInbound:Clients:0:ApiKey", HisApiKey);
+        builder.UseSetting("HisInbound:Clients:0:Secret", HisSecret);
+        builder.UseSetting("HisInbound:DevEndpoints", "true");
     }
 }
 

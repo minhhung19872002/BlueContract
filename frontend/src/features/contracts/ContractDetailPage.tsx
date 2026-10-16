@@ -46,6 +46,7 @@ import { StatusTag } from '../../components/StatusTag';
 import { PageHeader, useApiError } from '../../components/common';
 import { formatDate, formatDateTime, formatMoney, formatQuantity } from '../../utils/format';
 import { WorkflowCard, WorkflowHistory } from '../signing/WorkflowPanel';
+import { ContractReceipts } from '../receipts/ContractReceipts';
 import { AppendixDialog } from './AppendixDialog';
 import { AccountantReviewPanel, SupplierReviewPanel } from './ContractReviewPanels';
 
@@ -509,6 +510,11 @@ export function ContractDetailPage() {
                   ]}
                 />
               ),
+            },
+            {
+              key: 'receipts',
+              label: 'Nhập kho',
+              children: <ContractReceipts contractId={c.id} base={base} />,
             },
             {
               key: 'history',

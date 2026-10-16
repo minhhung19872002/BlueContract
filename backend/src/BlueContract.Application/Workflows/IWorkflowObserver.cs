@@ -32,3 +32,14 @@ public interface IWorkflowObserver
 
     Task OnChangedAsync(WorkflowChange change, CancellationToken ct);
 }
+
+/// <summary>
+/// Business precondition checked before anyone approves or signs a step of a module's document (spec §5.5: an Invalid
+/// receipt cannot be signed; a Warning receipt needs the signer's reason). Null = no restriction.
+/// </summary>
+public interface IWorkflowGuard
+{
+    bool Handles(DocumentType type);
+
+    Task<WorkflowGateDto?> EvaluateAsync(WorkflowInstance workflow, WorkflowStepInstance step, Document document, CancellationToken ct);
+}

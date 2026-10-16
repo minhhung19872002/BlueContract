@@ -83,6 +83,11 @@ public sealed class SigningService(
             return Error.Forbidden(standing.DenyReason ?? "FORBIDDEN");
         }
 
+        if (await workflows.CheckGateAsync(wf!, step, r.Comment, ct) is { } blocked)
+        {
+            return blocked;
+        }
+
         var providerCode = step.ActionType == WorkflowActionType.Initial && !defaults.InitialRequiresCa
             ? SigningDefaults.InitialStampProvider
             : r.Provider ?? defaults.DefaultProvider;

@@ -5,8 +5,11 @@ using BlueContract.Application.Bids;
 using BlueContract.Application.Catalog;
 using BlueContract.Application.Contracts;
 using BlueContract.Application.Documents;
+using BlueContract.Application.Integration;
 using BlueContract.Application.Notifications;
 using BlueContract.Application.Proposals;
+using BlueContract.Application.Receipts;
+using BlueContract.Application.Receipts.Validation;
 using BlueContract.Application.Signing;
 using BlueContract.Application.Workflows;
 using FluentValidation;
@@ -60,6 +63,19 @@ public static class DependencyInjection
         services.AddScoped<CallOrderService>();
         services.AddScoped<IWorkflowObserver, ProposalWorkflowObserver>();
         services.AddScoped<IWorkflowObserver, ProposalSummaryWorkflowObserver>();
+        services.AddSingleton(new ReceiptValidator(ReceiptValidator.DefaultRules));
+        services.AddScoped<ReceiptValidationLoader>();
+        services.AddScoped<ReceiptDocumentData>();
+        services.AddScoped<ReceiptProcessing>();
+        services.AddScoped<HisReceiptIngestion>();
+        services.AddScoped<ReceiptService>();
+        services.AddScoped<IWorkflowObserver, ReceiptWorkflowObserver>();
+        services.AddScoped<IWorkflowGuard, ReceiptWorkflowGuard>();
+        services.AddScoped<HisInboundService>();
+        services.AddScoped<IntegrationLogWriter>();
+        services.AddScoped<IntegrationLogService>();
+        services.AddScoped<HisSimulator>();
+        services.AddSingleton<IMockHisReceiptQueue, MockHisReceiptQueue>();
         return services;
     }
 }
