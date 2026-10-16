@@ -166,7 +166,14 @@ public sealed class CallOrdersController(CallOrderService service, IExcelExporte
     [HasPermission(P.CallOrderConfirm)]
     public async Task<IActionResult> Confirm(Guid id, ConfirmCallRequest request, CancellationToken ct) => FromResult(await service.ConfirmAsync(id, request, ct));
 
+    /// <summary>Hủy đơn gọi hàng; the optional reason goes to the supplier's email and the timeline.</summary>
     [HttpPost("{id:guid}/cancel")]
     [HasPermission(P.CallOrderCreate)]
-    public async Task<IActionResult> Cancel(Guid id, CancellationToken ct) => FromResult(await service.CancelAsync(id, ct));
+    public async Task<IActionResult> Cancel(Guid id, [FromBody(EmptyBodyBehavior = Microsoft.AspNetCore.Mvc.ModelBinding.EmptyBodyBehavior.Allow)] CancelCallRequest? request, CancellationToken ct) =>
+        FromResult(await service.CancelAsync(id, request?.Reason, ct));
+
+    /// <summary>Diễn biến đơn gọi hàng: lập, gửi NCC, xác nhận, nhập kho, quá hạn, hủy.</summary>
+    [HttpGet("{id:guid}/timeline")]
+    [HasPermission(P.CallOrderView)]
+    public async Task<ActionResult<List<TimelineEventDto>>> Timeline(Guid id, CancellationToken ct) => FromResult(await service.TimelineAsync(id, ct));
 }

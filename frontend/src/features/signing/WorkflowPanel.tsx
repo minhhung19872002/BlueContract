@@ -1,4 +1,4 @@
-import { Alert, App, Button, Empty, Form, Input, Modal, Tooltip } from 'antd';
+import { Alert, App, Button, Form, Input, Modal, Tooltip } from 'antd';
 import {
   Ban,
   Check,
@@ -26,11 +26,7 @@ import { formatDateTime } from '../../utils/format';
 import { ReturnDialog } from './ReturnDialog';
 import { SignButton } from './SignButton';
 import './workflowPanel.css';
-
-const initials = (name?: string | null) => {
-  const parts = (name ?? 'Hệ thống').trim().split(/\s+/).filter(Boolean);
-  return ((parts.length > 1 ? (parts.at(-2)?.[0] ?? '') : '') + (parts.at(-1)?.[0] ?? '')).toUpperCase();
-};
+import { Timeline } from '../../components/Timeline';
 
 const EVENT_TONE: Record<string, Tone> = {
   Started: 'primary',
@@ -349,44 +345,25 @@ export function WorkflowSteps({ wf, onDone }: { wf: WorkflowDto; onDone?: () => 
   );
 }
 
-/** Ý kiến / sự kiện của luồng (trả lại, ý kiến chuyển tiếp, chữ ký...) as an avatar timeline. */
-export function WorkflowHistory({ wf }: { wf: WorkflowDto }) {
-  if (wf.events.length === 0)
-    return <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Chưa có ý kiến" />;
-  const events = [...wf.events].reverse();
+/** Ý kiến / sự kiện của luồng (trả lại, ý kiến chuyển tiếp, chữ ký...) as an avatar timeline, newest first. */
+export function WorkflowTimeline({ wf }: { wf: WorkflowDto }) {
   return (
-    <div className="wf-timeline">
-      {events.map((e, i) => {
-        const tone = EVENT_TONE[e.type] ?? 'neutral';
-        return (
-          <div key={i} className="wf-timeline__item">
-            <div className="wf-timeline__rail">
-              <span
-                className="wf-timeline__avatar"
-                style={{ background: `var(--bp-${tone}-bg)`, color: `var(--bp-${tone}-fg)` }}
-              >
-                {initials(e.actorName)}
-              </span>
-              {i < events.length - 1 && <span className="wf-timeline__line" />}
-            </div>
-            <div className="wf-timeline__body">
-              <div className="wf-timeline__head">
-                <span className="wf-timeline__who">{e.actorName ?? 'Hệ thống'}</span>
-                <StatusTag domain="workflowEvent" value={e.type} />
-                {e.stepName && <span className="wf-timeline__step">· {e.stepName}</span>}
-              </div>
-              <div className="wf-timeline__at">{formatDateTime(e.at)}</div>
-              {e.type === 'Returned' && e.targetOrder !== null && e.targetOrder !== undefined && (
-                <div className="wf-timeline__at">
-                  Trả về: {e.targetOrder === 0 ? 'người lập' : `bước ${e.targetOrder}`}
-                </div>
-              )}
-              {e.note && <div className="wf-timeline__note">{e.note}</div>}
-            </div>
-          </div>
-        );
-      })}
-    </div>
+    <Timeline
+      empty="Chưa có ý kiến"
+      items={[...wf.events].reverse().map((e, i) => ({
+        key: i,
+        tone: EVENT_TONE[e.type] ?? 'neutral',
+        who: e.actorName,
+        tag: <StatusTag domain="workflowEvent" value={e.type} />,
+        context: e.stepName,
+        at: formatDateTime(e.at),
+        lines:
+          e.type === 'Returned' && e.targetOrder !== null && e.targetOrder !== undefined
+            ? [`Trả về: ${e.targetOrder === 0 ? 'người lập' : `bước ${e.targetOrder}`}`]
+            : undefined,
+        note: e.note,
+      }))}
+    />
   );
 }
 
@@ -462,7 +439,7 @@ export function WorkflowCard({ wf, onDone }: { wf: WorkflowDto; onDone?: () => v
           <span className="wf-card__title">Ý kiến &amp; lịch sử</span>
         </div>
         <div className="wf-card__body">
-          <WorkflowHistory wf={wf} />
+          <WorkflowTimeline wf={wf} />
         </div>
       </section>
       {wf.signatures.length > 0 && (

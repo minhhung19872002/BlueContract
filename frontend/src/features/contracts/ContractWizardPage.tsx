@@ -46,6 +46,7 @@ import { useFormDraft } from '../../hooks/useFormDraft';
 import { DocHeader, FormSteps, StickyActionBar } from '../../components/layout';
 import { ArrowLeft } from 'lucide-react';
 import { MoneyInput, QuantityInput, SupplierSelect } from '../../components/inputs';
+import { ItemPicker } from '../../components/ItemPicker';
 import { formatMoney, formatQuantity } from '../../utils/format';
 import { TAX_CODE_RULE, USER_NAME_RULE } from '../../utils/validation';
 
@@ -403,10 +404,14 @@ function FreeLines({
   lines,
   setLines,
   defaultVat,
+  categoryId,
+  supplierId,
 }: {
   lines: Line[];
   setLines: (l: Line[]) => void;
   defaultVat: number;
+  categoryId?: string;
+  supplierId?: string;
 }) {
   const patch = (key: string, p: Partial<Line>) =>
     setLines(lines.map((l) => (l.key === key ? { ...l, ...p } : l)));
@@ -546,6 +551,33 @@ function FreeLines({
       >
         Thêm dòng
       </Button>
+      <ItemPicker
+        categoryId={categoryId}
+        exclude={lines.flatMap((l) => (l.itemId ? [l.itemId] : []))}
+        // Another supplier's bid item cannot go into this contract (CONTRACT_ITEM_NOT_FOUND).
+        accept={(i) => !i.bidDecisionId || i.supplierId === supplierId}
+        placeholder="…hoặc chọn hàng hóa có sẵn trong danh mục"
+        style={{ width: '100%', marginTop: 8 }}
+        onPick={(i) =>
+          setLines([
+            ...lines,
+            {
+              key: newKey(),
+              itemId: i.id,
+              code: i.code,
+              name: i.name,
+              unit: i.unit,
+              activeIngredient: i.activeIngredient ?? undefined,
+              specification: i.specification ?? undefined,
+              manufacturer: i.manufacturer ?? undefined,
+              country: i.country ?? undefined,
+              quantity: 1,
+              unitPrice: i.winningUnitPrice ?? 0,
+              vatRate: defaultVat,
+            },
+          ])
+        }
+      />
     </>
   );
 }
@@ -1002,7 +1034,13 @@ function ContractWizard({
                 defaultVat={defaultVat}
               />
             ) : procurementType === 'NonBidding' ? (
-              <FreeLines lines={lines} setLines={editLines} defaultVat={defaultVat} />
+              <FreeLines
+                lines={lines}
+                setLines={editLines}
+                defaultVat={defaultVat}
+                categoryId={categoryId}
+                supplierId={supplierId}
+              />
             ) : (
               <Empty description="Chọn quyết định thầu và nhà cung cấp ở bước trước" />
             )}

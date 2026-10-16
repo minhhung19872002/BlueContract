@@ -10,7 +10,6 @@ import {
   Empty,
   Form,
   Input,
-  Popconfirm,
   Row,
   Select,
   Space,
@@ -20,7 +19,7 @@ import {
 } from 'antd';
 import { CheckOutlined, PhoneOutlined, StopOutlined } from '@ant-design/icons';
 import { useState } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import dayjs from '../../i18n/dayjs';
 import { useLookup, usePagedList } from '../../api/admin';
 import {
@@ -35,11 +34,14 @@ import {
   type CallOrderListItemDto,
   type SummaryLineDto,
   type SummaryListItemDto,
+  useCallOrderTimeline,
 } from '../../api/proposals';
 import { useAuth } from '../../auth/useAuth';
 import { P } from '../../auth/permissions';
 import { DataTable } from '../../components/DataTable';
-import { StatusTag, statusOptions } from '../../components/StatusTag';
+import { StatusTag, statusOptions, type Tone } from '../../components/StatusTag';
+import { Timeline } from '../../components/Timeline';
+import { ReasonDialog } from '../../components/ReasonDialog';
 import { ExportExcelButton, PageHeader, useApiError } from '../../components/common';
 import { useFormDraft } from '../../hooks/useFormDraft';
 import { DocHeader } from '../../components/layout';
@@ -423,7 +425,10 @@ export function CallOrderDetailPage() {
       })),
     }),
   );
-  const cancel = useProposalAction(() => callOrderApi.cancel(id!));
+  const cancel = useProposalAction((reason: string) => callOrderApi.cancel(id!, reason));
+  const [cancelling, setCancelling] = useState(false);
+  const timeline = useCallOrderTimeline(id);
+  const { isSupplier } = useAuth();
 
   if (!o) return <Card loading={order.isLoading} />;
   const missingReason = o.lines.some(
@@ -448,14 +453,9 @@ export function CallOrderDetailPage() {
         }
         actions={
           o.canCancel && (
-            <Popconfirm
-              title="Hủy đơn gọi hàng?"
-              onConfirm={() => cancel.mutateAsync().then(() => message.success('Đã hủy đơn'), onError)}
-            >
-              <Button danger icon={<StopOutlined />}>
-                Hủy đơn
-              </Button>
-            </Popconfirm>
+            <Button danger icon={<StopOutlined />} onClick={() => setCancelling(true)}>
+              Hủy đơn
+            </Button>
           )
         }
       />
@@ -596,9 +596,55 @@ export function CallOrderDetailPage() {
               label: 'Đơn gọi hàng (PDF)',
               children: o.documentId ? <DocumentPdf documentId={o.documentId} /> : <Empty />,
             },
+            {
+              key: 'timeline',
+              label: 'Diễn biến',
+              children: (
+                <Timeline
+                  items={(timeline.data ?? []).map((e, i) => ({
+                    key: i,
+                    tone: TIMELINE_TONE[e.kind] ?? 'neutral',
+                    who: e.actor ?? (e.kind === 'receipt' ? 'Kho' : null),
+                    tag: e.status ? <StatusTag domain="receiptStatus" value={e.status} /> : undefined,
+                    context: e.link && !isSupplier ? <Link to={e.link}>{e.title}</Link> : e.title,
+                    at: formatDateTime(e.at),
+                    note: e.note,
+                  }))}
+                />
+              ),
+            },
           ]}
         />
       </Card>
+      <ReasonDialog
+        open={cancelling}
+        title={`Hủy đơn gọi hàng ${o.number}?`}
+        description="Số lượng đã gọi được trả lại phiếu tổng hợp; nhà cung cấp nhận thông báo kèm lý do."
+        okText="Hủy đơn"
+        reasonLabel="Lý do hủy"
+        loading={cancel.isPending}
+        onClose={() => setCancelling(false)}
+        onConfirm={async (reason) => {
+          try {
+            await cancel.mutateAsync(reason);
+            message.success('Đã hủy đơn');
+          } catch (e) {
+            onError(e);
+            throw e;
+          }
+        }}
+      />
     </>
   );
 }
+
+const TIMELINE_TONE: Record<string, Tone> = {
+  created: 'primary',
+  sent: 'info',
+  confirmed: 'success',
+  shortage: 'warning',
+  rejected: 'danger',
+  receipt: 'teal',
+  overdue: 'orange',
+  cancelled: 'danger',
+};

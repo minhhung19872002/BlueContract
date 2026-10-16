@@ -1,18 +1,4 @@
-import {
-  App,
-  Button,
-  Card,
-  Empty,
-  Form,
-  Input,
-  Modal,
-  Popconfirm,
-  Progress,
-  Space,
-  Table,
-  Tabs,
-  Typography,
-} from 'antd';
+import { App, Button, Card, Empty, Modal, Popconfirm, Progress, Space, Table, Tabs, Typography } from 'antd';
 import {
   EditOutlined,
   FileAddOutlined,
@@ -42,11 +28,12 @@ import { P } from '../../auth/permissions';
 import { DocEditor } from '../../components/DocEditor';
 import { PdfViewer } from '../../components/PdfViewer';
 import { StatusTag } from '../../components/StatusTag';
+import { ReasonDialog } from '../../components/ReasonDialog';
 import { useApiError } from '../../components/common';
 import { Banner, DocHeader, DocKpis, InfoGrid, Panel, type DocKpi } from '../../components/layout';
 import dayjs from '../../i18n/dayjs';
 import { formatDate, formatDateTime, formatMoney, formatQuantity } from '../../utils/format';
-import { WorkflowCard, WorkflowHistory } from '../signing/WorkflowPanel';
+import { WorkflowCard, WorkflowTimeline } from '../signing/WorkflowPanel';
 import { ContractReceipts } from '../receipts/ContractReceipts';
 import { ContractPayments } from '../payments/ContractPayments';
 import { AppendixDialog } from './AppendixDialog';
@@ -106,7 +93,6 @@ export function ContractDetailPage() {
   const [session, setSession] = useState<EditorSessionDto | null>(null);
   const [cancelling, setCancelling] = useState(false);
   const [appendixOpen, setAppendixOpen] = useState(false);
-  const [form] = Form.useForm<{ reason: string }>();
   const submit = useContractAction(() => contractApi.submit(id!));
   const cancel = useContractAction((reason: string) => contractApi.cancel(id!, reason));
   const submitAppendix = useContractAction((appendixId: string) => contractApi.submitAppendix(appendixId));
@@ -610,7 +596,7 @@ export function ContractDetailPage() {
                 <div className="contract-tab-stack">
                   {workflow.data && (
                     <Panel title="Ý kiến & xử lý trong luồng ký">
-                      <WorkflowHistory wf={workflow.data} />
+                      <WorkflowTimeline wf={workflow.data} />
                     </Panel>
                   )}
                   <Panel title="Nhật ký thay đổi" flush>
@@ -623,30 +609,24 @@ export function ContractDetailPage() {
         />
       </Card>
 
-      <Modal
-        title="Hủy hợp đồng"
+      <ReasonDialog
         open={cancelling}
-        onCancel={() => setCancelling(false)}
+        title="Hủy hợp đồng?"
+        description="Hợp đồng chuyển sang “Đã hủy” và không dùng được nữa; tài liệu đang ký bị dừng."
         okText="Hủy hợp đồng"
-        okButtonProps={{ danger: true, loading: cancel.isPending }}
-        onOk={async () => {
-          const v = await form.validateFields();
+        reasonLabel="Lý do hủy"
+        loading={cancel.isPending}
+        onClose={() => setCancelling(false)}
+        onConfirm={async (reason) => {
           try {
-            await cancel.mutateAsync(v.reason);
+            await cancel.mutateAsync(reason);
             message.success('Đã hủy hợp đồng');
-            setCancelling(false);
           } catch (e) {
             onError(e);
+            throw e;
           }
         }}
-        destroyOnHidden
-      >
-        <Form form={form} layout="vertical">
-          <Form.Item name="reason" label="Lý do hủy" rules={[{ required: true, whitespace: true }]}>
-            <Input.TextArea rows={3} />
-          </Form.Item>
-        </Form>
-      </Modal>
+      />
 
       <AppendixDialog contract={c} open={appendixOpen} onClose={() => setAppendixOpen(false)} />
 

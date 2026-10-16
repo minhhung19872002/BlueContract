@@ -7061,7 +7061,50 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** Hủy đơn gọi hàng; the optional reason goes to the supplier's email and the timeline. */
         post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": null | components["schemas"]["CancelCallRequest"];
+                    "text/json": null | components["schemas"]["CancelCallRequest"];
+                    "application/*+json": null | components["schemas"]["CancelCallRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/call-orders/{id}/timeline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Diễn biến đơn gọi hàng: lập, gửi NCC, xác nhận, nhập kho, quá hạn, hủy. */
+        get: {
             parameters: {
                 query?: never;
                 header?: never;
@@ -7078,11 +7121,13 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": unknown;
+                        "application/json": components["schemas"]["TimelineEventDto"][];
                     };
                 };
             };
         };
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -10057,6 +10102,9 @@ export interface components {
         };
         /** @enum {unknown} */
         CallOrderStatus: "Sent" | "SupplierConfirmed" | "PartiallyConfirmed" | "Rejected" | "Delivered" | "Cancelled";
+        CancelCallRequest: {
+            reason: null | string;
+        };
         CancelContractRequest: {
             reason: null | string;
         };
@@ -12505,6 +12553,20 @@ export interface components {
         TestMailRequest: {
             to: string;
             settings: components["schemas"]["SaveMailSettingsRequest"];
+        };
+        /**
+         * @description One event of a document's timeline (đơn gọi hàng: lập, gửi NCC, NCC xác nhận / thiếu / từ chối, nhập kho, quá hạn, hủy).
+         *     Kind drives the icon/tone; Status is the raw status of a linked record (e.g. a receipt) when there is one.
+         */
+        TimelineEventDto: {
+            /** Format: date-time */
+            at: string;
+            kind: string;
+            title: string;
+            actor: null | string;
+            note: null | string;
+            link: null | string;
+            status: null | string;
         };
         TwoFactorLoginRequest: {
             challenge: string;

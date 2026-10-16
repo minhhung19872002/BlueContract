@@ -8546,6 +8546,74 @@
         "tags": [
           "CallOrders"
         ],
+        "summary": "Hủy đơn gọi hàng; the optional reason goes to the supplier's email and the timeline.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/components/schemas/CancelCallRequest"
+                  }
+                ]
+              }
+            },
+            "text/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/components/schemas/CancelCallRequest"
+                  }
+                ]
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/components/schemas/CancelCallRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    },
+    "/api/call-orders/{id}/timeline": {
+      "get": {
+        "tags": [
+          "CallOrders"
+        ],
+        "summary": "Diễn biến đơn gọi hàng: lập, gửi NCC, xác nhận, nhập kho, quá hạn, hủy.",
         "parameters": [
           {
             "name": "id",
@@ -8561,7 +8629,14 @@
           "200": {
             "description": "OK",
             "content": {
-              "application/json": { }
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TimelineEventDto"
+                  }
+                }
+              }
             }
           }
         }
@@ -13003,6 +13078,20 @@
           "Delivered",
           "Cancelled"
         ]
+      },
+      "CancelCallRequest": {
+        "required": [
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
       },
       "CancelContractRequest": {
         "required": [
@@ -22227,6 +22316,55 @@
             "$ref": "#/components/schemas/SaveMailSettingsRequest"
           }
         }
+      },
+      "TimelineEventDto": {
+        "required": [
+          "at",
+          "kind",
+          "title",
+          "actor",
+          "note",
+          "link",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "actor": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "note": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "link": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "description": "One event of a document's timeline (đơn gọi hàng: lập, gửi NCC, NCC xác nhận / thiếu / từ chối, nhập kho, quá hạn, hủy).\r\nKind drives the icon/tone; Status is the raw status of a linked record (e.g. a receipt) when there is one."
       },
       "TwoFactorLoginRequest": {
         "required": [

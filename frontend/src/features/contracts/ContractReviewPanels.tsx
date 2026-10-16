@@ -1,19 +1,4 @@
-import {
-  Alert,
-  App,
-  Button,
-  Card,
-  Empty,
-  Form,
-  Input,
-  Modal,
-  Radio,
-  Space,
-  Table,
-  Tag,
-  Typography,
-  Upload,
-} from 'antd';
+import { Alert, App, Button, Card, Empty, Radio, Space, Table, Tag, Typography, Upload } from 'antd';
 import {
   CheckOutlined,
   EditOutlined,
@@ -31,6 +16,7 @@ import {
 } from '../../api/procurement';
 import { useApproveStep, useReturnStep } from '../../api/signing';
 import { StatusTag } from '../../components/StatusTag';
+import { ReasonDialog } from '../../components/ReasonDialog';
 import { useApiError } from '../../components/common';
 import { formatDateTime } from '../../utils/format';
 
@@ -129,7 +115,6 @@ export function SupplierReviewPanel({
   const { message } = App.useApp();
   const onError = useApiError();
   const [sending, setSending] = useState(false);
-  const [form] = Form.useForm<{ comment?: string }>();
   const pending = revisions.data?.revisions.length ?? contract.actions.pendingRevisionCount;
 
   return (
@@ -183,38 +168,27 @@ export function SupplierReviewPanel({
       </Space>
       {pending > 0 && <RevisionTable revisions={revisions.data?.revisions ?? []} />}
 
-      <Modal
-        title="Gửi lại hợp đồng cho Bệnh viện"
+      <ReasonDialog
         open={sending}
-        onCancel={() => setSending(false)}
+        title="Gửi lại hợp đồng cho Bệnh viện"
         okText="Gửi lại"
-        confirmLoading={respond.isPending}
-        onOk={async () => {
-          const v = await form.validateFields();
+        danger={false}
+        reasonLabel="Ý kiến gửi kèm"
+        placeholder="Ý kiến về các sửa đổi đề xuất…"
+        required={pending === 0}
+        requiredMessage="Chưa có sửa đổi — vui lòng nhập ý kiến"
+        loading={respond.isPending}
+        onClose={() => setSending(false)}
+        onConfirm={async (comment) => {
           try {
-            await respond.mutateAsync({ agree: false, comment: v.comment });
+            await respond.mutateAsync({ agree: false, comment: comment || undefined });
             message.success('Đã gửi lại — Kế toán sẽ xem xét các đề xuất sửa đổi');
-            setSending(false);
           } catch (e) {
             onError(e);
+            throw e;
           }
         }}
-        destroyOnHidden
-      >
-        <Form form={form} layout="vertical">
-          <Form.Item
-            name="comment"
-            label="Ý kiến gửi kèm"
-            rules={
-              pending === 0
-                ? [{ required: true, whitespace: true, message: 'Chưa có sửa đổi — vui lòng nhập ý kiến' }]
-                : []
-            }
-          >
-            <Input.TextArea rows={4} />
-          </Form.Item>
-        </Form>
-      </Modal>
+      />
     </Card>
   );
 }
@@ -241,7 +215,6 @@ export function AccountantReviewPanel({
   const { message, modal } = App.useApp();
   const onError = useApiError();
   const [returning, setReturning] = useState(false);
-  const [form] = Form.useForm<{ reason: string }>();
   const list = revisions.data?.revisions ?? [];
   const stepId = contract.actions.accountantReviewStepId!;
 
@@ -308,37 +281,25 @@ export function AccountantReviewPanel({
         </Button>
       </Space>
 
-      <Modal
-        title="Gửi lại nhà cung cấp"
+      <ReasonDialog
         open={returning}
-        onCancel={() => setReturning(false)}
+        title="Gửi lại nhà cung cấp"
         okText="Gửi lại NCC"
-        confirmLoading={returnStep.isPending}
-        onOk={async () => {
-          const v = await form.validateFields();
+        danger={false}
+        reasonLabel="Ý kiến của Kế toán"
+        placeholder="VD: Chấp nhận thay đổi thời gian giao hàng, không chấp nhận giảm hạn dùng tối thiểu."
+        loading={returnStep.isPending}
+        onClose={() => setReturning(false)}
+        onConfirm={async (reason) => {
           try {
-            await returnStep.mutateAsync({
-              stepId,
-              toOrder: contract.actions.supplierReviewOrder!,
-              reason: v.reason,
-            });
+            await returnStep.mutateAsync({ stepId, toOrder: contract.actions.supplierReviewOrder!, reason });
             message.success('Đã gửi lại NCC');
-            setReturning(false);
           } catch (e) {
             onError(e);
+            throw e;
           }
         }}
-        destroyOnHidden
-      >
-        <Form form={form} layout="vertical">
-          <Form.Item name="reason" label="Ý kiến của Kế toán" rules={[{ required: true, whitespace: true }]}>
-            <Input.TextArea
-              rows={4}
-              placeholder="VD: Chấp nhận thay đổi thời gian giao hàng, không chấp nhận giảm hạn dùng tối thiểu."
-            />
-          </Form.Item>
-        </Form>
-      </Modal>
+      />
     </Card>
   );
 }

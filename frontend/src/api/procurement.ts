@@ -203,3 +203,22 @@ export const contractApi = {
     await apiClient.post(`${CONTRACTS}/appendices/${appendixId}/cancel`);
   },
 };
+
+/** Catalog search for the item picker (spec §9.3 "ItemPicker"): first page matching the text and filters. */
+export function useItemSearch(
+  search: string,
+  filters: { categoryId?: string; supplierId?: string; isActive?: boolean },
+  enabled = true,
+) {
+  return useQuery({
+    queryKey: [ITEMS, 'picker', search, filters],
+    queryFn: async () =>
+      (
+        await apiClient.get<{ items: ItemDto[]; total: number }>(ITEMS, {
+          params: { search: search || undefined, pageSize: 30, isActive: true, ...filters },
+        })
+      ).data,
+    enabled,
+    placeholderData: (previous) => previous,
+  });
+}

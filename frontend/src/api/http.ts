@@ -62,21 +62,39 @@ apiClient.interceptors.request.use((config) => {
 
 let refreshing: Promise<string | null> | null = null;
 
-/** Single-flight refresh: concurrent 401s share one /refresh call (the refresh cookie rotates on every use). */
+/** Waits between refresh attempts while the API is unreachable (restart / deploy): 0.5 + 1 + 2 + 4 s. */
+export const REFRESH_RETRY_DELAYS_MS = [500, 1000, 2000, 4000];
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/** The server answered and refused the session (expired, revoked…), as opposed to being unreachable. */
+const isRefusal = (e: unknown) =>
+  e instanceof AxiosError && e.response !== undefined && e.response.status >= 400 && e.response.status < 500;
+
+/**
+ * Single-flight refresh: concurrent 401s share one /refresh call (the refresh cookie rotates on every use). While the
+ * API restarts (network error / 502 / 503) the call is retried instead of signing the user out; only a refusal from the
+ * server ends the session.
+ */
 export function refreshAccessToken(): Promise<string | null> {
-  refreshing ??= axios
-    .post<LoginResult>('/api/auth/refresh', null, { withCredentials: true })
-    .then((r) => {
-      authStore.setSession(r.data.accessToken ?? null, r.data.user ?? null);
-      return r.data.accessToken ?? null;
-    })
-    .catch(() => {
-      authStore.clear();
-      return null;
-    })
-    .finally(() => {
-      refreshing = null;
-    });
+  refreshing ??= (async () => {
+    for (let attempt = 0; ; attempt++) {
+      try {
+        const r = await axios.post<LoginResult>('/api/auth/refresh', null, { withCredentials: true });
+        authStore.setSession(r.data.accessToken ?? null, r.data.user ?? null);
+        return r.data.accessToken ?? null;
+      } catch (e) {
+        const delay = REFRESH_RETRY_DELAYS_MS[attempt];
+        if (isRefusal(e) || delay === undefined) {
+          authStore.clear();
+          return null;
+        }
+        await sleep(delay);
+      }
+    }
+  })().finally(() => {
+    refreshing = null;
+  });
   return refreshing;
 }
 

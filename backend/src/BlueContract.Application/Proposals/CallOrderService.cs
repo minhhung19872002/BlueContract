@@ -64,6 +64,14 @@ public sealed record CallOrderDto(
     bool CanConfirm,
     bool CanCancel);
 
+/// <summary>
+/// One event of a document's timeline (đơn gọi hàng: lập, gửi NCC, NCC xác nhận / thiếu / từ chối, nhập kho, quá hạn, hủy).
+/// Kind drives the icon/tone; Status is the raw status of a linked record (e.g. a receipt) when there is one.
+/// </summary>
+public sealed record TimelineEventDto(DateTimeOffset At, string Kind, string Title, string? Actor, string? Note, string? Link, string? Status);
+
+public sealed record CancelCallRequest(string? Reason);
+
 public sealed record CallLineRequest(Guid SummaryLineId, decimal Quantity);
 
 public sealed record CreateCallsRequest(Guid SummaryId, Guid WarehouseId, DateOnly DeliveryDeadline, string? ContactName, string? Note, IReadOnlyList<CallLineRequest> Lines);
@@ -317,7 +325,69 @@ public sealed class CallOrderService(
         return Result.Success();
     }
 
-    public Task<Result> CancelAsync(Guid id, CancellationToken ct) => WithSummaryLockAsync(id, () => CancelLockedAsync(id, ct), ct);
+    public Task<Result> CancelAsync(Guid id, string? reason, CancellationToken ct) => WithSummaryLockAsync(id, () => CancelLockedAsync(id, reason, ct), ct);
+
+    /// <summary>Diễn biến của đơn gọi hàng, oldest first; same visibility as the order itself.</summary>
+    public async Task<Result<List<TimelineEventDto>>> TimelineAsync(Guid id, CancellationToken ct)
+    {
+        var dto = await GetAsync(id, ct);
+        if (!dto.IsSuccess)
+        {
+            return dto.Error!;
+        }
+
+        var o = dto.Value;
+        var order = await db.CallOrders.AsNoTracking().Where(x => x.Id == id).Select(x => new { x.CreatedAt, x.CreatedBy }).FirstAsync(ct);
+        var creator = order.CreatedBy is { } by
+            ? await db.Users.IgnoreQueryFilters().Where(u => u.Id == by).Select(u => u.FullName).FirstOrDefaultAsync(ct)
+            : null;
+        var events = new List<TimelineEventDto>
+        {
+            new(order.CreatedAt, "created", $"Lập đơn gọi hàng từ phiếu tổng hợp {o.SummaryNumber}", creator, o.Note, null, null),
+            new(order.CreatedAt, "sent", $"Gửi nhà cung cấp {o.SupplierName} (thông báo và email), hạn giao {o.DeliveryDeadline:dd/MM/yyyy}", creator, null, null, null),
+        };
+
+        if (o.ConfirmedAt is { } confirmedAt)
+        {
+            var shortages = o.Lines.Count(l => l.ConfirmedQuantity < l.Quantity);
+            var (kind, title) = o.Status switch
+            {
+                CallOrderStatus.Rejected => ("rejected", "Nhà cung cấp từ chối đơn gọi hàng"),
+                CallOrderStatus.PartiallyConfirmed => ("shortage", $"Nhà cung cấp xác nhận thiếu {shortages} mặt hàng"),
+                _ => ("confirmed", "Nhà cung cấp xác nhận đủ số lượng"),
+            };
+            // "Tên hàng: xác nhận 8/10 — lý do" for every short line, after the supplier's own note.
+            var shortLines = o.Lines.Where(l => l.ConfirmedQuantity < l.Quantity).Select(l =>
+                $"{l.ItemName}: xác nhận {l.ConfirmedQuantity?.ToString("0.###", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"))}/"
+                + $"{l.Quantity.ToString("0.###", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"))}"
+                + (string.IsNullOrWhiteSpace(l.ShortageReason) ? string.Empty : $" — {l.ShortageReason}"));
+            var note = string.Join('\n', new[] { o.SupplierNote }.Concat(shortLines).Where(x => !string.IsNullOrWhiteSpace(x)));
+            events.Add(new(confirmedAt, kind, title, o.ConfirmedByName, note.Length == 0 ? null : note, null, null));
+        }
+
+        var receipts = await db.WarehouseReceipts.AsNoTracking().Where(r => r.CallOrderId == id)
+            .Select(r => new { r.Id, r.Number, r.CreatedAt, r.Status }).ToListAsync(ct);
+        events.AddRange(receipts.Select(r => new TimelineEventDto(r.CreatedAt, "receipt", $"Phiếu nhập kho {r.Number}", null, null, $"/nhap-kho/{r.Id}", r.Status.ToString())));
+
+        var key = id.ToString();
+        var cancels = await db.AuditLogs.AsNoTracking().Where(a => a.Action == "CallOrderCancel" && a.EntityType == nameof(CallOrder) && a.EntityId == key)
+            .Select(a => new { a.OccurredAt, a.UserName, a.Note }).ToListAsync(ct);
+        if (cancels.Count > 0)
+        {
+            var actors = cancels.Select(c => c.UserName).Where(n => n != null).ToList();
+            var names = await db.Users.IgnoreQueryFilters().Where(u => actors.Contains(u.UserName)).ToDictionaryAsync(u => u.UserName, u => u.FullName, ct);
+            events.AddRange(cancels.Select(c => new TimelineEventDto(c.OccurredAt, "cancelled", "Bệnh viện hủy đơn gọi hàng",
+                c.UserName is null ? null : names.GetValueOrDefault(c.UserName, c.UserName), c.Note, null, null)));
+        }
+
+        if (o.IsOverdue)
+        {
+            var deadline = new DateTimeOffset(o.DeliveryDeadline.ToDateTime(new TimeOnly(23, 59)), VietnamTime.Offset);
+            events.Add(new(deadline, "overdue", $"Quá hạn giao hàng ({o.DeliveryDeadline:dd/MM/yyyy}) — chưa nhập kho đủ", null, null, null, null));
+        }
+
+        return events.OrderBy(e => e.At).ToList();
+    }
 
     /// <summary>Released quantities go back to the summary line: same lock as <see cref="CreateAsync"/> so no update is lost.</summary>
     private async Task<Result> WithSummaryLockAsync(Guid orderId, Func<Task<Result>> work, CancellationToken ct)
@@ -326,7 +396,7 @@ public sealed class CallOrderService(
         return summaryId is null ? Result.Failure(Error.NotFound()) : await db.SerializedAsync([$"proposal-summary:{summaryId}"], work, ct);
     }
 
-    private async Task<Result> CancelLockedAsync(Guid id, CancellationToken ct)
+    private async Task<Result> CancelLockedAsync(Guid id, string? reason, CancellationToken ct)
     {
         var order = await db.CallOrders.Include(o => o.Lines).FirstOrDefaultAsync(o => o.Id == id, ct);
         if (order is null)
@@ -336,13 +406,16 @@ public sealed class CallOrderService(
 
         var released = order.Cancel();
         await ReleaseAsync(order, released, ct);
+        reason = string.IsNullOrWhiteSpace(reason) ? null : reason.Trim();
+        audit.Log("CallOrderCancel", nameof(CallOrder), order.Id.ToString(), new { order.Number }, reason);
         if (order.DocumentId is { } docId)
         {
             (await db.Documents.FirstAsync(d => d.Id == docId, ct)).Cancel();
         }
 
         var supplierUsers = await db.Users.Where(u => u.SupplierId == order.SupplierId && u.Status == UserStatus.Active).Select(u => u.Id).ToListAsync(ct);
-        await notifications.NotifyAsync(supplierUsers, NotificationTypes.CallOrderSent, $"Bệnh viện hủy đơn gọi hàng {order.Number}", null,
+        await notifications.NotifyAsync(supplierUsers, NotificationTypes.CallOrderSent, $"Bệnh viện hủy đơn gọi hàng {order.Number}",
+            reason is null ? null : $"Lý do: {reason}",
             $"/ncc/goi-hang/{order.Id}", email: true, ct);
         await db.SaveChangesAsync(ct);
         await tracking.RecalculateAsync([.. order.Lines.Select(l => l.ContractItemId)], ct);

@@ -43,6 +43,7 @@ import { useAuth } from '../../auth/useAuth';
 import { P } from '../../auth/permissions';
 import { PdfViewer } from '../../components/PdfViewer';
 import { StatusTag } from '../../components/StatusTag';
+import { ItemPicker } from '../../components/ItemPicker';
 import { useApiError } from '../../components/common';
 import { DocHeader, DocKpis, InfoGrid, Panel } from '../../components/layout';
 import { MoneyInput, QuantityInput, SupplierSelect } from '../../components/inputs';
@@ -607,6 +608,28 @@ export function BidDecisionDetailPage() {
         }}
         destroyOnHidden
       >
+        <div style={{ marginBottom: 12 }}>
+          <ItemPicker
+            categoryId={b?.categoryId}
+            style={{ width: '100%' }}
+            placeholder="Lấy thông tin từ hàng hóa có sẵn trong danh mục (không bắt buộc)"
+            onPick={(i) =>
+              itemForm.setFieldsValue({
+                code: i.code,
+                name: i.name,
+                unit: i.unit,
+                hisKey: i.hisKey ?? undefined,
+                activeIngredient: i.activeIngredient ?? undefined,
+                strength: i.strength ?? undefined,
+                specification: i.specification ?? undefined,
+                manufacturer: i.manufacturer ?? undefined,
+                country: i.country ?? undefined,
+                registrationNumber: i.registrationNumber ?? undefined,
+                bidGroup: i.bidGroup ?? undefined,
+              })
+            }
+          />
+        </div>
         <Form form={itemForm} layout="vertical">
           <Row gutter={12}>
             <Col span={24}>

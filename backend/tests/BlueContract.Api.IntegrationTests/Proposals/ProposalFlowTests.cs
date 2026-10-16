@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using BlueContract.Api.IntegrationTests.Infrastructure;
 using BlueContract.Application.Admin;
 using BlueContract.Application.Common;
@@ -235,6 +236,52 @@ public class ProposalFlowTests(ApiFactory factory)
             await scope.ServiceProvider.GetRequiredService<AppDbContext>().Database
                 .ExecuteSqlInterpolatedAsync($"UPDATE contract_items SET quantity = {original} WHERE id = {itemId}");
         }
+    }
+
+    /// <summary>
+    /// AUDIT-1 §12.4: a call order shows its timeline (lập, gửi NCC, xác nhận, nhập kho, hủy kèm lý do) to the hospital and
+    /// to its supplier, not to another supplier.
+    /// </summary>
+    [Fact]
+    public async Task A_call_order_has_a_timeline_and_is_cancelled_with_a_reason()
+    {
+        var (summaryId, lineId, warehouse) = await ApprovedSummaryAsync(2);
+        using var aggregator = await factory.LoginAsync("tonghopvt");
+        using var created = await aggregator.PostAsJsonAsync("/api/call-orders",
+            new CreateCallsRequest(summaryId, warehouse, DateOnly.FromDateTime(DateTime.UtcNow.AddDays(5)), null, null, [new CallLineRequest(lineId, 1)]), JsonDefaults.Options);
+        created.StatusCode.ShouldBe(HttpStatusCode.OK, await created.Content.ReadAsStringAsync());
+        var orderId = (await created.Content.ReadFromJsonAsync<List<Guid>>())!.Single();
+
+        var timeline = await aggregator.GetFromJsonAsync<List<JsonElement>>($"/api/call-orders/{orderId}/timeline");
+        timeline!.Select(e => e.GetProperty("kind").GetString()).ShouldBe(["created", "sent"]);
+        timeline[0].GetProperty("actor").GetString().ShouldNotBeNullOrWhiteSpace();
+
+        using (var cancelled = await aggregator.PostAsJsonAsync($"/api/call-orders/{orderId}/cancel", new { reason = "Khoa đổi nhu cầu" }))
+        {
+            cancelled.StatusCode.ShouldBe(HttpStatusCode.NoContent, await cancelled.Content.ReadAsStringAsync());
+        }
+
+        timeline = await aggregator.GetFromJsonAsync<List<JsonElement>>($"/api/call-orders/{orderId}/timeline");
+        var cancel = timeline!.Last();
+        cancel.GetProperty("kind").GetString().ShouldBe("cancelled");
+        cancel.GetProperty("note").GetString().ShouldBe("Khoa đổi nhu cầu");
+        cancel.GetProperty("actor").GetString().ShouldNotBeNullOrWhiteSpace();
+        timeline.Select(e => e.GetProperty("at").GetDateTimeOffset()).ShouldBeInOrder(SortDirection.Ascending);
+
+        string ownSupplierUser, otherSupplierUser;
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var supplierId = await db.CallOrders.Where(o => o.Id == orderId).Select(o => o.SupplierId).SingleAsync();
+            string[] demo = ["ncc1", "ncc2", "ncc3"];
+            ownSupplierUser = await db.Users.Where(u => u.SupplierId == supplierId && demo.Contains(u.UserName)).Select(u => u.UserName).FirstAsync();
+            otherSupplierUser = await db.Users.Where(u => u.SupplierId != null && u.SupplierId != supplierId && demo.Contains(u.UserName)).Select(u => u.UserName).FirstAsync();
+        }
+
+        using var own = await factory.LoginAsync(ownSupplierUser);
+        (await own.GetFromJsonAsync<List<JsonElement>>($"/api/call-orders/{orderId}/timeline"))!.ShouldNotBeEmpty();
+        using var other = await factory.LoginAsync(otherSupplierUser);
+        (await other.GetAsync(new Uri($"/api/call-orders/{orderId}/timeline", UriKind.Relative))).StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
 
     /// <summary>AUDIT-1 §10.5: no call for a contract that is liquidated, expired or not yet in force.</summary>

@@ -1,9 +1,10 @@
-import { App, Form, Input, Modal, Radio, Space } from 'antd';
+import { App, Form, Radio, Space } from 'antd';
 import { Undo2 } from 'lucide-react';
 import { useReturnStep, type WorkflowDto } from '../../api/signing';
 import { useApiError } from '../../components/common';
+import { ReasonDialog } from '../../components/ReasonDialog';
 
-/** "Trả lại" dialog (design "Modal xác nhận nguy hiểm"): target step + mandatory reason. Shared by every signing screen. */
+/** "Trả lại" dialog: target step + mandatory reason. Shared by every signing screen. */
 export function ReturnDialog({
   wf,
   open,
@@ -15,66 +16,41 @@ export function ReturnDialog({
   onClose: () => void;
   onDone?: () => void;
 }) {
-  const [form] = Form.useForm<{ toOrder: number; reason: string }>();
   const returnStep = useReturnStep();
   const onError = useApiError();
   const { message } = App.useApp();
   return (
-    <Modal
-      title={
-        <span className="danger-modal__title">
-          <span className="danger-modal__icon" aria-hidden>
-            <Undo2 size={20} strokeWidth={1.75} />
-          </span>
-          Trả lại tài liệu?
-        </span>
-      }
+    <ReasonDialog<{ toOrder: number }>
       open={open}
-      onCancel={onClose}
+      title="Trả lại tài liệu?"
+      icon={<Undo2 size={20} strokeWidth={1.75} />}
+      description="Tài liệu sẽ quay về bước được chọn; luồng ký chuyển sang “Bị trả lại”."
       okText="Trả lại"
-      cancelText="Hủy"
-      okButtonProps={{ danger: true, loading: returnStep.isPending }}
-      onOk={async () => {
-        const v = await form.validateFields();
+      loading={returnStep.isPending}
+      initialValues={{ toOrder: wf.returnTargets[0]?.order }}
+      onClose={onClose}
+      onConfirm={async (reason, v) => {
         try {
-          await returnStep.mutateAsync({ stepId: wf.myStepId!, toOrder: v.toOrder, reason: v.reason });
+          await returnStep.mutateAsync({ stepId: wf.myStepId!, toOrder: v.toOrder, reason });
           message.success('Đã trả lại tài liệu');
-          form.resetFields();
-          onClose();
           onDone?.();
         } catch (e) {
           onError(e);
+          throw e;
         }
       }}
-      destroyOnHidden
     >
-      <p className="danger-modal__body">
-        Tài liệu sẽ quay về bước được chọn; luồng ký chuyển sang “Bị trả lại”.
-      </p>
-      <Form form={form} layout="vertical" initialValues={{ toOrder: wf.returnTargets[0]?.order }}>
-        <Form.Item
-          name="toOrder"
-          label="Trả về bước"
-          rules={[{ required: true, message: 'Chọn bước trả về' }]}
-        >
-          <Radio.Group>
-            <Space direction="vertical">
-              {wf.returnTargets.map((t) => (
-                <Radio key={t.order} value={t.order}>
-                  {t.order === 0 ? t.name : `${t.order}. ${t.name}`}
-                </Radio>
-              ))}
-            </Space>
-          </Radio.Group>
-        </Form.Item>
-        <Form.Item
-          name="reason"
-          label="Lý do"
-          rules={[{ required: true, whitespace: true, message: 'Vui lòng nhập lý do' }]}
-        >
-          <Input.TextArea rows={3} maxLength={2000} showCount placeholder="Nhập lý do…" />
-        </Form.Item>
-      </Form>
-    </Modal>
+      <Form.Item name="toOrder" label="Trả về bước" rules={[{ required: true, message: 'Chọn bước trả về' }]}>
+        <Radio.Group>
+          <Space direction="vertical">
+            {wf.returnTargets.map((t) => (
+              <Radio key={t.order} value={t.order}>
+                {t.order === 0 ? t.name : `${t.order}. ${t.name}`}
+              </Radio>
+            ))}
+          </Space>
+        </Radio.Group>
+      </Form.Item>
+    </ReasonDialog>
   );
 }

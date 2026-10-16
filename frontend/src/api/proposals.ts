@@ -144,7 +144,18 @@ export const callOrderApi = {
   confirm: async (id: string, body: ConfirmCallRequest) => {
     await apiClient.post(`${CALL_ORDERS}/${id}/confirm`, body);
   },
-  cancel: async (id: string) => {
-    await apiClient.post(`${CALL_ORDERS}/${id}/cancel`);
+  cancel: async (id: string, reason?: string) => {
+    await apiClient.post(`${CALL_ORDERS}/${id}/cancel`, { reason: reason ?? null });
   },
 };
+
+export type TimelineEventDto = components['schemas']['TimelineEventDto'];
+
+/** Diễn biến đơn gọi hàng (lập, gửi NCC, xác nhận, nhập kho, quá hạn, hủy), oldest first. */
+export function useCallOrderTimeline(id: string | undefined) {
+  return useQuery({
+    queryKey: [CALL_ORDERS, id, 'timeline'],
+    queryFn: async () => (await apiClient.get<TimelineEventDto[]>(`${CALL_ORDERS}/${id}/timeline`)).data,
+    enabled: !!id,
+  });
+}
