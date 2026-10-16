@@ -175,3 +175,64 @@
     visibility: hidden;
   }
 }
+
+/* ---------- Horizontal ranking bars ---------- */
+.hbar-chart {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hbar-chart__row {
+  display: grid;
+  grid-template-columns: minmax(120px, 240px) minmax(0, 1fr) minmax(90px, auto);
+  gap: 12px;
+  align-items: center;
+  font-size: 13px;
+}
+
+.hbar-chart__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hbar-chart__track {
+  height: 14px;
+  border-radius: 4px;
+  background: var(--bp-hover);
+  overflow: hidden;
+}
+
+.hbar-chart__track > span {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+}
+
+.hbar-chart__value {
+  text-align: right;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.hbar-chart__empty {
+  padding: 24px 0;
+  text-align: center;
+  color: var(--bp-caption);
+}
+
+@media (max-width: 560px) {
+  .hbar-chart__row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .hbar-chart__track {
+    grid-column: 1 / -1;
+    order: 3;
+  }
+}

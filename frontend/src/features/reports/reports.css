@@ -1,0 +1,60 @@
+/* Báo cáo — design/Bao cao.dc.html. */
+.report {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.report .kpi-strip {
+  margin-bottom: 0;
+}
+
+.report__filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.report__label {
+  color: var(--bp-text-2);
+}
+
+.report__spacer {
+  flex: 1;
+}
+
+.report__grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 1200px) {
+  .report__grid {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  }
+}
+
+.report-progress {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.report-progress__bar {
+  display: block;
+  width: 80px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--bp-hover);
+  overflow: hidden;
+}
+
+.report-progress__bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+}
