@@ -106,7 +106,7 @@ public class SystemEndpointsTests(ApiFactory factory)
         await storage.UploadAsync("tests/presigned.txt", input, "text/plain", CancellationToken.None);
 
         var url = await storage.GetPresignedDownloadUrlAsync("tests/presigned.txt", TimeSpan.FromMinutes(5), CancellationToken.None);
-        using var http = new HttpClient();
+        using var http = factory.CreateClient();
         var downloaded = await http.GetByteArrayAsync(url);
 
         downloaded.ShouldBe(bytes);

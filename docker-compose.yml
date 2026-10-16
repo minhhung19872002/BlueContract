@@ -104,7 +104,8 @@ services:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
       ConnectionStrings__Default: Host=postgres;Port=5432;Database=${POSTGRES_DB:-blueprocure};Username=${POSTGRES_USER:-blueprocure};Password=${POSTGRES_PASSWORD:-blueprocure_dev};GSS Encryption Mode=Disable
       Storage__Endpoint: storage:8333
-      Storage__PublicEndpoint: localhost:${S3_PORT:-47900}
+      # Empty: downloads go through the portal (/api/files/…). Set a public S3 domain to hand out presigned S3 URLs instead.
+      Storage__PublicEndpoint: ${STORAGE_PUBLIC_ENDPOINT:-}
       Storage__AccessKey: ${S3_ACCESS_KEY:-blueprocure}
       Storage__SecretKey: ${S3_SECRET_KEY:-blueprocure_s3_dev}
       Storage__Bucket: ${S3_BUCKET:-blueprocure}

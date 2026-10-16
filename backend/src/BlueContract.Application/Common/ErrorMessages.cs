@@ -99,6 +99,7 @@ public static class ErrorMessages
         // Templates & documents
         ["FILE_TOO_LARGE"] = "Tệp vượt quá dung lượng cho phép (20 MB).",
         ["FILE_REQUIRED"] = "Vui lòng chọn tệp tải lên.",
+        ["FILE_LINK_EXPIRED"] = "Đường dẫn tải tệp không hợp lệ hoặc đã hết hạn. Vui lòng mở lại tệp từ hệ thống.",
         ["TEMPLATE_CODE_REQUIRED"] = "Mã mẫu biểu không được để trống.",
         ["TEMPLATE_NAME_REQUIRED"] = "Tên mẫu biểu không được để trống.",
         ["TEMPLATE_CODE_EXISTS"] = "Mã mẫu biểu đã tồn tại.",

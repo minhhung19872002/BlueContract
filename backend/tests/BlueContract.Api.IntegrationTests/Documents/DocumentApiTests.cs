@@ -105,7 +105,7 @@ public class DocumentApiTests(ApiFactory factory)
         Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(bytes)).ShouldBe(rendered.PdfSha256);
 
         var link = await client.GetFromJsonAsync<FileLinkDto>($"/api/documents/{docId}/versions/{v1.Id}/link?format=docx", JsonDefaults.Options);
-        using var http = new HttpClient();
+        using var http = factory.CreateClient();
         (await http.GetByteArrayAsync(link!.Url)).Length.ShouldBe((int)v1.DocxSize!.Value);
     }
 

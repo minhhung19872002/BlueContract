@@ -13,17 +13,20 @@ internal sealed class S3FileStorage : IFileStorage
 {
     private const string ShaMetadataKey = "x-amz-meta-sha256";
 
-    private readonly IMinioClient _client;
-    private readonly IMinioClient _publicClient;
-    private readonly StorageOptions _options;
+    /// <summary>Path of the API endpoint that serves signed download links (FilesController).</summary>
+    public const string LinkPath = "/api/files/";
 
-    public S3FileStorage(IOptions<StorageOptions> options)
+    private readonly IMinioClient _client;
+    private readonly IMinioClient? _publicClient;
+    private readonly StorageOptions _options;
+    private readonly IUrlSigner _signer;
+
+    public S3FileStorage(IOptions<StorageOptions> options, IUrlSigner signer)
     {
         _options = options.Value;
+        _signer = signer;
         _client = Build(_options.Endpoint, _options.UseSsl);
-        _publicClient = string.IsNullOrWhiteSpace(_options.PublicEndpoint)
-            ? _client
-            : Build(_options.PublicEndpoint, _options.PublicUseSsl);
+        _publicClient = string.IsNullOrWhiteSpace(_options.PublicEndpoint) ? null : Build(_options.PublicEndpoint, _options.PublicUseSsl);
     }
 
     public async Task<StoredFile> UploadAsync(string objectKey, Stream content, string contentType, CancellationToken ct)
@@ -61,12 +64,32 @@ internal sealed class S3FileStorage : IFileStorage
 
     public async Task<Uri> GetPresignedDownloadUrlAsync(string objectKey, TimeSpan lifetime, CancellationToken ct)
     {
+        if (_publicClient is null)
+        {
+            // Through the portal (same host and TLS as the web app, behind the same nginx): works from every computer of
+            // the hospital, unlike the storage's own address.
+            return new Uri(LinkPath + _signer.Sign(objectKey, lifetime), UriKind.Relative);
+        }
+
         var args = new PresignedGetObjectArgs()
             .WithBucket(_options.Bucket)
             .WithObject(objectKey)
             .WithExpiry((int)lifetime.TotalSeconds);
         var url = await _publicClient.PresignedGetObjectAsync(args);
         return new Uri(url);
+    }
+
+    public async Task<string?> GetContentTypeAsync(string objectKey, CancellationToken ct)
+    {
+        try
+        {
+            var stat = await _client.StatObjectAsync(new StatObjectArgs().WithBucket(_options.Bucket).WithObject(objectKey), ct);
+            return stat.ContentType;
+        }
+        catch (Minio.Exceptions.ObjectNotFoundException)
+        {
+            return null;
+        }
     }
 
     public async Task EnsureBucketAsync(CancellationToken ct)

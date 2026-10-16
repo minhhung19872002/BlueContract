@@ -109,6 +109,8 @@ server {
 
 API chỉ tin `X-Forwarded-For` từ proxy khai báo trong `TRUSTED_PROXY_NETWORK` (mặc định dải bridge Docker `172.16.0.0/12`, là container `web`). Nếu có thêm proxy TLS phía trước, nginx của container `web` chuyển tiếp chuỗi địa chỉ, và giới hạn theo IP (đăng nhập, whitelist HIS) áp lên địa chỉ client mà proxy tin cậy báo lại. Không đặt `0.0.0.0/0`: ai cũng sẽ giả được IP.
 
+**Tải tệp:** link tải là `/api/files/{token}` trên chính tên miền của cổng: ký bằng Data Protection, sống ngắn (5 phút), chỉ cấp sau khi kiểm tra quyền, API tự đọc tệp từ kho. Vì vậy chỉ cần mở cổng web, **không** cần mở cổng kho lưu trữ (47900) ra mạng. Chỉ khi có tên miền S3 công khai (CDN, S3 của nhà cung cấp) thì mới đặt `STORAGE_PUBLIC_ENDPOINT`; khi đó link là presigned URL S3 trỏ tới tên miền đó.
+
 ONLYOFFICE cần một tên miền riêng (VD `office.benhvien.vn` → `127.0.0.1:47082`) vì trình duyệt tải editor trực tiếp từ đó; `ONLYOFFICE_PUBLIC_URL` trỏ tới tên miền này. Container `web` đã tự gắn các header bảo mật (`X-Content-Type-Options`, `X-Frame-Options`, `Content-Security-Policy: frame-ancestors`, `Referrer-Policy`, `Permissions-Policy`); HSTS đặt ở reverse proxy vì chỉ ở đó mới có TLS.
 
 ## 4. Chữ ký số

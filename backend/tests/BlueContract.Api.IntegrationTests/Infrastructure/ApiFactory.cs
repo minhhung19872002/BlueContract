@@ -62,7 +62,7 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         builder.UseEnvironment("Testing");
         builder.UseSetting("ConnectionStrings:Default", _postgres.GetConnectionString());
         builder.UseSetting("Storage:Endpoint", _storage.Endpoint);
-        builder.UseSetting("Storage:PublicEndpoint", _storage.Endpoint);
+        // No public S3 endpoint: download links go through the API (/api/files/…), as in production behind nginx.
         builder.UseSetting("Storage:AccessKey", SeaweedFsContainer.AccessKey);
         builder.UseSetting("Storage:SecretKey", SeaweedFsContainer.SecretKey);
         builder.UseSetting("Storage:Bucket", "blueprocure-test");

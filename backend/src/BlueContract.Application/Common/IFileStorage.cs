@@ -7,7 +7,14 @@ public interface IFileStorage
 
     Task<Stream> DownloadAsync(string objectKey, CancellationToken ct);
 
+    /// <summary>
+    /// Short-lived download link given after the permission check: "/api/files/{token}" through the portal itself, or a
+    /// presigned S3 URL when a public storage endpoint is configured.
+    /// </summary>
     Task<Uri> GetPresignedDownloadUrlAsync(string objectKey, TimeSpan lifetime, CancellationToken ct);
+
+    /// <summary>Media type the object was stored with (null when it does not exist).</summary>
+    Task<string?> GetContentTypeAsync(string objectKey, CancellationToken ct);
 
     Task EnsureBucketAsync(CancellationToken ct);
 }

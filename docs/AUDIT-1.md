@@ -63,7 +63,7 @@ Trạng thái: ⏳ chưa xử lý · 🔴 đã tái hiện · ✅ đã sửa (te
 
 | # | Mục | Trạng thái | Ghi chú |
 |---|---|---|---|
-| 13.1 | Link presigned trỏ localhost → qua nginx `/files/` hoặc domain | ⏳ | |
+| 13.1 | Link presigned trỏ localhost → qua nginx `/files/` hoặc domain | ✅ | Trước: `Storage:PublicEndpoint = localhost:47900`, nên link tải chỉ mở được trên chính máy chủ. Không thể chỉ đặt nginx làm proxy cho presigned S3, vì chữ ký SigV4 gắn với host và đường dẫn. Nay mặc định (`PublicEndpoint` rỗng) `S3FileStorage` trả link **tương đối** `/api/files/{token}`: token ký bằng Data Protection, có hạn như presigned (5 phút), cấp sau khi kiểm tra quyền. `FilesController` (không cần phiên) kiểm token, đọc kiểu nội dung đã lưu, stream tệp với `Cache-Control: private, no-store` và hỗ trợ Range cho trình xem PDF. Link đi qua cùng tên miền / TLS / nginx của cổng, không cần mở cổng kho 47900. Khi có tên miền S3 công khai thì đặt `STORAGE_PUBLIC_ENDPOINT` (biến mới trong `.env.example` và compose) để dùng presigned URL S3. Bộ test tích hợp nay chạy ở chế độ mặc định này. `FileLinkTests` ĐỎ trên 4fa4a61 (link tuyệt đối tới kho) → XANH: link tương đối, tải không cần đăng nhập, đúng kiểu nội dung; token sửa / hết hạn → 404 `FILE_LINK_EXPIRED`. DEPLOY.md cập nhật. |
 | 13.2 | SignalR backplane + cache phiên ký phân tán; kiểm `--scale api=2` | ⏳ | |
 | 13.3 | restore.ps1/.sh + chạy thử thật; lịch backup tự động | ⏳ | |
 | 13.4 | Healthcheck api/web/gotenberg/onlyoffice; seed chờ Gotenberg | ⏳ | |

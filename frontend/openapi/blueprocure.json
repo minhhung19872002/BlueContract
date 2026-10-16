@@ -4259,6 +4259,31 @@
         }
       }
     },
+    "/api/files/{token}": {
+      "get": {
+        "tags": [
+          "Files"
+        ],
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    },
     "/api/acceptances": {
       "get": {
         "tags": [
@@ -23871,6 +23896,9 @@
     },
     {
       "name": "Export"
+    },
+    {
+      "name": "Files"
     },
     {
       "name": "Acceptances"

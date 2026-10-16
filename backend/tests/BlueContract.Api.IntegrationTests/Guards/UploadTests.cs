@@ -123,7 +123,7 @@ public class UploadTests(ApiFactory factory)
         stored.ShouldNotBeNull();
         stored.ShouldEndWith(".png");
         var url = await check.ServiceProvider.GetRequiredService<IFileStorage>().GetPresignedDownloadUrlAsync(stored, TimeSpan.FromMinutes(1), CancellationToken.None);
-        using var http = new HttpClient();
+        using var http = factory.CreateClient();
         using var served = await http.GetAsync(url);
         served.Content.Headers.ContentType!.MediaType.ShouldBe("image/png");
     }
