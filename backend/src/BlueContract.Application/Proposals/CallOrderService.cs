@@ -25,7 +25,7 @@ public sealed record CallOrderListItemDto(
     bool IsOverdue,
     DateTimeOffset? ConfirmedAt);
 
-public sealed record CallOrderFilter(CallOrderStatus? Status, Guid? SupplierId, Guid? SummaryId, bool? Overdue);
+public sealed record CallOrderFilter(CallOrderStatus? Status, Guid? SupplierId, Guid? SummaryId, bool? Overdue, Guid? ContractId = null);
 
 public sealed record CallOrderLineDto(
     Guid Id,
@@ -130,6 +130,11 @@ public sealed class CallOrderService(
         if (f.SummaryId is not null)
         {
             query = query.Where(o => o.SummaryId == f.SummaryId);
+        }
+
+        if (f.ContractId is not null)
+        {
+            query = query.Where(o => o.Lines.Any(l => l.ContractId == f.ContractId));
         }
 
         var today = Today;

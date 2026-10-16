@@ -25,7 +25,7 @@ public sealed record ProposalListItemDto(
     DateTimeOffset? SubmittedAt,
     string? SummaryNumber);
 
-public sealed record ProposalFilter(ProcurementDomain? Domain, ProposalStatus? Status, Guid? DepartmentId);
+public sealed record ProposalFilter(ProcurementDomain? Domain, ProposalStatus? Status, Guid? DepartmentId, Guid? ContractId = null);
 
 public sealed record ProposalLineDto(
     Guid Id,
@@ -147,6 +147,11 @@ public sealed class ProposalService(
         if (f.DepartmentId is not null)
         {
             query = query.Where(x => x.DepartmentId == f.DepartmentId);
+        }
+
+        if (f.ContractId is not null)
+        {
+            query = query.Where(x => x.Lines.Any(l => l.ContractId == f.ContractId));
         }
 
         return await query.OrderByDescending(x => x.CreatedAt)

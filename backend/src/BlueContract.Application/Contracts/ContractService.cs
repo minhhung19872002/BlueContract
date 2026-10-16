@@ -110,6 +110,37 @@ public sealed class ContractService(
             .ToPagedAsync(q, ct);
     }
 
+    /// <summary>Reads, downloads and archive views are left out: the tab shows what happened to the contract.</summary>
+    private static readonly string[] HistoryNoise = ["View", "Download", "OpenEditor", "ArchiveView", "ArchiveDownload", "ArchiveFileDownload"];
+
+    /// <summary>Audit trail of the contract, its documents and appendices, newest first (spec §9.1-5 tab "Lịch sử").</summary>
+    public async Task<Result<List<ContractHistoryEntryDto>>> HistoryAsync(Guid id, CancellationToken ct)
+    {
+        var contract = await (await VisibleAsync(db.Contracts.AsNoTracking(), ct)).FirstOrDefaultAsync(x => x.Id == id, ct);
+        if (contract is null)
+        {
+            return Error.NotFound();
+        }
+
+        var appendices = await db.ContractAppendices.AsNoTracking().Where(a => a.ContractId == id)
+            .Select(a => new { a.Id, a.DocumentId }).ToListAsync(ct);
+        var contractKey = id.ToString();
+        var appendixKeys = appendices.Select(a => a.Id.ToString()).ToList();
+        var documentKeys = appendices.Where(a => a.DocumentId != null).Select(a => a.DocumentId!.Value.ToString())
+            .Concat(contract.DocumentId is { } doc ? [doc.ToString()] : Array.Empty<string>())
+            .ToList();
+
+        return await db.AuditLogs.AsNoTracking()
+            .Where(a => !HistoryNoise.Contains(a.Action) &&
+                ((a.EntityType == nameof(Contract) && a.EntityId == contractKey) ||
+                 (a.EntityType == nameof(ContractAppendix) && appendixKeys.Contains(a.EntityId!)) ||
+                 (a.EntityType == nameof(Document) && documentKeys.Contains(a.EntityId!))))
+            .OrderByDescending(a => a.OccurredAt).ThenByDescending(a => a.Id)
+            .Take(500)
+            .Select(a => new ContractHistoryEntryDto(a.OccurredAt, a.UserName, a.Action, a.EntityType, a.Note, a.NewValues))
+            .ToListAsync(ct);
+    }
+
     public async Task<Result<ContractDto>> GetAsync(Guid id, CancellationToken ct)
     {
         var c = await (await VisibleAsync(db.Contracts.AsNoTracking(), ct)).Include(x => x.Items).FirstOrDefaultAsync(x => x.Id == id, ct);

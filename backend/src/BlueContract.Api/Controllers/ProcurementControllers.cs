@@ -229,6 +229,11 @@ public sealed class ContractsController(ContractService service, IExcelExporter 
     [HasPermission(P.ContractView)]
     public async Task<ActionResult<ContractDto>> Get(Guid id, CancellationToken ct) => FromResult(await service.GetAsync(id, ct));
 
+    [HttpGet("{id:guid}/history")]
+    [HasPermission(P.ContractView)]
+    public async Task<ActionResult<List<ContractHistoryEntryDto>>> History(Guid id, CancellationToken ct) =>
+        FromResult(await service.HistoryAsync(id, ct));
+
     [HttpPost]
     [HasPermission(P.ContractCreate)]
     public async Task<ActionResult<Guid>> Create(SaveContractRequest request, CancellationToken ct) => FromResult(await service.CreateAsync(request, ct));

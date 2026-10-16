@@ -6289,6 +6289,39 @@
         }
       }
     },
+    "/api/contracts/{id}/history": {
+      "get": {
+        "tags": [
+          "Contracts"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContractHistoryEntryDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/contracts/preview": {
       "post": {
         "tags": [
@@ -6805,6 +6838,14 @@
           },
           {
             "name": "DepartmentId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "ContractId",
             "in": "query",
             "schema": {
               "type": "string",
@@ -7539,6 +7580,14 @@
             "schema": {
               "type": "boolean"
             }
+          },
+          {
+            "name": "ContractId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         ],
         "responses": {
@@ -7693,6 +7742,14 @@
             "in": "query",
             "schema": {
               "type": "boolean"
+            }
+          },
+          {
+            "name": "ContractId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -12764,6 +12821,48 @@
             "format": "double"
           }
         }
+      },
+      "ContractHistoryEntryDto": {
+        "required": [
+          "at",
+          "userName",
+          "action",
+          "subject",
+          "note",
+          "details"
+        ],
+        "type": "object",
+        "properties": {
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "userName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "action": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "note": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "details": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "description": "One line of the contract \"Lịch sử\" tab (spec §9.1-5): an audit entry of the contract, one of its documents or\r\nappendices. `Subject` is the audited type (Contract, ContractAppendix, Document); `Details` the JSON of the\r\nchange or business action."
       },
       "ContractItemDto": {
         "required": [

@@ -473,3 +473,10 @@ h1.doc-header__code--plain {
 .form-steps__label {
   font-size: 13.5px;
 }
+
+/* Several panels inside one tab. */
+.contract-tab-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}

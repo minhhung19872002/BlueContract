@@ -82,6 +82,13 @@ public sealed record ContractActionsDto(
     int? SupplierReviewOrder,
     int PendingRevisionCount);
 
+/// <summary>
+/// One line of the contract "Lịch sử" tab (spec §9.1-5): an audit entry of the contract, one of its documents or
+/// appendices. <c>Subject</c> is the audited type (Contract, ContractAppendix, Document); <c>Details</c> the JSON of the
+/// change or business action.
+/// </summary>
+public sealed record ContractHistoryEntryDto(DateTimeOffset At, string? UserName, string Action, string Subject, string? Note, string? Details);
+
 public sealed record ContractDto(
     Guid Id,
     string Number,

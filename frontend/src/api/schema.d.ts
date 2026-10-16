@@ -5058,6 +5058,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/contracts/{id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ContractHistoryEntryDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/contracts/preview": {
         parameters: {
             query?: never;
@@ -5517,6 +5554,7 @@ export interface paths {
                     Domain?: components["schemas"]["ProcurementDomain"];
                     Status?: components["schemas"]["ProposalStatus"];
                     DepartmentId?: string;
+                    ContractId?: string;
                 };
                 header?: never;
                 path?: never;
@@ -6105,6 +6143,7 @@ export interface paths {
                     SupplierId?: string;
                     SummaryId?: string;
                     Overdue?: boolean;
+                    ContractId?: string;
                 };
                 header?: never;
                 path?: never;
@@ -6181,6 +6220,7 @@ export interface paths {
                     SupplierId?: string;
                     SummaryId?: string;
                     Overdue?: boolean;
+                    ContractId?: string;
                 };
                 header?: never;
                 path?: never;
@@ -9424,6 +9464,20 @@ export interface components {
             remainingValue: number;
             /** Format: double */
             executionPercent: number;
+        };
+        /**
+         * @description One line of the contract "Lịch sử" tab (spec §9.1-5): an audit entry of the contract, one of its documents or
+         *     appendices. `Subject` is the audited type (Contract, ContractAppendix, Document); `Details` the JSON of the
+         *     change or business action.
+         */
+        ContractHistoryEntryDto: {
+            /** Format: date-time */
+            at: string;
+            userName: null | string;
+            action: string;
+            subject: string;
+            note: null | string;
+            details: null | string;
         };
         ContractItemDto: {
             /** Format: uuid */

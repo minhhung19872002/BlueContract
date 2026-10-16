@@ -43,13 +43,14 @@ import { DocEditor } from '../../components/DocEditor';
 import { PdfViewer } from '../../components/PdfViewer';
 import { StatusTag } from '../../components/StatusTag';
 import { useApiError } from '../../components/common';
-import { Banner, DocHeader, DocKpis, InfoGrid, type DocKpi } from '../../components/layout';
+import { Banner, DocHeader, DocKpis, InfoGrid, Panel, type DocKpi } from '../../components/layout';
 import dayjs from '../../i18n/dayjs';
 import { formatDate, formatDateTime, formatMoney, formatQuantity } from '../../utils/format';
 import { WorkflowCard, WorkflowHistory } from '../signing/WorkflowPanel';
 import { ContractReceipts } from '../receipts/ContractReceipts';
 import { ContractPayments } from '../payments/ContractPayments';
 import { AppendixDialog } from './AppendixDialog';
+import { ContractCalls, ContractHistory } from './ContractTabs';
 import { AccountantReviewPanel, SupplierReviewPanel } from './ContractReviewPanels';
 
 const pct = (part: number, whole: number) => (whole > 0 ? Math.round((part * 1000) / whole) / 10 : 0);
@@ -541,6 +542,17 @@ export function ContractDetailPage() {
               ),
             },
             {
+              key: 'calls',
+              label: 'Đề xuất & gọi hàng',
+              children: (
+                <ContractCalls
+                  contractId={c.id}
+                  base={base}
+                  showProposals={!isSupplier && can(P.ProposalView)}
+                />
+              ),
+            },
+            {
               key: 'receipts',
               label: 'Nhập kho',
               children: <ContractReceipts contractId={c.id} base={base} />,
@@ -559,10 +571,17 @@ export function ContractDetailPage() {
             {
               key: 'history',
               label: 'Lịch sử',
-              children: workflow.data ? (
-                <WorkflowHistory wf={workflow.data} />
-              ) : (
-                <Empty description="Chưa có lịch sử xử lý" />
+              children: (
+                <div className="contract-tab-stack">
+                  {workflow.data && (
+                    <Panel title="Ý kiến & xử lý trong luồng ký">
+                      <WorkflowHistory wf={workflow.data} />
+                    </Panel>
+                  )}
+                  <Panel title="Nhật ký thay đổi" flush>
+                    <ContractHistory contractId={c.id} />
+                  </Panel>
+                </div>
               ),
             },
           ]}
