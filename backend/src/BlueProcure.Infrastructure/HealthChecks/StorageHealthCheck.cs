@@ -8,14 +8,14 @@ internal sealed class StorageHealthCheck(IFileStorage storage) : IHealthCheck
 {
     public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
     {
-        if (storage is not MinioFileStorage minio)
+        if (storage is not S3FileStorage s3)
         {
-            return HealthCheckResult.Healthy("Non-MinIO storage");
+            return HealthCheckResult.Healthy("Non-S3 storage");
         }
 
         try
         {
-            var bucketExists = await minio.PingAsync(cancellationToken);
+            var bucketExists = await s3.PingAsync(cancellationToken);
             return bucketExists
                 ? HealthCheckResult.Healthy()
                 : HealthCheckResult.Degraded("Bucket chưa được tạo");
@@ -24,7 +24,7 @@ internal sealed class StorageHealthCheck(IFileStorage storage) : IHealthCheck
         catch (Exception ex)
 #pragma warning restore CA1031
         {
-            return HealthCheckResult.Unhealthy("Không kết nối được MinIO", ex);
+            return HealthCheckResult.Unhealthy("Không kết nối được kho lưu trữ tệp (S3)", ex);
         }
     }
 }

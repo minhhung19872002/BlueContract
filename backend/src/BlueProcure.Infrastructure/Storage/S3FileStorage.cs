@@ -6,7 +6,10 @@ using Minio.DataModel.Args;
 
 namespace BlueProcure.Infrastructure.Storage;
 
-internal sealed class MinioFileStorage : IFileStorage
+/// <summary>
+/// S3-compatible object storage (SeaweedFS in docker; any S3 endpoint in production) via the MinIO .NET client.
+/// </summary>
+internal sealed class S3FileStorage : IFileStorage
 {
     private const string ShaMetadataKey = "x-amz-meta-sha256";
 
@@ -14,7 +17,7 @@ internal sealed class MinioFileStorage : IFileStorage
     private readonly IMinioClient _publicClient;
     private readonly StorageOptions _options;
 
-    public MinioFileStorage(IOptions<StorageOptions> options)
+    public S3FileStorage(IOptions<StorageOptions> options)
     {
         _options = options.Value;
         _client = Build(_options.Endpoint, _options.UseSsl);

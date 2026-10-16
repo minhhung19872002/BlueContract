@@ -52,6 +52,6 @@ Write-Host ''
 Write-Host "Web:            http://localhost:$webPort"
 Write-Host "API docs:       http://localhost:$webPort/docs"
 Write-Host "Mailpit:        http://localhost:$(Get-EnvValue $envMap 'MAILPIT_UI_PORT' '47025')"
-Write-Host "MinIO console:  http://localhost:$(Get-EnvValue $envMap 'MINIO_CONSOLE_PORT' '47901')"
+Write-Host "Kho tệp (filer): http://localhost:$(Get-EnvValue $envMap 'S3_FILER_UI_PORT' '47901')"
 Write-Host "ONLYOFFICE:     http://localhost:$(Get-EnvValue $envMap 'ONLYOFFICE_PORT' '47082')"
 if ($Seq) { Write-Host "Seq:            http://localhost:$(Get-EnvValue $envMap 'SEQ_PORT' '47341')" }

@@ -16,7 +16,7 @@ cd BlueContract
 powershell -ExecutionPolicy Bypass -File scripts\dev-up.ps1
 ```
 
-Lần đầu chạy sẽ mất vài phút vì phải tải image (riêng ONLYOFFICE khoảng 3–4 GB). Script tự làm các việc sau: tạo `.env`, build image, khởi động toàn bộ service, chạy migration, seed dữ liệu, tạo bucket MinIO, rồi chờ đến khi `/health/ready` trả về xanh.
+Lần đầu chạy sẽ mất vài phút vì phải tải image (riêng ONLYOFFICE khoảng 3–4 GB). Script tự làm các việc sau: tạo `.env`, build image, khởi động toàn bộ service, chạy migration, seed dữ liệu, tạo bucket lưu trữ tệp, rồi chờ đến khi `/health/ready` trả về xanh.
 
 | Dịch vụ | URL |
 |---|---|
@@ -24,7 +24,7 @@ Lần đầu chạy sẽ mất vài phút vì phải tải image (riêng ONLYOFF
 | API docs (Scalar) | http://localhost:47080/docs |
 | Health | http://localhost:47080/health/ready |
 | Mailpit (email dev) | http://localhost:47025 |
-| MinIO console | http://localhost:47901 (`minioadmin` / `minioadmin_dev`) |
+| Kho tệp S3 — giao diện filer (SeaweedFS) | http://localhost:47901 |
 | ONLYOFFICE | http://localhost:47082 |
 | Hangfire dashboard | http://localhost:47080/hangfire *(từ Phase 3)* |
 | Seq (tùy chọn) | http://localhost:47341, chạy bằng `scripts\dev-up.ps1 -Seq` |
@@ -53,15 +53,15 @@ Người dùng NCC đăng nhập cùng trang và được chuyển sang **Cổng
 |---|---|---|
 | Khởi động stack | `scripts\dev-up.ps1 [-Seq] [-NoBuild]` | `scripts/dev-up.sh [--seq] [--no-build]` |
 | Migrate + seed lại | `scripts\seed.ps1 [-ResetDemo]` | `scripts/seed.sh [--reset-demo]` |
-| Xóa sạch DB + MinIO | `scripts\reset-db.ps1 [-Force]` | `scripts/reset-db.sh [--force]` |
+| Xóa sạch DB + kho tệp | `scripts\reset-db.ps1 [-Force]` | `scripts/reset-db.sh [--force]` |
 | Sao lưu (giữ 30 bản) | `scripts\backup.ps1` | `scripts/backup.sh` |
 
 ## Phát triển không qua Docker (tùy chọn)
 
-Cần cài **.NET 10 SDK** và **Node.js 22**. Hạ tầng (Postgres, MinIO, Gotenberg…) vẫn chạy bằng Docker.
+Cần cài **.NET 10 SDK** và **Node.js 22**. Hạ tầng (Postgres, kho tệp S3, Gotenberg…) vẫn chạy bằng Docker.
 
 ```powershell
-docker compose up -d postgres minio gotenberg onlyoffice mailpit
+docker compose up -d postgres storage gotenberg onlyoffice mailpit
 cd backend;  dotnet run --project src/BlueProcure.Api          # http://localhost:5296
 cd frontend; npm install; npm run dev                           # http://localhost:5173 (proxy /api → 5296)
 ```

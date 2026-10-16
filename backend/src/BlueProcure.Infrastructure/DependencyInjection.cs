@@ -73,7 +73,7 @@ public static class DependencyInjection
 
         // Storage
         services.Configure<StorageOptions>(configuration.GetSection(StorageOptions.SectionName));
-        services.AddSingleton<IFileStorage, MinioFileStorage>();
+        services.AddSingleton<IFileStorage, S3FileStorage>();
 
         services.Configure<ExternalServicesOptions>(configuration.GetSection(ExternalServicesOptions.SectionName));
         services.AddHttpClient(GotenbergClient, (sp, c) =>
@@ -89,7 +89,7 @@ public static class DependencyInjection
 
         services.AddHealthChecks()
             .AddNpgSql(connectionString, name: "postgres", tags: [ReadyTag])
-            .AddCheck<StorageHealthCheck>("minio", tags: [ReadyTag])
+            .AddCheck<StorageHealthCheck>("storage", tags: [ReadyTag])
             .Add(new HealthCheckRegistration(
                 "gotenberg",
                 sp => new HttpEndpointHealthCheck(sp.GetRequiredService<IHttpClientFactory>(), GotenbergClient, "/health"),

@@ -42,7 +42,7 @@ echo
 echo "Web:            http://localhost:${web_port}"
 echo "API docs:       http://localhost:${web_port}/docs"
 echo "Mailpit:        http://localhost:${MAILPIT_UI_PORT:-47025}"
-echo "MinIO console:  http://localhost:${MINIO_CONSOLE_PORT:-47901}"
+echo "Kho tệp (filer): http://localhost:${S3_FILER_UI_PORT:-47901}"
 echo "ONLYOFFICE:     http://localhost:${ONLYOFFICE_PORT:-47082}"
 $seq && echo "Seq:            http://localhost:${SEQ_PORT:-47341}"
 exit 0

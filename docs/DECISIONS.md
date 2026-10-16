@@ -73,3 +73,8 @@ Mỗi mục là một ADR ngắn: **Bối cảnh → Quyết định → Hệ qu
 
 ## ADR-020 — Enum dạng chuỗi
 - **Quyết định:** Enum lưu trong DB dạng chuỗi (convention `HaveConversion<string>`) và serialize JSON dạng chuỗi, cả trong MVC lẫn OpenAPI, để TS client sinh ra kiểu union (`"Clinical" | "Paraclinical" | ...`).
+
+## ADR-021 — Lưu trữ tệp: SeaweedFS (S3) thay cho container MinIO (thay thế một phần ADR-013)
+- **Bối cảnh:** Image MinIO trên Docker Hub và quay.io không còn pull được nữa (CI báo `pull access denied for minio/minio`). Máy dev vẫn chạy được chỉ vì image đã có sẵn trong cache. Chainguard có image MinIO nhưng chỉ có tag `latest`, trái với yêu cầu ghim phiên bản.
+- **Quyết định:** Dùng `chrislusf/seaweedfs:3.97` (Apache-2.0) bật S3 gateway, credential lấy từ `.env`. Code vẫn đi qua `IFileStorage` → `S3FileStorage` (client S3 của MinIO .NET SDK), nên không phụ thuộc server cụ thể. Production có thể trỏ sang bất kỳ dịch vụ S3 nào (MinIO thương mại, Ceph RGW, AWS S3, Viettel/VNPT Cloud S3) chỉ bằng cấu hình `Storage:*`. Integration test chạy với cùng image (Testcontainers generic container), có test presigned URL. Backup dùng `amazon/aws-cli:2.27.0 s3 sync` thay cho `mc mirror`.
+- **Hệ quả:** Giao diện quản trị MinIO được thay bằng giao diện filer của SeaweedFS (cổng 47901). Health check đổi tên `minio` → `storage`.

@@ -26,7 +26,7 @@ public class SystemEndpointsTests(ApiFactory factory)
     }
 
     [Fact]
-    public async Task Readiness_reports_postgres_and_minio_healthy()
+    public async Task Readiness_reports_postgres_and_storage_healthy()
     {
         using var client = factory.CreateClient();
 
@@ -36,7 +36,7 @@ public class SystemEndpointsTests(ApiFactory factory)
         var checks = json.RootElement.GetProperty("checks");
 
         checks.GetProperty("postgres").GetProperty("status").GetString().ShouldBe("Healthy");
-        checks.GetProperty("minio").GetProperty("status").GetString().ShouldBe("Healthy");
+        checks.GetProperty("storage").GetProperty("status").GetString().ShouldBe("Healthy");
         checks.GetProperty("gotenberg").GetProperty("status").GetString().ShouldBe("Unhealthy");
     }
 
@@ -95,6 +95,22 @@ public class SystemEndpointsTests(ApiFactory factory)
         copy.ToArray().ShouldBe(bytes);
         stored.Sha256.ShouldBe(Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(bytes)));
         stored.Size.ShouldBe(bytes.Length);
+    }
+
+    [Fact]
+    public async Task Presigned_url_downloads_the_object_without_credentials()
+    {
+        using var scope = factory.Services.CreateScope();
+        var storage = scope.ServiceProvider.GetRequiredService<IFileStorage>();
+        var bytes = "Phiếu nhập kho"u8.ToArray();
+        using var input = new MemoryStream(bytes);
+        await storage.UploadAsync("tests/presigned.txt", input, "text/plain", CancellationToken.None);
+
+        var url = await storage.GetPresignedDownloadUrlAsync("tests/presigned.txt", TimeSpan.FromMinutes(5), CancellationToken.None);
+        using var http = new HttpClient();
+        var downloaded = await http.GetByteArrayAsync(url);
+
+        downloaded.ShouldBe(bytes);
     }
 
     [Fact]

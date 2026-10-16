@@ -4,7 +4,7 @@ public sealed class StorageOptions
 {
     public const string SectionName = "Storage";
 
-    /// <summary>host:port used by the API to reach MinIO (e.g. "minio:9000" inside docker).</summary>
+    /// <summary>host:port of the S3-compatible endpoint used by the API (e.g. "storage:8333" inside docker).</summary>
     public string Endpoint { get; set; } = "localhost:9000";
 
     /// <summary>host:port the browser uses for presigned URLs (e.g. "localhost:9000").</summary>

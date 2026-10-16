@@ -1,6 +1,6 @@
 ﻿<#
 .SYNOPSIS
-  Back up PostgreSQL (pg_dump custom format) and mirror the MinIO bucket into backups/<timestamp>/.
+  Back up PostgreSQL (pg_dump custom format) and sync the S3 bucket into backups/<timestamp>/.
   Keeps the newest $Keep backups (default 30). Schedule daily with Windows Task Scheduler.
 #>
 param(
@@ -20,13 +20,13 @@ if (Test-Path '.env') {
 }
 $db = Get-EnvValue $envMap 'POSTGRES_DB' 'blueprocure'
 $user = Get-EnvValue $envMap 'POSTGRES_USER' 'blueprocure'
-$minioUser = Get-EnvValue $envMap 'MINIO_ROOT_USER' 'minioadmin'
-$minioPass = Get-EnvValue $envMap 'MINIO_ROOT_PASSWORD' 'minioadmin_dev'
-$bucket = Get-EnvValue $envMap 'MINIO_BUCKET' 'blueprocure'
+$s3Key = Get-EnvValue $envMap 'S3_ACCESS_KEY' 'blueprocure'
+$s3Secret = Get-EnvValue $envMap 'S3_SECRET_KEY' 'blueprocure_s3_dev'
+$bucket = Get-EnvValue $envMap 'S3_BUCKET' 'blueprocure'
 
 $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
 $target = Join-Path (Join-Path $root $OutDir) $stamp
-New-Item -ItemType Directory -Force -Path (Join-Path $target 'minio') | Out-Null
+New-Item -ItemType Directory -Force -Path (Join-Path $target 'files') | Out-Null
 
 Write-Host "Sao lưu PostgreSQL → $target\db.dump"
 # Dump inside the container then copy out, so binary output is not mangled by the PowerShell pipeline.
@@ -36,12 +36,12 @@ $pgContainer = (docker compose ps -q postgres).Trim()
 docker cp "${pgContainer}:/tmp/blueprocure.dump" (Join-Path $target 'db.dump')
 docker compose exec -T postgres rm -f /tmp/blueprocure.dump
 
-Write-Host "Sao lưu MinIO bucket '$bucket' → $target\minio"
+Write-Host "Sao lưu bucket '$bucket' → $target\files"
 $network = (docker inspect $pgContainer --format '{{range $k, $v := .NetworkSettings.Networks}}{{$k}}{{end}}').Trim()
-docker run --rm --network $network -v "${target}\minio:/backup" `
-    -e "MC_HOST_src=http://${minioUser}:${minioPass}@minio:9000" `
-    --entrypoint mc minio/minio:RELEASE.2025-04-22T22-12-26Z mirror --overwrite "src/$bucket" /backup
-if ($LASTEXITCODE -ne 0) { throw 'mc mirror thất bại' }
+docker run --rm --network $network -v "${target}\files:/backup" `
+    -e "AWS_ACCESS_KEY_ID=$s3Key" -e "AWS_SECRET_ACCESS_KEY=$s3Secret" -e "AWS_DEFAULT_REGION=us-east-1" `
+    amazon/aws-cli:2.27.0 s3 sync "s3://$bucket" /backup --endpoint-url http://storage:8333 --only-show-errors
+if ($LASTEXITCODE -ne 0) { throw 'Sao lưu tệp thất bại' }
 
 # Retention.
 Get-ChildItem (Join-Path $root $OutDir) -Directory | Sort-Object Name -Descending | Select-Object -Skip $Keep |

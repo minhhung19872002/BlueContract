@@ -8,7 +8,7 @@ import { formatDate, formatDateTime } from '../utils/format';
 
 const SERVICE_LABELS: Record<string, string> = {
   postgres: 'Cơ sở dữ liệu (PostgreSQL)',
-  minio: 'Lưu trữ tệp (MinIO)',
+  storage: 'Lưu trữ tệp (S3)',
   gotenberg: 'Chuyển đổi PDF (Gotenberg)',
 };
 

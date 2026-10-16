@@ -4,12 +4,11 @@ using BlueProcure.Application.Auth;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Shouldly;
-using Testcontainers.Minio;
 using Testcontainers.PostgreSql;
 
 namespace BlueProcure.Api.IntegrationTests.Infrastructure;
 
-/// <summary>Boots the real API against throwaway PostgreSQL + MinIO containers, with demo data seeded.</summary>
+/// <summary>Boots the real API against throwaway PostgreSQL + SeaweedFS (S3) containers, with demo data seeded.</summary>
 public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     public const string DemoPassword = "Demo@123";
@@ -17,18 +16,17 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:16-alpine")
         .Build();
 
-    private readonly MinioContainer _minio = new MinioBuilder("minio/minio:RELEASE.2025-04-22T22-12-26Z")
-        .Build();
+    private readonly SeaweedFsContainer _storage = new();
 
     public async Task InitializeAsync()
     {
-        await Task.WhenAll(_postgres.StartAsync(), _minio.StartAsync());
+        await Task.WhenAll(_postgres.StartAsync(), _storage.StartAsync());
     }
 
     async Task IAsyncLifetime.DisposeAsync()
     {
         await _postgres.DisposeAsync();
-        await _minio.DisposeAsync();
+        await _storage.DisposeAsync();
         await base.DisposeAsync();
     }
 
@@ -45,15 +43,12 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        var minioUri = new Uri(_minio.GetConnectionString());
-        var minioEndpoint = $"{minioUri.Host}:{minioUri.Port}";
-
         builder.UseEnvironment("Testing");
         builder.UseSetting("ConnectionStrings:Default", _postgres.GetConnectionString());
-        builder.UseSetting("Storage:Endpoint", minioEndpoint);
-        builder.UseSetting("Storage:PublicEndpoint", minioEndpoint);
-        builder.UseSetting("Storage:AccessKey", _minio.GetAccessKey());
-        builder.UseSetting("Storage:SecretKey", _minio.GetSecretKey());
+        builder.UseSetting("Storage:Endpoint", _storage.Endpoint);
+        builder.UseSetting("Storage:PublicEndpoint", _storage.Endpoint);
+        builder.UseSetting("Storage:AccessKey", SeaweedFsContainer.AccessKey);
+        builder.UseSetting("Storage:SecretKey", SeaweedFsContainer.SecretKey);
         builder.UseSetting("Storage:Bucket", "blueprocure-test");
         builder.UseSetting("ExternalServices:GotenbergUrl", "http://127.0.0.1:1");
         builder.UseSetting("Auth:SigningKey", "integration-test-signing-key-0123456789abcdef");
