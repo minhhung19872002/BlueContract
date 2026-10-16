@@ -21,6 +21,9 @@ import { MyAccountPage } from './features/account/MyAccountPage';
 import { CompanyPage } from './features/supplier/CompanyPage';
 import { TemplatesPage } from './features/templates/TemplatesPage';
 import { DocumentPage } from './features/documents/DocumentPage';
+import { SigningInboxPage } from './features/signing/SigningInboxPage';
+import { VerifySignaturePage } from './features/signing/VerifySignaturePage';
+import { WorkflowTemplatesPage } from './features/admin/WorkflowTemplatesPage';
 
 const guard = (permissions: string[], element: React.ReactNode) => (
   <RequirePermission any={permissions}>{element}</RequirePermission>
@@ -61,6 +64,9 @@ export const router = createBrowserRouter([
           { path: '/quan-tri/nhat-ky', element: guard([P.AuditView], <AuditLogsPage />) },
           { path: '/quan-tri/mau-bieu', element: guard([P.TemplateManage], <TemplatesPage />) },
           { path: '/tai-lieu/:id', element: <DocumentPage /> },
+          { path: '/trinh-ky', element: guard([P.SigningInbox], <SigningInboxPage />) },
+          { path: '/xac-minh-chu-ky', element: <VerifySignaturePage /> },
+          { path: '/quan-tri/luong-ky', element: guard([P.WorkflowManage], <WorkflowTemplatesPage />) },
         ],
       },
       {
@@ -75,6 +81,9 @@ export const router = createBrowserRouter([
           { path: 'tong-quan', element: <SupplierHomePage /> },
           { path: 'tai-khoan', element: <MyAccountPage /> },
           { path: 'cong-ty', element: guard([P.SupplierCompanyView], <CompanyPage />) },
+          { path: 'trinh-ky', element: guard([P.SigningInbox], <SigningInboxPage />) },
+          { path: 'xac-minh-chu-ky', element: <VerifySignaturePage /> },
+          { path: 'tai-lieu/:id', element: <DocumentPage /> },
         ],
       },
     ],

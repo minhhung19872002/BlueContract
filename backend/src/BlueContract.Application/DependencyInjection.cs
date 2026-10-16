@@ -2,6 +2,9 @@ using System.Globalization;
 using BlueContract.Application.Admin;
 using BlueContract.Application.Auth;
 using BlueContract.Application.Documents;
+using BlueContract.Application.Notifications;
+using BlueContract.Application.Signing;
+using BlueContract.Application.Workflows;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -31,6 +34,11 @@ public static class DependencyInjection
         services.AddScoped<LookupService>();
         services.AddScoped<TemplateService>();
         services.AddScoped<DocumentService>();
+        services.AddScoped<WorkflowAccess>();
+        services.AddScoped<WorkflowService>();
+        services.AddScoped<SigningService>();
+        services.AddScoped<NotificationService>();
+        services.AddScoped<NotificationOutbox>();
         return services;
     }
 }

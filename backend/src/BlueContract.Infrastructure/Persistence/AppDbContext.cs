@@ -5,6 +5,7 @@ using BlueContract.Domain.Documents;
 using BlueContract.Domain.Identity;
 using BlueContract.Domain.Organizations;
 using BlueContract.Domain.Settings;
+using BlueContract.Domain.Workflows;
 using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -71,6 +72,22 @@ public sealed class AppDbContext : DbContext, IAppDbContext, IDataProtectionKeyC
 
     public DbSet<DocumentEditSession> DocumentEditSessions => Set<DocumentEditSession>();
 
+    public DbSet<WorkflowTemplate> WorkflowTemplates => Set<WorkflowTemplate>();
+
+    public DbSet<WorkflowInstance> WorkflowInstances => Set<WorkflowInstance>();
+
+    public DbSet<WorkflowStepInstance> WorkflowSteps => Set<WorkflowStepInstance>();
+
+    public DbSet<WorkflowEvent> WorkflowEvents => Set<WorkflowEvent>();
+
+    public DbSet<Signature> Signatures => Set<Signature>();
+
+    public DbSet<SigningRequest> SigningRequests => Set<SigningRequest>();
+
+    public DbSet<Notification> Notifications => Set<Notification>();
+
+    public DbSet<SigningCertificate> SigningCertificates => Set<SigningCertificate>();
+
     public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -106,6 +123,7 @@ public sealed class AppDbContext : DbContext, IAppDbContext, IDataProtectionKeyC
         modelBuilder.Entity<Supplier>().HasQueryFilter(SupplierIsolationFilter, s => !IsSupplierCaller || s.Id == CallerSupplierId);
         modelBuilder.Entity<User>().HasQueryFilter(SupplierIsolationFilter, u => !IsSupplierCaller || u.SupplierId == CallerSupplierId);
         modelBuilder.Entity<Document>().HasQueryFilter(SupplierIsolationFilter, d => !IsSupplierCaller || d.SupplierId == CallerSupplierId);
+        modelBuilder.Entity<WorkflowInstance>().HasQueryFilter(SupplierIsolationFilter, w => !IsSupplierCaller || w.SupplierId == CallerSupplierId);
 
         // Join rows follow the soft-delete state of their required principal.
         modelBuilder.Entity<UserRole>().HasQueryFilter(SoftDeleteFilter, ur => !ur.Role!.IsDeleted);

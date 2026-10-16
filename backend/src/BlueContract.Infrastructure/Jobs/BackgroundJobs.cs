@@ -1,0 +1,67 @@
+using BlueContract.Application.Common;
+using BlueContract.Application.Notifications;
+using BlueContract.Application.Workflows;
+using BlueContract.Domain.Workflows;
+using BlueContract.Infrastructure.Persistence;
+using Hangfire;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+
+namespace BlueContract.Infrastructure.Jobs;
+
+public sealed class HangfireOptions
+{
+    public const string SectionName = "Hangfire";
+
+    /// <summary>Run the job server in this process (disable on extra API replicas or in tests).</summary>
+    public bool ServerEnabled { get; set; } = true;
+
+    /// <summary>Expose /hangfire (development only by default).</summary>
+    public bool DashboardEnabled { get; set; }
+}
+
+/// <summary>Durable jobs on Hangfire (PostgreSQL storage): email delivery with automatic retries.</summary>
+internal sealed class HangfireBackgroundJobs(IBackgroundJobClient client) : IBackgroundJobs
+{
+    public void EnqueueEmail(EmailMessage message) =>
+        client.Enqueue<EmailJob>(job => job.SendAsync(message, CancellationToken.None));
+}
+
+public sealed class EmailJob(IEmailSender sender)
+{
+    [AutomaticRetry(Attempts = 5)]
+    public Task SendAsync(EmailMessage message, CancellationToken ct) => sender.SendAsync(message, ct);
+}
+
+/// <summary>Hourly SLA check: reminds assignees of steps past their due time (spec §5.7 "SLA để nhắc việc").</summary>
+public sealed class WorkflowReminderJob(AppDbContext db, WorkflowAccess access, NotificationService notifications, IClock clock, ILogger<WorkflowReminderJob> logger)
+{
+    public const string Id = "workflow-sla-reminders";
+
+    public async Task RunAsync(CancellationToken ct)
+    {
+        var now = clock.UtcNow;
+        var overdue = await db.WorkflowSteps
+            .Where(s => s.Status == StepStatus.Active && s.DueAt != null && s.DueAt < now && s.ReminderSentAt == null)
+            .Select(s => s.InstanceId).Distinct().ToListAsync(ct);
+        foreach (var instanceId in overdue)
+        {
+            var wf = await db.WorkflowInstances.IgnoreQueryFilters().Include("_steps").FirstAsync(w => w.Id == instanceId, ct);
+            if (wf.ActiveStep is not { } step)
+            {
+                continue;
+            }
+
+            var title = await db.Documents.IgnoreQueryFilters().Where(d => d.Id == wf.DocumentId).Select(d => d.Title).FirstAsync(ct);
+            await notifications.NotifyAsync(await access.AssigneesAsync(wf, step, ct), NotificationTypes.WorkflowOverdue,
+                $"Quá hạn xử lý: {title}", $"Bước \"{step.Name}\" đã quá hạn từ {step.DueAt:dd/MM/yyyy HH:mm} (UTC).", $"/trinh-ky?document={wf.DocumentId}", email: true, ct);
+            step.MarkReminderSent(now);
+        }
+
+        await db.SaveChangesAsync(ct);
+        if (overdue.Count > 0)
+        {
+            logger.LogInformation("Sent SLA reminders for {Count} workflows", overdue.Count);
+        }
+    }
+}

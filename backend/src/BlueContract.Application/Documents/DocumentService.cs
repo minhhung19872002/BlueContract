@@ -1,8 +1,10 @@
 using System.Text.Json.Nodes;
 using BlueContract.Application.Common;
+using BlueContract.Application.Workflows;
 using BlueContract.Domain.Common;
 using BlueContract.Domain.Documents;
 using BlueContract.Domain.Identity;
+using BlueContract.Domain.Workflows;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
@@ -85,6 +87,7 @@ public sealed class DocumentService(
     IDocumentEditorService editor,
     IUrlSigner urlSigner,
     IAuditLogger audit,
+    WorkflowAccess workflowAccess,
     ICurrentUser currentUser,
     IClock clock)
 {
@@ -127,7 +130,7 @@ public sealed class DocumentService(
     public async Task<Result<DocumentDto>> GetAsync(Guid id, CancellationToken ct)
     {
         var document = await db.Documents.AsNoTracking().Include(d => d.Versions).FirstOrDefaultAsync(d => d.Id == id, ct);
-        if (document is null || !CanView(document))
+        if (document is null || !await CanViewAsync(document, ct))
         {
             return Error.NotFound();
         }
@@ -142,7 +145,7 @@ public sealed class DocumentService(
     public async Task<Result<Guid>> UploadVersionAsync(Guid id, UploadedFile file, string? reason, CancellationToken ct)
     {
         var document = await db.Documents.Include(d => d.Versions).FirstOrDefaultAsync(d => d.Id == id, ct);
-        if (document is null || !CanView(document))
+        if (document is null || !await CanViewAsync(document, ct))
         {
             return Error.NotFound();
         }
@@ -171,7 +174,7 @@ public sealed class DocumentService(
     {
         var document = await db.Documents.Include(d => d.Versions).FirstOrDefaultAsync(d => d.Id == id, ct);
         var version = document?.Versions.FirstOrDefault(v => v.Id == versionId);
-        if (document is null || version is null || !CanView(document))
+        if (document is null || version is null || !await CanViewAsync(document, ct))
         {
             return Error.NotFound();
         }
@@ -200,7 +203,7 @@ public sealed class DocumentService(
     {
         var document = await db.Documents.AsNoTracking().Include(d => d.Versions).FirstOrDefaultAsync(d => d.Id == id, ct);
         var version = document?.Versions.FirstOrDefault(v => v.Id == versionId);
-        if (document is null || version is null || !CanView(document))
+        if (document is null || version is null || !await CanViewAsync(document, ct))
         {
             return Error.NotFound();
         }
@@ -223,7 +226,7 @@ public sealed class DocumentService(
     {
         var document = await db.Documents.AsNoTracking().Include(d => d.Versions).FirstOrDefaultAsync(d => d.Id == id, ct);
         var version = document?.Versions.FirstOrDefault(v => v.Id == versionId);
-        if (document is null || version is null || !CanView(document))
+        if (document is null || version is null || !await CanViewAsync(document, ct))
         {
             return Error.NotFound();
         }
@@ -244,7 +247,7 @@ public sealed class DocumentService(
     public async Task<Result<EditorSessionDto>> StartEditSessionAsync(Guid id, StartEditRequest r, Uri apiBaseForEditor, CancellationToken ct)
     {
         var document = await db.Documents.Include(d => d.Versions).FirstOrDefaultAsync(d => d.Id == id, ct);
-        if (document is null || !CanView(document))
+        if (document is null || !await CanViewAsync(document, ct))
         {
             return Error.NotFound();
         }
@@ -263,6 +266,21 @@ public sealed class DocumentService(
         if (r.Mode != EditorMode.View && document.Status is DocumentStatus.Completed or DocumentStatus.Cancelled)
         {
             return Error.Validation("DOCUMENT_CLOSED");
+        }
+
+        // While signing is in progress only the assignee of a step that allows editing may change the content.
+        if (r.Mode != EditorMode.View)
+        {
+            var running = await db.WorkflowInstances.Include("_steps").FirstOrDefaultAsync(w => w.DocumentId == document.Id && w.Status == WorkflowStatus.Running, ct);
+            if (running?.ActiveStep is { } active)
+            {
+                var standing = await workflowAccess.StandingAsync(running, active, ct);
+                var editable = active.AllowEdit || active.ActionType == WorkflowActionType.SupplierReview;
+                if (!standing.CanAct || !editable)
+                {
+                    return Error.Forbidden("DOCUMENT_LOCKED_IN_WORKFLOW");
+                }
+            }
         }
 
         var session = new DocumentEditSession(document.Id, current.Id, r.Mode.ToString().ToLowerInvariant(), currentUser.UserId!.Value, clock.UtcNow);
@@ -353,7 +371,18 @@ public sealed class DocumentService(
         version.AttachDocx(stored.ObjectKey, stored.Sha256, stored.Size);
         if (restarts)
         {
-            document.MarkDraft();
+            var instances = await db.WorkflowInstances.Include("_steps").Include("_events")
+                .Where(w => w.DocumentId == document.Id && (w.Status == WorkflowStatus.Running || w.Status == WorkflowStatus.Returned))
+                .ToListAsync(ct);
+            foreach (var wf in instances)
+            {
+                wf.RestartForNewVersion(userId ?? Guid.Empty, userName ?? "Hệ thống", clock.UtcNow);
+            }
+
+            if (instances.Count == 0)
+            {
+                document.MarkDraft();
+            }
             audit.Log("WorkflowReset", nameof(Document), document.Id.ToString(), new { version.VersionNumber }, "Phiên bản mới sau khi đã có chữ ký — luồng ký phải bắt đầu lại.");
         }
 
@@ -378,6 +407,10 @@ public sealed class DocumentService(
     }
 
     private bool CanView(Document document) => currentUser.Permissions.Overlaps(DocumentPermissions.View(document.Type));
+
+    /// <summary>Permission on the document type, or taking part in its signing workflow (signers of other departments).</summary>
+    private async Task<bool> CanViewAsync(Document document, CancellationToken ct) =>
+        CanView(document) || await workflowAccess.IsParticipantAsync(document.Id, ct);
 
     private DocumentDto ToDto(Document d, string? templateName) => new(
         d.Id, d.Type, d.Title, d.Status, d.OwnerEntityType, d.OwnerId, d.ContractId, d.TemplateId, templateName, d.CurrentVersionId,

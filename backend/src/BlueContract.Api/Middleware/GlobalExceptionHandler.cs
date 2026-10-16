@@ -15,6 +15,10 @@ internal sealed class GlobalExceptionHandler(IProblemDetailsService problemDetai
         {
             DomainException de => (StatusCodes.Status400BadRequest, de.Code),
             DbUpdateConcurrencyException => (StatusCodes.Status409Conflict, "CONFLICT"),
+
+            // Unique-key race (e.g. two clicks on "Ký" appending the same workflow event sequence): the loser retries.
+            DbUpdateException { InnerException: Npgsql.PostgresException { SqlState: Npgsql.PostgresErrorCodes.UniqueViolation } } =>
+                (StatusCodes.Status409Conflict, "CONFLICT"),
             OperationCanceledException when httpContext.RequestAborted.IsCancellationRequested => (499, "REQUEST_CANCELLED"),
             _ => (StatusCodes.Status500InternalServerError, "INTERNAL_ERROR"),
         };

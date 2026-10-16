@@ -3,6 +3,7 @@ using BlueContract.Domain.Documents;
 using BlueContract.Domain.Identity;
 using BlueContract.Domain.Organizations;
 using BlueContract.Domain.Settings;
+using BlueContract.Domain.Workflows;
 using Microsoft.EntityFrameworkCore;
 
 namespace BlueContract.Application.Common;
@@ -51,6 +52,22 @@ public interface IAppDbContext
     DbSet<DocumentTemplate> DocumentTemplates { get; }
 
     DbSet<DocumentEditSession> DocumentEditSessions { get; }
+
+    DbSet<WorkflowTemplate> WorkflowTemplates { get; }
+
+    DbSet<WorkflowInstance> WorkflowInstances { get; }
+
+    DbSet<WorkflowStepInstance> WorkflowSteps { get; }
+
+    DbSet<WorkflowEvent> WorkflowEvents { get; }
+
+    DbSet<Signature> Signatures { get; }
+
+    DbSet<SigningRequest> SigningRequests { get; }
+
+    DbSet<Notification> Notifications { get; }
+
+    DbSet<SigningCertificate> SigningCertificates { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

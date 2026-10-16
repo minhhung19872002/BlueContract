@@ -3,9 +3,13 @@ import {
   App,
   Button,
   Card,
+  Col,
   Descriptions,
   Dropdown,
+  Form,
   Modal,
+  Row,
+  Select,
   Space,
   Table,
   Tag,
@@ -19,6 +23,8 @@ import {
   EyeOutlined,
   FilePdfOutlined,
   LockOutlined,
+  SafetyCertificateOutlined,
+  SendOutlined,
   UploadOutlined,
 } from '@ant-design/icons';
 import { useEffect, useRef, useState } from 'react';
@@ -34,6 +40,18 @@ import {
   type EditorMode,
   type EditorSessionDto,
 } from '../../api/documents';
+import { useLookup } from '../../api/admin';
+import {
+  useDocumentWorkflow,
+  useStartWorkflow,
+  useWorkflowTemplates,
+  verifyVersion,
+  type VerifyResultDto,
+} from '../../api/signing';
+import { useAuth } from '../../auth/useAuth';
+import { P } from '../../auth/permissions';
+import { WorkflowCard } from '../signing/WorkflowPanel';
+import { SignatureTable } from '../signing/VerifySignaturePage';
 import { DocEditor } from '../../components/DocEditor';
 import { PdfViewer } from '../../components/PdfViewer';
 import { StatusTag } from '../../components/StatusTag';
@@ -56,7 +74,81 @@ function Hash({ value }: { value?: string | null }) {
   );
 }
 
-/** Document detail: versions (SHA-256), PDF rendition, online editing with ONLYOFFICE. */
+/** "Gửi ký": picks the signing workflow (default for the document type) and, for sample documents, the supplier party. */
+function StartWorkflowDialog({
+  documentId,
+  documentType,
+  open,
+  onClose,
+}: {
+  documentId: string;
+  documentType: string;
+  open: boolean;
+  onClose: () => void;
+}) {
+  const { can } = useAuth();
+  const isSample = documentType === 'TemplateSample';
+  // Sample documents may try any workflow (administrators testing a configuration).
+  const templates = useWorkflowTemplates(undefined, open && can(P.WorkflowManage, P.TemplateManage));
+  const suppliers = useLookup('suppliers', undefined, open && isSample);
+  const start = useStartWorkflow();
+  const onError = useApiError();
+  const { message } = App.useApp();
+  const [form] = Form.useForm<{ templateId?: string; supplierId?: string }>();
+  const options = (templates.data ?? [])
+    .filter((t) => t.isActive && (isSample || t.documentType === documentType))
+    .map((t) => ({ value: t.id, label: ` (${t.steps.length} bước)` }));
+
+  return (
+    <Modal
+      title="Gửi ký"
+      open={open}
+      onCancel={onClose}
+      okText="Gửi ký"
+      okButtonProps={{ loading: start.isPending, icon: <SendOutlined /> }}
+      onOk={async () => {
+        const v = await form.validateFields();
+        try {
+          await start.mutateAsync({
+            documentId,
+            templateId: v.templateId ?? null,
+            supplierId: v.supplierId ?? null,
+            facilityId: null,
+            domain: null,
+          });
+          message.success('Đã gửi ký; người xử lý bước đầu tiên đã được thông báo');
+          onClose();
+        } catch (e) {
+          onError(e);
+        }
+      }}
+      destroyOnHidden
+    >
+      <Form form={form} layout="vertical">
+        <Form.Item
+          name="templateId"
+          label="Luồng ký"
+          extra="Để trống để dùng luồng mặc định của loại tài liệu"
+          rules={isSample ? [{ required: true, message: 'Chọn luồng ký' }] : []}
+        >
+          <Select allowClear options={options} loading={templates.isLoading} placeholder="Luồng mặc định" />
+        </Form.Item>
+        {isSample && (
+          <Form.Item name="supplierId" label="Nhà cung cấp tham gia ký (nếu luồng có bước NCC)">
+            <Select
+              allowClear
+              showSearch
+              optionFilterProp="label"
+              options={(suppliers.data ?? []).map((s) => ({ value: s.id, label: s.name }))}
+            />
+          </Form.Item>
+        )}
+      </Form>
+    </Modal>
+  );
+}
+
+/** Document detail: versions (SHA-256), PDF rendition, online editing with ONLYOFFICE, signing workflow. */
 export function DocumentPage() {
   const { id } = useParams<{ id: string }>();
   const [awaitingSave, setAwaitingSave] = useState(false);
@@ -66,6 +158,10 @@ export function DocumentPage() {
   const upload = useUploadDocumentVersion(id ?? '');
   const [session, setSession] = useState<EditorSessionDto | null>(null);
   const [viewing, setViewing] = useState<DocumentVersionDto | null>(null);
+  const [starting, setStarting] = useState(false);
+  const [verified, setVerified] = useState<{ version: number; result: VerifyResultDto } | null>(null);
+  const workflow = useDocumentWorkflow(id);
+  const wf = workflow.data;
   const { message } = App.useApp();
   const onError = useApiError();
   const d = doc.data;
@@ -96,6 +192,8 @@ export function DocumentPage() {
   }, [awaitingSave, versionCount, message]);
 
   const current = d?.versions.find((v) => v.isCurrent);
+  const canStart =
+    !!d?.canEdit && d.status === 'Draft' && (!wf || wf.status === 'Completed' || wf.status === 'Cancelled');
 
   return (
     <>
@@ -112,8 +210,13 @@ export function DocumentPage() {
         extra={
           d?.canEdit && (
             <Space wrap>
+              {canStart && (
+                <Button type="primary" icon={<SendOutlined />} onClick={() => setStarting(true)}>
+                  Gửi ký
+                </Button>
+              )}
               <Dropdown.Button
-                type="primary"
+                type={canStart ? 'default' : 'primary'}
                 icon={<EditOutlined />}
                 loading={startEdit.isPending}
                 disabled={!current?.hasDocx}
@@ -163,6 +266,13 @@ export function DocumentPage() {
           </Descriptions>
         )}
       </Card>
+      {wf && (
+        <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+          <Col span={24}>
+            <WorkflowCard wf={wf} />
+          </Col>
+        </Row>
+      )}
       <Card title="Các phiên bản">
         <Alert
           type="warning"
@@ -253,6 +363,20 @@ export function DocumentPage() {
                       </Button>
                     )
                   )}
+                  {r.signatureCount > 0 && (
+                    <Button
+                      size="small"
+                      icon={<SafetyCertificateOutlined />}
+                      onClick={() =>
+                        verifyVersion(d!.id, r.id).then(
+                          (result) => setVerified({ version: r.versionNumber, result }),
+                          onError,
+                        )
+                      }
+                    >
+                      Xác minh chữ ký
+                    </Button>
+                  )}
                   {r.hasDocx && (
                     <Button
                       size="small"
@@ -302,6 +426,40 @@ export function DocumentPage() {
         {session && <DocEditor session={session} />}
       </Modal>
 
+      {d && (
+        <StartWorkflowDialog
+          documentId={d.id}
+          documentType={d.type}
+          open={starting}
+          onClose={() => setStarting(false)}
+        />
+      )}
+
+      <Modal
+        title={`Xác minh chữ ký — v${verified?.version ?? ''}`}
+        open={!!verified}
+        onCancel={() => setVerified(null)}
+        footer={null}
+        width={1100}
+        destroyOnHidden
+      >
+        {verified && (
+          <>
+            <Alert
+              showIcon
+              style={{ marginBottom: 12 }}
+              type={verified.result.allValid ? 'success' : 'error'}
+              message={
+                verified.result.allValid
+                  ? `Tất cả ${verified.result.signatureCount} chữ ký đều toàn vẹn.`
+                  : 'Có chữ ký không hợp lệ: nội dung đã bị thay đổi sau khi ký.'
+              }
+            />
+            <SignatureTable result={verified.result} />
+          </>
+        )}
+      </Modal>
+
       <Modal
         title={`PDF v${viewing?.versionNumber ?? ''}`}
         open={!!viewing}
@@ -311,7 +469,10 @@ export function DocumentPage() {
         destroyOnHidden
       >
         {viewing && d && (
-          <PdfViewer load={() => fetchDocumentFile(d.id, viewing.id, 'pdf')} cacheKey={viewing.id} />
+          <PdfViewer
+            load={() => fetchDocumentFile(d.id, viewing.id, 'pdf')}
+            cacheKey={`${viewing.id}:${viewing.pdfSha256}`}
+          />
         )}
       </Modal>
     </>

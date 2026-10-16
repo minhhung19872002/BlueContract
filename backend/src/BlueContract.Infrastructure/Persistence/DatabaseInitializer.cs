@@ -46,6 +46,7 @@ public sealed class DatabaseInitializer(
         }
 
         await services.GetRequiredService<TemplateSeeder>().SeedAsync(ct);
+        await services.GetRequiredService<WorkflowSeeder>().SeedAsync(ct);
     }
 
     private async Task ResetDemoAsync(CancellationToken ct)

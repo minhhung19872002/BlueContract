@@ -3,6 +3,9 @@ import {
   AuditOutlined,
   BankOutlined,
   DashboardOutlined,
+  EditOutlined,
+  NodeIndexOutlined,
+  SafetyCertificateOutlined,
   FileWordOutlined,
   HomeOutlined,
   IdcardOutlined,
@@ -16,6 +19,14 @@ import type { NavItem } from './AppShell';
 /** Hospital staff menu. Business modules are added here as each phase lands. */
 export const internalNav: NavItem[] = [
   { key: '/tong-quan', label: 'Tổng quan', icon: <DashboardOutlined /> },
+  {
+    key: '/trinh-ky',
+    label: 'Trình ký',
+    icon: <EditOutlined />,
+    permissions: [P.SigningInbox],
+    inboxBadge: true,
+  },
+  { key: '/xac-minh-chu-ky', label: 'Xác minh chữ ký', icon: <SafetyCertificateOutlined /> },
   {
     key: '/quan-tri',
     label: 'Quản trị',
@@ -55,6 +66,12 @@ export const internalNav: NavItem[] = [
         icon: <FileWordOutlined />,
         permissions: [P.TemplateManage],
       },
+      {
+        key: '/quan-tri/luong-ky',
+        label: 'Cấu hình luồng ký',
+        icon: <NodeIndexOutlined />,
+        permissions: [P.WorkflowManage],
+      },
       { key: '/quan-tri/tham-so', label: 'Tham số hệ thống', permissions: [P.SettingManage] },
       {
         key: '/quan-tri/nhat-ky',
@@ -69,6 +86,14 @@ export const internalNav: NavItem[] = [
 /** Supplier portal menu. */
 export const supplierNav: NavItem[] = [
   { key: '/ncc/tong-quan', label: 'Tổng quan', icon: <DashboardOutlined /> },
+  {
+    key: '/ncc/trinh-ky',
+    label: 'Trình ký',
+    icon: <EditOutlined />,
+    permissions: [P.SigningInbox],
+    inboxBadge: true,
+  },
+  { key: '/ncc/xac-minh-chu-ky', label: 'Xác minh chữ ký', icon: <SafetyCertificateOutlined /> },
   {
     key: '/ncc/cong-ty',
     label: 'Tài khoản công ty',

@@ -1540,6 +1540,801 @@ namespace BlueContract.Infrastructure.Persistence.Migrations
                     b.ToTable("system_settings", (string)null);
                 });
 
+            modelBuilder.Entity("BlueContract.Domain.Workflows.Notification", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Body")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("body");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Link")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("link");
+
+                    b.Property<DateTimeOffset?>("ReadAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("read_at");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("title");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("type");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_notifications");
+
+                    b.HasIndex("UserId", "ReadAt", "CreatedAt")
+                        .HasDatabaseName("ix_notifications_user_id_read_at_created_at");
+
+                    b.ToTable("notifications", (string)null);
+                });
+
+            modelBuilder.Entity("BlueContract.Domain.Workflows.Signature", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Caption")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("caption");
+
+                    b.Property<string>("CertificateIssuer")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("certificate_issuer");
+
+                    b.Property<string>("CertificateSerial")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("certificate_serial");
+
+                    b.Property<string>("CertificateSubject")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("certificate_subject");
+
+                    b.Property<Guid>("DocumentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("document_id");
+
+                    b.Property<Guid>("DocumentVersionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("document_version_id");
+
+                    b.Property<string>("FieldName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("field_name");
+
+                    b.Property<string>("HashAfter")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("hash_after");
+
+                    b.Property<string>("HashBefore")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("hash_before");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("kind");
+
+                    b.Property<Guid?>("OnBehalfOfUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("on_behalf_of_user_id");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("provider");
+
+                    b.Property<DateTimeOffset>("SignedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("signed_at");
+
+                    b.Property<string>("SignerName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("signer_name");
+
+                    b.Property<string>("SignerTitle")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("signer_title");
+
+                    b.Property<Guid>("SignerUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("signer_user_id");
+
+                    b.Property<Guid?>("StepInstanceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("step_instance_id");
+
+                    b.Property<string>("Verification")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("verification");
+
+                    b.Property<DateTimeOffset?>("VerifiedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("verified_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_signatures");
+
+                    b.HasIndex("DocumentId")
+                        .HasDatabaseName("ix_signatures_document_id");
+
+                    b.HasIndex("DocumentVersionId")
+                        .HasDatabaseName("ix_signatures_document_version_id");
+
+                    b.HasIndex("SignerUserId", "SignedAt")
+                        .HasDatabaseName("ix_signatures_signer_user_id_signed_at");
+
+                    b.ToTable("signatures", (string)null);
+                });
+
+            modelBuilder.Entity("BlueContract.Domain.Workflows.SigningCertificate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("IsOrganization")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_organization");
+
+                    b.Property<string>("Issuer")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("issuer");
+
+                    b.Property<DateTimeOffset>("NotAfter")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("not_after");
+
+                    b.Property<DateTimeOffset>("NotBefore")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("not_before");
+
+                    b.Property<string>("ProtectedPfx")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("protected_pfx");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("provider");
+
+                    b.Property<string>("SerialNumber")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("serial_number");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("subject");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_signing_certificates");
+
+                    b.HasIndex("UserId", "Provider")
+                        .HasDatabaseName("ix_signing_certificates_user_id_provider");
+
+                    b.ToTable("signing_certificates", (string)null);
+                });
+
+            modelBuilder.Entity("BlueContract.Domain.Workflows.SigningRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("BasePdfSha256")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("base_pdf_sha256");
+
+                    b.Property<DateTimeOffset?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("completed_at");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("DataToSign")
+                        .HasColumnType("text")
+                        .HasColumnName("data_to_sign");
+
+                    b.Property<string>("DocumentDigest")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("document_digest");
+
+                    b.Property<Guid>("DocumentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("document_id");
+
+                    b.Property<Guid>("DocumentVersionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("document_version_id");
+
+                    b.Property<string>("Error")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("error");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<string>("FieldName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("field_name");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("kind");
+
+                    b.Property<Guid?>("OnBehalfOfUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("on_behalf_of_user_id");
+
+                    b.Property<string>("PreparedPdfKey")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("prepared_pdf_key");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("provider");
+
+                    b.Property<string>("ProviderMessage")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("provider_message");
+
+                    b.Property<uint>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.Property<Guid?>("SignatureId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("signature_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("status");
+
+                    b.Property<Guid>("StepInstanceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("step_instance_id");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_signing_requests");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_signing_requests_user_id");
+
+                    b.HasIndex("StepInstanceId", "Status")
+                        .HasDatabaseName("ix_signing_requests_step_instance_id_status");
+
+                    b.ToTable("signing_requests", (string)null);
+                });
+
+            modelBuilder.Entity("BlueContract.Domain.Workflows.WorkflowEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("ActorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("actor_id");
+
+                    b.Property<string>("ActorName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("actor_name");
+
+                    b.Property<DateTimeOffset>("At")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("at");
+
+                    b.Property<Guid>("InstanceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("instance_id");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("note");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("integer")
+                        .HasColumnName("sequence");
+
+                    b.Property<Guid?>("StepId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("step_id");
+
+                    b.Property<string>("StepName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("step_name");
+
+                    b.Property<int?>("TargetOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("target_order");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("type");
+
+                    b.HasKey("Id")
+                        .HasName("pk_workflow_events");
+
+                    b.HasIndex("InstanceId", "Sequence")
+                        .IsUnique()
+                        .HasDatabaseName("ix_workflow_events_instance_id_sequence");
+
+                    b.ToTable("workflow_events", (string)null);
+                });
+
+            modelBuilder.Entity("BlueContract.Domain.Workflows.WorkflowInstance", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("completed_at");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<Guid>("DocumentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("document_id");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<uint>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.Property<string>("ScopeDomain")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("scope_domain");
+
+                    b.Property<Guid?>("ScopeFacilityId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("scope_facility_id");
+
+                    b.Property<DateTimeOffset>("StartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("started_at");
+
+                    b.Property<Guid>("StartedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("started_by");
+
+                    b.Property<string>("StartedByName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("started_by_name");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("status");
+
+                    b.Property<Guid?>("SupplierId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("supplier_id");
+
+                    b.Property<string>("TemplateCode")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("template_code");
+
+                    b.Property<Guid>("TemplateId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("template_id");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("Id")
+                        .HasName("pk_workflow_instances");
+
+                    b.HasIndex("DocumentId")
+                        .HasDatabaseName("ix_workflow_instances_document_id");
+
+                    b.HasIndex("StartedBy")
+                        .HasDatabaseName("ix_workflow_instances_started_by");
+
+                    b.HasIndex("Status", "SupplierId")
+                        .HasDatabaseName("ix_workflow_instances_status_supplier_id");
+
+                    b.ToTable("workflow_instances", (string)null);
+                });
+
+            modelBuilder.Entity("BlueContract.Domain.Workflows.WorkflowStepInstance", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("ActedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("acted_at");
+
+                    b.Property<Guid?>("ActedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("acted_by");
+
+                    b.Property<string>("ActedByName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("acted_by_name");
+
+                    b.Property<string>("ActionType")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("action_type");
+
+                    b.Property<DateTimeOffset?>("ActivatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("activated_at");
+
+                    b.Property<bool>("AllowEdit")
+                        .HasColumnType("boolean")
+                        .HasColumnName("allow_edit");
+
+                    b.Property<string>("AssigneeType")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("assignee_type");
+
+                    b.Property<Guid?>("AssigneeUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("assignee_user_id");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("code");
+
+                    b.Property<string>("Comment")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("comment");
+
+                    b.Property<DateTimeOffset?>("DueAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("due_at");
+
+                    b.Property<Guid>("InstanceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("instance_id");
+
+                    b.Property<bool>("IsOptional")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_optional");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
+
+                    b.Property<Guid?>("OnBehalfOfUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("on_behalf_of_user_id");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("integer")
+                        .HasColumnName("order");
+
+                    b.Property<DateTimeOffset?>("ReminderSentAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("reminder_sent_at");
+
+                    b.Property<string>("ReturnTo")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("return_to");
+
+                    b.Property<string>("RoleCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("role_code");
+
+                    b.Property<uint>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.Property<string>("SignatureAnchor")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("signature_anchor");
+
+                    b.Property<Guid?>("SignatureId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("signature_id");
+
+                    b.Property<int?>("SlaHours")
+                        .HasColumnType("integer")
+                        .HasColumnName("sla_hours");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("status");
+
+                    b.HasKey("Id")
+                        .HasName("pk_workflow_steps");
+
+                    b.HasIndex("ActedBy")
+                        .HasDatabaseName("ix_workflow_steps_acted_by");
+
+                    b.HasIndex("InstanceId")
+                        .HasDatabaseName("ix_workflow_steps_instance_id");
+
+                    b.HasIndex("Status", "AssigneeUserId")
+                        .HasDatabaseName("ix_workflow_steps_status_assignee_user_id");
+
+                    b.HasIndex("Status", "DueAt")
+                        .HasDatabaseName("ix_workflow_steps_status_due_at");
+
+                    b.HasIndex("Status", "RoleCode")
+                        .HasDatabaseName("ix_workflow_steps_status_role_code");
+
+                    b.ToTable("workflow_steps", (string)null);
+                });
+
+            modelBuilder.Entity("BlueContract.Domain.Workflows.WorkflowStepTemplate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("ActionType")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("action_type");
+
+                    b.Property<bool>("AllowEdit")
+                        .HasColumnType("boolean")
+                        .HasColumnName("allow_edit");
+
+                    b.Property<string>("AssigneeType")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("assignee_type");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("code");
+
+                    b.Property<bool>("IsOptional")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_optional");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("integer")
+                        .HasColumnName("order");
+
+                    b.Property<string>("ReturnTo")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("return_to");
+
+                    b.Property<string>("RoleCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("role_code");
+
+                    b.Property<string>("SignatureAnchor")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("signature_anchor");
+
+                    b.Property<int?>("SlaHours")
+                        .HasColumnType("integer")
+                        .HasColumnName("sla_hours");
+
+                    b.Property<Guid>("TemplateId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("template_id");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_workflow_step_templates");
+
+                    b.HasIndex("TemplateId", "Order")
+                        .HasDatabaseName("ix_workflow_step_templates_template_id_order");
+
+                    b.ToTable("workflow_step_templates", (string)null);
+                });
+
+            modelBuilder.Entity("BlueContract.Domain.Workflows.WorkflowTemplate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("code");
+
+                    b.Property<string>("Condition")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("condition");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("DocumentType")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("document_type");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_default");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("name");
+
+                    b.Property<uint>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("Id")
+                        .HasName("pk_workflow_templates");
+
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasDatabaseName("ix_workflow_templates_code");
+
+                    b.HasIndex("DocumentType", "IsActive")
+                        .HasDatabaseName("ix_workflow_templates_document_type_is_active");
+
+                    b.ToTable("workflow_templates", (string)null);
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
                 {
                     b.Property<int>("Id")
@@ -1646,6 +2441,36 @@ namespace BlueContract.Infrastructure.Persistence.Migrations
                     b.Navigation("Facility");
                 });
 
+            modelBuilder.Entity("BlueContract.Domain.Workflows.WorkflowEvent", b =>
+                {
+                    b.HasOne("BlueContract.Domain.Workflows.WorkflowInstance", null)
+                        .WithMany("_events")
+                        .HasForeignKey("InstanceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_workflow_events_workflow_instances_instance_id");
+                });
+
+            modelBuilder.Entity("BlueContract.Domain.Workflows.WorkflowStepInstance", b =>
+                {
+                    b.HasOne("BlueContract.Domain.Workflows.WorkflowInstance", null)
+                        .WithMany("_steps")
+                        .HasForeignKey("InstanceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_workflow_steps_workflow_instances_instance_id");
+                });
+
+            modelBuilder.Entity("BlueContract.Domain.Workflows.WorkflowStepTemplate", b =>
+                {
+                    b.HasOne("BlueContract.Domain.Workflows.WorkflowTemplate", null)
+                        .WithMany("_steps")
+                        .HasForeignKey("TemplateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_workflow_step_templates_workflow_templates_template_id");
+                });
+
             modelBuilder.Entity("BlueContract.Domain.Documents.Document", b =>
                 {
                     b.Navigation("Versions");
@@ -1666,6 +2491,18 @@ namespace BlueContract.Infrastructure.Persistence.Migrations
                     b.Navigation("DataScopes");
 
                     b.Navigation("Roles");
+                });
+
+            modelBuilder.Entity("BlueContract.Domain.Workflows.WorkflowInstance", b =>
+                {
+                    b.Navigation("_events");
+
+                    b.Navigation("_steps");
+                });
+
+            modelBuilder.Entity("BlueContract.Domain.Workflows.WorkflowTemplate", b =>
+                {
+                    b.Navigation("_steps");
                 });
 #pragma warning restore 612, 618
         }

@@ -117,6 +117,9 @@ services:
       Seed__Demo: ${SEED_DEMO:-true}
       Seed__AllowReset: ${SEED_ALLOW_RESET:-true}
       Seed__AdminPassword: ${SEED_ADMIN_PASSWORD:-}
+      Signing__DefaultProvider: ${SIGNING_DEFAULT_PROVIDER:-MOCK}
+      Signing__EnableMockProviders: ${SIGNING_ENABLE_MOCK:-true}
+      Hangfire__DashboardEnabled: ${HANGFIRE_DASHBOARD:-true}
       Email__Host: mailpit
       Email__Port: "1025"
       App__PublicBaseUrl: ${PUBLIC_BASE_URL:-http://localhost:47080}

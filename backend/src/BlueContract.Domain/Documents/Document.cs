@@ -84,6 +84,17 @@ public sealed class Document : Entity
 
     public void LinkBidDecision(Guid? bidDecisionId) => BidDecisionId = bidDecisionId;
 
+    /// <summary>Sets the supplier party once (sandbox documents get one when a supplier step is involved).</summary>
+    public void SetSupplierParty(Guid supplierId)
+    {
+        if (SupplierId is not null && SupplierId != supplierId)
+        {
+            throw new DomainException("DOCUMENT_SUPPLIER_ALREADY_SET");
+        }
+
+        SupplierId = supplierId;
+    }
+
     /// <summary>
     /// Adds a new version and makes it current. Returns true when the previous current version was already signed,
     /// meaning the signing workflow must restart (spec §5.7).

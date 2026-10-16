@@ -7,6 +7,7 @@ using BlueContract.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.HttpOverrides;
 using Scalar.AspNetCore;
+using Hangfire;
 using Serilog;
 using InfrastructureDI = BlueContract.Infrastructure.DependencyInjection;
 
@@ -71,6 +72,17 @@ try
     builder.Services.AddApplication();
     builder.Services.AddInfrastructure(builder.Configuration);
     builder.Services.AddAppAuth(builder.Configuration);
+
+    // Realtime notifications (SignalR) and background job server (Hangfire)
+    builder.Services.AddSignalR();
+    builder.Services.AddSingleton<Microsoft.AspNetCore.SignalR.IUserIdProvider, BlueContract.Api.Realtime.SubjectUserIdProvider>();
+    builder.Services.AddScoped<BlueContract.Application.Notifications.IRealtimeNotifier, BlueContract.Api.Realtime.SignalRNotifier>();
+    var hangfire = builder.Configuration.GetSection(BlueContract.Infrastructure.Jobs.HangfireOptions.SectionName).Get<BlueContract.Infrastructure.Jobs.HangfireOptions>()
+        ?? new BlueContract.Infrastructure.Jobs.HangfireOptions();
+    if (hangfire.ServerEnabled && System.Reflection.Assembly.GetEntryAssembly()?.GetName().Name != "GetDocument.Insider")
+    {
+        builder.Services.AddHangfireServer(o => o.WorkerCount = Math.Max(2, Environment.ProcessorCount));
+    }
     builder.Services.AddCors(o => o.AddDefaultPolicy(p => p
         .WithOrigins(builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? [])
         .AllowAnyHeader()
@@ -140,6 +152,22 @@ try
     app.UseRateLimiter();
     app.UseAuthorization();
     app.MapControllers();
+    app.MapHub<BlueContract.Api.Realtime.NotificationHub>(BlueContract.Api.Realtime.NotificationHub.Path);
+
+    if (hangfire.DashboardEnabled)
+    {
+        app.MapHangfireDashboard("/hangfire", new DashboardOptions
+        {
+            Authorization = [new BlueContract.Api.Realtime.DevelopmentDashboardAuthorization(app.Environment)],
+            DashboardTitle = "BlueContract — tác vụ nền",
+        });
+    }
+
+    if (hangfire.ServerEnabled && !isOpenApiGeneration)
+    {
+        app.Services.GetRequiredService<IRecurringJobManager>().AddOrUpdate<BlueContract.Infrastructure.Jobs.WorkflowReminderJob>(
+            BlueContract.Infrastructure.Jobs.WorkflowReminderJob.Id, job => job.RunAsync(CancellationToken.None), Cron.Hourly());
+    }
 
     await app.RunAsync();
 }

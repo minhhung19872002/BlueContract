@@ -76,6 +76,8 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         builder.UseSetting("Seed:Demo", "true");
         builder.UseSetting("Seed:DemoPassword", DemoPassword);
         builder.UseSetting("Email:Enabled", "false");
+        builder.UseSetting("Hangfire:ServerEnabled", "false");
+        builder.UseSetting("Signing:MockRemoteDelaySeconds", "0");
     }
 }
 

@@ -1,7 +1,13 @@
 using BlueContract.Application.Auth;
 using BlueContract.Application.Common;
 using BlueContract.Application.Documents;
+using BlueContract.Application.Notifications;
+using BlueContract.Application.Signing;
 using BlueContract.Infrastructure.Documents;
+using BlueContract.Infrastructure.Jobs;
+using BlueContract.Infrastructure.Signing;
+using Hangfire;
+using Hangfire.PostgreSql;
 using BlueContract.Infrastructure.HealthChecks;
 using BlueContract.Infrastructure.Identity;
 using BlueContract.Infrastructure.Messaging;
@@ -35,13 +41,14 @@ public static class DependencyInjection
         services.AddSingleton(TimeProvider.System);
         services.AddSingleton<IClock, SystemClock>();
         services.AddScoped<AuditableEntityInterceptor>();
+        services.AddScoped<NotificationDispatchInterceptor>();
 
         // Factory (scoped, so interceptors/current user resolve per request) + scoped context from it.
         services.AddDbContextFactory<AppDbContext>(
             (sp, options) => options
                 .UseNpgsql(connectionString, npgsql => npgsql.MigrationsHistoryTable("__ef_migrations_history"))
                 .UseSnakeCaseNamingConvention()
-                .AddInterceptors(sp.GetRequiredService<AuditableEntityInterceptor>()),
+                .AddInterceptors(sp.GetRequiredService<AuditableEntityInterceptor>(), sp.GetRequiredService<NotificationDispatchInterceptor>()),
             ServiceLifetime.Scoped);
         services.AddScoped(sp => sp.GetRequiredService<IDbContextFactory<AppDbContext>>().CreateDbContext());
         services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<AppDbContext>());
@@ -52,6 +59,7 @@ public static class DependencyInjection
         services.AddScoped<IdentitySeeder>();
         services.AddScoped<DemoSeeder>();
         services.AddScoped<TemplateSeeder>();
+        services.AddScoped<WorkflowSeeder>();
 
         // Identity
         services.Configure<AuthOptions>(configuration.GetSection(AuthOptions.SectionName));
@@ -80,6 +88,36 @@ public static class DependencyInjection
         services.AddScoped<IPdfConverter, GotenbergPdfConverter>();
         services.Configure<OnlyOfficeOptions>(configuration.GetSection(OnlyOfficeOptions.SectionName));
         services.AddScoped<IDocumentEditorService, OnlyOfficeEditorService>();
+
+        // Digital signing (PAdES via iText) and providers
+        services.Configure<SigningOptions>(configuration.GetSection(SigningOptions.SectionName));
+        services.AddSingleton(sp =>
+        {
+            var signing = sp.GetRequiredService<IOptions<SigningOptions>>().Value;
+            return new SigningDefaults(signing.DefaultProvider, signing.InitialRequiresCa);
+        });
+        services.AddSingleton<IPdfSignatureService, PdfSignatureService>();
+        services.AddSingleton<ICmsBuilder, CmsBuilder>();
+        services.AddDistributedMemoryCache();
+        services.AddScoped<CertificateStore>();
+        services.AddScoped<ISigningProvider, MockSigningProvider>();
+        services.AddScoped<ISigningProvider, MockRemoteSigningProvider>();
+        services.AddScoped<ISigningProvider, UsbTokenSigningProvider>();
+        services.AddScoped<ISigningProvider, InitialStampProvider>();
+        services.AddScoped<ISigningProvider>(sp => new RemoteCaSigningProvider("VNPT_SMARTCA", "VNPT SmartCA (ký số từ xa)", o => o.VnptSmartCa, sp.GetRequiredService<IOptions<SigningOptions>>()));
+        services.AddScoped<ISigningProvider>(sp => new RemoteCaSigningProvider("VIETTEL_MYSIGN", "Viettel MySign (ký số từ xa)", o => o.ViettelMySign, sp.GetRequiredService<IOptions<SigningOptions>>()));
+        services.AddScoped<ISigningProvider>(sp => new RemoteCaSigningProvider("FPT_CA", "FPT CA (ký số từ xa)", o => o.FptCa, sp.GetRequiredService<IOptions<SigningOptions>>()));
+
+        // Background jobs (Hangfire on PostgreSQL)
+        services.Configure<HangfireOptions>(configuration.GetSection(HangfireOptions.SectionName));
+        services.AddHangfire(config => config
+            .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+            .UseSimpleAssemblyNameTypeSerializer()
+            .UseRecommendedSerializerSettings()
+            .UsePostgreSqlStorage(o => o.UseNpgsqlConnection(connectionString), new PostgreSqlStorageOptions { SchemaName = "hangfire", PrepareSchemaIfNecessary = true }));
+        services.AddScoped<IBackgroundJobs, HangfireBackgroundJobs>();
+        services.AddScoped<EmailJob>();
+        services.AddScoped<WorkflowReminderJob>();
 
         // Storage
         services.Configure<StorageOptions>(configuration.GetSection(StorageOptions.SectionName));

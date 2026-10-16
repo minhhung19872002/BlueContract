@@ -2988,10 +2988,893 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/workflow-templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    documentType?: components["schemas"]["DocumentType"];
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["WorkflowTemplateDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SaveWorkflowTemplateRequest"];
+                    "text/json": components["schemas"]["SaveWorkflowTemplateRequest"];
+                    "application/*+json": components["schemas"]["SaveWorkflowTemplateRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": string;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workflow-templates/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SaveWorkflowTemplateRequest"];
+                    "text/json": components["schemas"]["SaveWorkflowTemplateRequest"];
+                    "application/*+json": components["schemas"]["SaveWorkflowTemplateRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": string;
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workflows": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["StartWorkflowRequest"];
+                    "text/json": components["schemas"]["StartWorkflowRequest"];
+                    "application/*+json": components["schemas"]["StartWorkflowRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": string;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workflows/by-document/{documentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    documentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["WorkflowDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workflows/steps/{stepId}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    stepId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ApproveStepRequest"];
+                    "text/json": components["schemas"]["ApproveStepRequest"];
+                    "application/*+json": components["schemas"]["ApproveStepRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["WorkflowDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workflows/steps/{stepId}/return": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Trả lại (bắt buộc lý do, chọn bước trả về). */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    stepId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ReturnStepRequest"];
+                    "text/json": components["schemas"]["ReturnStepRequest"];
+                    "application/*+json": components["schemas"]["ReturnStepRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["WorkflowDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workflows/{id}/comments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Chuyển tiếp ý kiến. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CommentRequest"];
+                    "text/json": components["schemas"]["CommentRequest"];
+                    "application/*+json": components["schemas"]["CommentRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["WorkflowDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workflows/{id}/resubmit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["WorkflowDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workflows/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CommentRequest"];
+                    "text/json": components["schemas"]["CommentRequest"];
+                    "application/*+json": components["schemas"]["CommentRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/signing/providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SigningProviderDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/signing/inbox": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    Page?: number;
+                    PageSize?: number;
+                    Search?: string;
+                    /** @description Property name to sort by (whitelisted per endpoint). */
+                    SortBy?: string;
+                    SortDesc?: boolean;
+                    /** @description Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows). */
+                    ForExport?: boolean;
+                    SafePage?: number;
+                    SafePageSize?: number;
+                    Tab?: components["schemas"]["InboxTab"];
+                    DocumentType?: components["schemas"]["DocumentType"];
+                    SupplierId?: string;
+                    ContractId?: string;
+                    From?: string;
+                    To?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PagedResultOfInboxItemDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/signing/inbox/count": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["InboxCountDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/signing/steps/{stepId}/sign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Starts signing a step; server-side providers complete immediately. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    stepId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["BeginSignRequest"];
+                    "text/json": components["schemas"]["BeginSignRequest"];
+                    "application/*+json": components["schemas"]["BeginSignRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SigningRequestDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/signing/requests/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Polls a remote-signing request (user confirming on a phone). */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SigningRequestDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/signing/requests/{id}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** USB token: signature value returned by the CA plugin. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CompleteSignRequest"];
+                    "text/json": components["schemas"]["CompleteSignRequest"];
+                    "application/*+json": components["schemas"]["CompleteSignRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SigningRequestDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/signing/batch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ký hàng loạt. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["BatchSignRequest"];
+                    "text/json": components["schemas"]["BatchSignRequest"];
+                    "application/*+json": components["schemas"]["BatchSignRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["BatchSignResultDto"][];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/signing/documents/{documentId}/versions/{versionId}/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    documentId: string;
+                    versionId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["VerifyResultDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/signing/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Xác minh chữ ký của một tệp PDF bất kỳ. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "multipart/form-data": {
+                        file?: components["schemas"]["IFormFile"];
+                    };
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["VerifyResultDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    unreadOnly?: boolean;
+                    take?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["NotificationListDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/notifications/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/notifications/{id}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        ApproveStepRequest: {
+            comment: null | string;
+            skipNextOptional: boolean;
+        };
+        /**
+         * @description How the step's actor is determined.
+         * @enum {unknown}
+         */
+        AssigneeType: "Role" | "User" | "DocumentSupplier" | "Creator";
         AuditLogDto: {
             /** Format: uuid */
             id: string;
@@ -3010,9 +3893,32 @@ export interface components {
             note: null | string;
             correlationId: null | string;
         };
+        BatchSignRequest: {
+            stepIds: string[];
+            provider: null | string;
+        };
+        BatchSignResultDto: {
+            /** Format: uuid */
+            stepId: string;
+            success: boolean;
+            request: null | components["schemas"]["SigningRequestDto"];
+            errorCode: null | string;
+            errorMessage: null | string;
+        };
+        BeginSignRequest: {
+            provider: null | string;
+            clientCertificate: null | string;
+            comment: null | string;
+        };
         ChangePasswordRequest: {
             currentPassword: string;
             newPassword: string;
+        };
+        CommentRequest: {
+            text: string;
+        };
+        CompleteSignRequest: {
+            signatureValue: string;
         };
         CreateDelegationRequest: {
             /** Format: uuid */
@@ -3207,6 +4113,39 @@ export interface components {
         };
         /** Format: binary */
         IFormFile: string;
+        InboxCountDto: {
+            /** Format: int32 */
+            pending: number;
+            /** Format: int32 */
+            overdue: number;
+        };
+        InboxItemDto: {
+            /** Format: uuid */
+            instanceId: string;
+            /** Format: uuid */
+            documentId: string;
+            documentTitle: string;
+            documentType: components["schemas"]["DocumentType"];
+            workflowStatus: components["schemas"]["WorkflowStatus"];
+            /** Format: uuid */
+            stepId: null | string;
+            stepName: null | string;
+            actionType: null | components["schemas"]["WorkflowActionType"];
+            requiresSignature: boolean;
+            /** Format: date-time */
+            activatedAt: null | string;
+            /** Format: date-time */
+            dueAt: null | string;
+            isOverdue: boolean;
+            startedByName: null | string;
+            /** Format: date-time */
+            startedAt: string;
+            supplierName: null | string;
+            /** Format: date-time */
+            lastActivityAt: string;
+        };
+        /** @enum {unknown} */
+        InboxTab: "Pending" | "Processed" | "Sent" | "Returned";
         JsonObject: Record<string, never>;
         LoginRequest: {
             userName: string;
@@ -3226,6 +4165,22 @@ export interface components {
             id: string;
             code: string;
             name: string;
+        };
+        NotificationDto: {
+            /** Format: uuid */
+            id: string;
+            type: string;
+            title: string;
+            body: null | string;
+            link: null | string;
+            /** Format: date-time */
+            createdAt: string;
+            isRead: boolean;
+        };
+        NotificationListDto: {
+            items: components["schemas"]["NotificationDto"][];
+            /** Format: int32 */
+            unreadCount: number;
         };
         OrganizationDto: {
             /** Format: uuid */
@@ -3272,6 +4227,15 @@ export interface components {
             /** Format: int32 */
             pageSize: number;
         };
+        PagedResultOfInboxItemDto: {
+            items: components["schemas"]["InboxItemDto"][];
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+        };
         PagedResultOfSupplierDto: {
             items: components["schemas"]["SupplierDto"][];
             /** Format: int32 */
@@ -3299,6 +4263,25 @@ export interface components {
             /** Format: int32 */
             pageSize: number;
         };
+        PdfSignatureInfo: {
+            fieldName: string;
+            /** Format: int32 */
+            revision: number;
+            /** Format: int32 */
+            totalRevisions: number;
+            coversWholeDocument: boolean;
+            integrityValid: boolean;
+            signerSubject: string;
+            signerName: null | string;
+            issuerSubject: string;
+            serialNumber: string;
+            isSelfSigned: boolean;
+            /** Format: date-time */
+            signingTime: null | string;
+            hasTimestamp: boolean;
+            reason: null | string;
+            location: null | string;
+        };
         PermissionDto: {
             code: string;
             name: string;
@@ -3311,6 +4294,16 @@ export interface components {
         ResetPasswordResponse: {
             temporaryPassword: string;
             emailSent: boolean;
+        };
+        ReturnStepRequest: {
+            /** Format: int32 */
+            toOrder: number;
+            reason: string;
+        };
+        ReturnTargetDto: {
+            /** Format: int32 */
+            order: number;
+            name: string;
         };
         RoleDto: {
             /** Format: uuid */
@@ -3375,14 +4368,98 @@ export interface components {
             /** @default true */
             isActive: boolean;
         };
+        SaveWorkflowStepRequest: {
+            code: string;
+            name: string;
+            actionType: components["schemas"]["WorkflowActionType"];
+            assigneeType: components["schemas"]["AssigneeType"];
+            roleCode: null | string;
+            /** Format: uuid */
+            userId: null | string;
+            allowEdit: boolean;
+            isOptional: boolean;
+            returnTo: null | number[];
+            signatureAnchor: null | string;
+            /** Format: int32 */
+            slaHours: null | number;
+        };
+        SaveWorkflowTemplateRequest: {
+            code: string;
+            name: string;
+            documentType: components["schemas"]["DocumentType"];
+            condition: null | string;
+            isDefault: boolean;
+            isActive: boolean;
+            steps: components["schemas"]["SaveWorkflowStepRequest"][];
+        };
         SetRolePermissionsRequest: {
             permissions: string[];
         };
         /** @enum {unknown} */
         SettingValueType: "Text" | "WholeNumber" | "DecimalNumber" | "YesNo";
+        SignatureDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            documentVersionId: string;
+            signerName: string;
+            signerTitle: null | string;
+            caption: null | string;
+            kind: components["schemas"]["SignatureKind"];
+            provider: string;
+            certificateSubject: null | string;
+            certificateSerial: null | string;
+            /** Format: date-time */
+            signedAt: string;
+            hashAfter: string;
+        };
+        /** @enum {unknown} */
+        SignatureKind: "Personal" | "Organization" | "Initial";
+        /**
+         * @description How a provider produces the signature (spec §8.1).
+         * @enum {unknown}
+         */
+        SigningMode: "ServerSide" | "ClientSide" | "RemoteAsync";
+        SigningProviderDto: {
+            code: string;
+            displayName: string;
+            mode: components["schemas"]["SigningMode"];
+            isDefault: boolean;
+        };
+        SigningRequestDto: {
+            /** Format: uuid */
+            requestId: string;
+            /** Format: uuid */
+            stepId: string;
+            /** Format: uuid */
+            documentId: string;
+            provider: string;
+            mode: components["schemas"]["SigningMode"];
+            status: components["schemas"]["SigningRequestStatus"];
+            dataToSign: null | string;
+            message: null | string;
+            error: null | string;
+            /** Format: uuid */
+            signatureId: null | string;
+        };
+        /** @enum {unknown} */
+        SigningRequestStatus: "Pending" | "Completed" | "Failed" | "Expired" | "Cancelled";
         StartEditRequest: {
             mode: components["schemas"]["EditorMode"];
         };
+        StartWorkflowRequest: {
+            /** Format: uuid */
+            documentId: string;
+            /** Format: uuid */
+            templateId: null | string;
+            /** Format: uuid */
+            supplierId: null | string;
+            /** Format: uuid */
+            facilityId: null | string;
+            domain: null | string;
+        };
+        /** @enum {unknown} */
+        StepStatus: "Pending" | "Active" | "Done" | "Skipped";
         SupplierAccountRequest: {
             userName: string;
             fullName: string;
@@ -3609,6 +4686,12 @@ export interface components {
         UserStatus: "Active" | "Inactive" | "PendingActivation";
         /** @enum {unknown} */
         UserType: "Internal" | "Supplier";
+        VerifyResultDto: {
+            /** Format: int32 */
+            signatureCount: number;
+            allValid: boolean;
+            signatures: components["schemas"]["PdfSignatureInfo"][];
+        };
         WarehouseDto: {
             /** Format: uuid */
             id: string;
@@ -3625,6 +4708,102 @@ export interface components {
         };
         /** @enum {unknown} */
         WarehouseType: "Drug" | "MedicalSupply" | "Chemical" | "Asset" | "General";
+        /**
+         * @description What a workflow step asks the assignee to do (spec §5.7).
+         * @enum {unknown}
+         */
+        WorkflowActionType: "Review" | "Approve" | "Sign" | "Initial" | "OrgSeal" | "SupplierReview" | "SupplierSign" | "Confirm";
+        WorkflowDto: {
+            /** Format: uuid */
+            instanceId: string;
+            /** Format: uuid */
+            documentId: string;
+            templateCode: string;
+            status: components["schemas"]["WorkflowStatus"];
+            startedByName: null | string;
+            /** Format: date-time */
+            startedAt: string;
+            /** Format: date-time */
+            completedAt: null | string;
+            steps: components["schemas"]["WorkflowStepDto"][];
+            events: components["schemas"]["WorkflowEventDto"][];
+            /** Format: uuid */
+            myStepId: null | string;
+            myCaption: null | string;
+            returnTargets: components["schemas"]["ReturnTargetDto"][];
+            canResubmit: boolean;
+            canCancel: boolean;
+            signatures: components["schemas"]["SignatureDto"][];
+        };
+        WorkflowEventDto: {
+            type: components["schemas"]["WorkflowEventType"];
+            stepName: null | string;
+            actorName: null | string;
+            note: null | string;
+            /** Format: int32 */
+            targetOrder: null | number;
+            /** Format: date-time */
+            at: string;
+        };
+        /** @enum {unknown} */
+        WorkflowEventType: "Started" | "StepActivated" | "Approved" | "SignatureAdded" | "Returned" | "Skipped" | "Commented" | "Completed" | "Resubmitted" | "Restarted" | "Cancelled";
+        /** @enum {unknown} */
+        WorkflowStatus: "Running" | "Completed" | "Returned" | "Cancelled";
+        WorkflowStepDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: int32 */
+            order: number;
+            code: string;
+            name: string;
+            actionType: components["schemas"]["WorkflowActionType"];
+            assigneeType: components["schemas"]["AssigneeType"];
+            assigneeDisplay: string;
+            status: components["schemas"]["StepStatus"];
+            actedByName: null | string;
+            /** Format: date-time */
+            actedAt: null | string;
+            comment: null | string;
+            /** Format: date-time */
+            activatedAt: null | string;
+            /** Format: date-time */
+            dueAt: null | string;
+            isOverdue: boolean;
+            requiresSignature: boolean;
+            isOptional: boolean;
+            allowEdit: boolean;
+            /** Format: uuid */
+            signatureId: null | string;
+        };
+        WorkflowStepTemplateDto: {
+            code: string;
+            name: string;
+            actionType: components["schemas"]["WorkflowActionType"];
+            assigneeType: components["schemas"]["AssigneeType"];
+            roleCode: null | string;
+            /** Format: uuid */
+            userId: null | string;
+            userName: null | string;
+            allowEdit: boolean;
+            isOptional: boolean;
+            returnTo: number[];
+            signatureAnchor: null | string;
+            /** Format: int32 */
+            slaHours: null | number;
+        };
+        WorkflowTemplateDto: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            name: string;
+            documentType: components["schemas"]["DocumentType"];
+            condition: null | string;
+            isDefault: boolean;
+            isActive: boolean;
+            steps: components["schemas"]["WorkflowStepTemplateDto"][];
+            /** Format: int32 */
+            runningCount: number;
+        };
     };
     responses: never;
     parameters: never;

@@ -78,12 +78,14 @@ export function useAction<TBody = void, TResult = unknown>(
 export function useLookup(
   kind: 'facilities' | 'departments' | 'warehouses' | 'suppliers' | 'roles' | 'internal-users',
   params?: ListParams,
+  enabled = true,
 ) {
   return useQuery({
     queryKey: ['lookups', kind, clean(params ?? {})],
     queryFn: async () =>
       (await apiClient.get<LookupItem[]>(`/api/lookups/${kind}`, { params: clean(params ?? {}) })).data,
     staleTime: 5 * 60_000,
+    enabled,
   });
 }
 

@@ -3517,10 +3517,952 @@
           }
         }
       }
+    },
+    "/api/workflow-templates": {
+      "get": {
+        "tags": [
+          "WorkflowTemplates"
+        ],
+        "parameters": [
+          {
+            "name": "documentType",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/DocumentType"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkflowTemplateDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "WorkflowTemplates"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveWorkflowTemplateRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveWorkflowTemplateRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveWorkflowTemplateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workflow-templates/{id}": {
+      "put": {
+        "tags": [
+          "WorkflowTemplates"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveWorkflowTemplateRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveWorkflowTemplateRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveWorkflowTemplateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workflows": {
+      "post": {
+        "tags": [
+          "Workflows"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartWorkflowRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartWorkflowRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartWorkflowRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workflows/by-document/{documentId}": {
+      "get": {
+        "tags": [
+          "Workflows"
+        ],
+        "parameters": [
+          {
+            "name": "documentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workflows/steps/{stepId}/approve": {
+      "post": {
+        "tags": [
+          "Workflows"
+        ],
+        "parameters": [
+          {
+            "name": "stepId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApproveStepRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApproveStepRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApproveStepRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workflows/steps/{stepId}/return": {
+      "post": {
+        "tags": [
+          "Workflows"
+        ],
+        "summary": "Trả lại (bắt buộc lý do, chọn bước trả về).",
+        "parameters": [
+          {
+            "name": "stepId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReturnStepRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReturnStepRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReturnStepRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workflows/{id}/comments": {
+      "post": {
+        "tags": [
+          "Workflows"
+        ],
+        "summary": "Chuyển tiếp ý kiến.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommentRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommentRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workflows/{id}/resubmit": {
+      "post": {
+        "tags": [
+          "Workflows"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workflows/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Workflows"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommentRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommentRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    },
+    "/api/signing/providers": {
+      "get": {
+        "tags": [
+          "Signing"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SigningProviderDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/signing/inbox": {
+      "get": {
+        "tags": [
+          "Signing"
+        ],
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SortBy",
+            "in": "query",
+            "description": "Property name to sort by (whitelisted per endpoint).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SortDesc",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "ForExport",
+            "in": "query",
+            "description": "Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows).",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "SafePage",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "SafePageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Tab",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/InboxTab"
+            }
+          },
+          {
+            "name": "DocumentType",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/DocumentType"
+            }
+          },
+          {
+            "name": "SupplierId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "ContractId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "From",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "To",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResultOfInboxItemDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/signing/inbox/count": {
+      "get": {
+        "tags": [
+          "Signing"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InboxCountDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/signing/steps/{stepId}/sign": {
+      "post": {
+        "tags": [
+          "Signing"
+        ],
+        "summary": "Starts signing a step; server-side providers complete immediately.",
+        "parameters": [
+          {
+            "name": "stepId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BeginSignRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BeginSignRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/BeginSignRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SigningRequestDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/signing/requests/{id}": {
+      "get": {
+        "tags": [
+          "Signing"
+        ],
+        "summary": "Polls a remote-signing request (user confirming on a phone).",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SigningRequestDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/signing/requests/{id}/complete": {
+      "post": {
+        "tags": [
+          "Signing"
+        ],
+        "summary": "USB token: signature value returned by the CA plugin.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompleteSignRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompleteSignRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompleteSignRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SigningRequestDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/signing/batch": {
+      "post": {
+        "tags": [
+          "Signing"
+        ],
+        "summary": "Ký hàng loạt.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchSignRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchSignRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchSignRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BatchSignResultDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/signing/documents/{documentId}/versions/{versionId}/verify": {
+      "get": {
+        "tags": [
+          "Signing"
+        ],
+        "parameters": [
+          {
+            "name": "documentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "versionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifyResultDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/signing/verify": {
+      "post": {
+        "tags": [
+          "Signing"
+        ],
+        "summary": "Xác minh chữ ký của một tệp PDF bất kỳ.",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "$ref": "#/components/schemas/IFormFile"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifyResultDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notifications": {
+      "get": {
+        "tags": [
+          "Notifications"
+        ],
+        "parameters": [
+          {
+            "name": "unreadOnly",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "take",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationListDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notifications/read": {
+      "post": {
+        "tags": [
+          "Notifications"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    },
+    "/api/notifications/{id}/read": {
+      "post": {
+        "tags": [
+          "Notifications"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "ApproveStepRequest": {
+        "required": [
+          "comment",
+          "skipNextOptional"
+        ],
+        "type": "object",
+        "properties": {
+          "comment": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "skipNextOptional": {
+            "type": "boolean"
+          }
+        }
+      },
+      "AssigneeType": {
+        "enum": [
+          "Role",
+          "User",
+          "DocumentSupplier",
+          "Creator"
+        ],
+        "description": "How the step's actor is determined."
+      },
       "AuditLogDto": {
         "required": [
           "id",
@@ -3610,6 +4552,97 @@
           }
         }
       },
+      "BatchSignRequest": {
+        "required": [
+          "stepIds",
+          "provider"
+        ],
+        "type": "object",
+        "properties": {
+          "stepIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "provider": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "BatchSignResultDto": {
+        "required": [
+          "stepId",
+          "success",
+          "request",
+          "errorCode",
+          "errorMessage"
+        ],
+        "type": "object",
+        "properties": {
+          "stepId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "success": {
+            "type": "boolean"
+          },
+          "request": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/SigningRequestDto"
+              }
+            ]
+          },
+          "errorCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "errorMessage": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "BeginSignRequest": {
+        "required": [
+          "provider",
+          "clientCertificate",
+          "comment"
+        ],
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "clientCertificate": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "comment": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "ChangePasswordRequest": {
         "required": [
           "currentPassword",
@@ -3621,6 +4654,28 @@
             "type": "string"
           },
           "newPassword": {
+            "type": "string"
+          }
+        }
+      },
+      "CommentRequest": {
+        "required": [
+          "text"
+        ],
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          }
+        }
+      },
+      "CompleteSignRequest": {
+        "required": [
+          "signatureValue"
+        ],
+        "type": "object",
+        "properties": {
+          "signatureValue": {
             "type": "string"
           }
         }
@@ -4390,6 +5445,134 @@
         "type": "string",
         "format": "binary"
       },
+      "InboxCountDto": {
+        "required": [
+          "pending",
+          "overdue"
+        ],
+        "type": "object",
+        "properties": {
+          "pending": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "overdue": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "InboxItemDto": {
+        "required": [
+          "instanceId",
+          "documentId",
+          "documentTitle",
+          "documentType",
+          "workflowStatus",
+          "stepId",
+          "stepName",
+          "actionType",
+          "requiresSignature",
+          "activatedAt",
+          "dueAt",
+          "isOverdue",
+          "startedByName",
+          "startedAt",
+          "supplierName",
+          "lastActivityAt"
+        ],
+        "type": "object",
+        "properties": {
+          "instanceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "documentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "documentTitle": {
+            "type": "string"
+          },
+          "documentType": {
+            "$ref": "#/components/schemas/DocumentType"
+          },
+          "workflowStatus": {
+            "$ref": "#/components/schemas/WorkflowStatus"
+          },
+          "stepId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "stepName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "actionType": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/WorkflowActionType"
+              }
+            ]
+          },
+          "requiresSignature": {
+            "type": "boolean"
+          },
+          "activatedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "dueAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "isOverdue": {
+            "type": "boolean"
+          },
+          "startedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "supplierName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lastActivityAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "InboxTab": {
+        "enum": [
+          "Pending",
+          "Processed",
+          "Sent",
+          "Returned"
+        ]
+      },
       "JsonObject": {
         "type": "object"
       },
@@ -4463,6 +5646,68 @@
           },
           "name": {
             "type": "string"
+          }
+        }
+      },
+      "NotificationDto": {
+        "required": [
+          "id",
+          "type",
+          "title",
+          "body",
+          "link",
+          "createdAt",
+          "isRead"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "body": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "link": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "isRead": {
+            "type": "boolean"
+          }
+        }
+      },
+      "NotificationListDto": {
+        "required": [
+          "items",
+          "unreadCount"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NotificationDto"
+            }
+          },
+          "unreadCount": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -4651,6 +5896,35 @@
           }
         }
       },
+      "PagedResultOfInboxItemDto": {
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InboxItemDto"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "PagedResultOfSupplierDto": {
         "required": [
           "items",
@@ -4738,6 +6012,84 @@
           }
         }
       },
+      "PdfSignatureInfo": {
+        "required": [
+          "fieldName",
+          "revision",
+          "totalRevisions",
+          "coversWholeDocument",
+          "integrityValid",
+          "signerSubject",
+          "signerName",
+          "issuerSubject",
+          "serialNumber",
+          "isSelfSigned",
+          "signingTime",
+          "hasTimestamp",
+          "reason",
+          "location"
+        ],
+        "type": "object",
+        "properties": {
+          "fieldName": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalRevisions": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "coversWholeDocument": {
+            "type": "boolean"
+          },
+          "integrityValid": {
+            "type": "boolean"
+          },
+          "signerSubject": {
+            "type": "string"
+          },
+          "signerName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "issuerSubject": {
+            "type": "string"
+          },
+          "serialNumber": {
+            "type": "string"
+          },
+          "isSelfSigned": {
+            "type": "boolean"
+          },
+          "signingTime": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "hasTimestamp": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "location": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "PermissionDto": {
         "required": [
           "code",
@@ -4790,6 +6142,38 @@
           },
           "emailSent": {
             "type": "boolean"
+          }
+        }
+      },
+      "ReturnStepRequest": {
+        "required": [
+          "toOrder",
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "toOrder": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "ReturnTargetDto": {
+        "required": [
+          "order",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "order": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
           }
         }
       },
@@ -5065,6 +6449,119 @@
           }
         }
       },
+      "SaveWorkflowStepRequest": {
+        "required": [
+          "code",
+          "name",
+          "actionType",
+          "assigneeType",
+          "roleCode",
+          "userId",
+          "allowEdit",
+          "isOptional",
+          "returnTo",
+          "signatureAnchor",
+          "slaHours"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "actionType": {
+            "$ref": "#/components/schemas/WorkflowActionType"
+          },
+          "assigneeType": {
+            "$ref": "#/components/schemas/AssigneeType"
+          },
+          "roleCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "userId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "allowEdit": {
+            "type": "boolean"
+          },
+          "isOptional": {
+            "type": "boolean"
+          },
+          "returnTo": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "signatureAnchor": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "slaHours": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "SaveWorkflowTemplateRequest": {
+        "required": [
+          "code",
+          "name",
+          "documentType",
+          "condition",
+          "isDefault",
+          "isActive",
+          "steps"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "documentType": {
+            "$ref": "#/components/schemas/DocumentType"
+          },
+          "condition": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SaveWorkflowStepRequest"
+            }
+          }
+        }
+      },
       "SetRolePermissionsRequest": {
         "required": [
           "permissions"
@@ -5087,6 +6584,182 @@
           "YesNo"
         ]
       },
+      "SignatureDto": {
+        "required": [
+          "id",
+          "documentVersionId",
+          "signerName",
+          "signerTitle",
+          "caption",
+          "kind",
+          "provider",
+          "certificateSubject",
+          "certificateSerial",
+          "signedAt",
+          "hashAfter"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "documentVersionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "signerName": {
+            "type": "string"
+          },
+          "signerTitle": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "caption": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "kind": {
+            "$ref": "#/components/schemas/SignatureKind"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "certificateSubject": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "certificateSerial": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "signedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "hashAfter": {
+            "type": "string"
+          }
+        }
+      },
+      "SignatureKind": {
+        "enum": [
+          "Personal",
+          "Organization",
+          "Initial"
+        ]
+      },
+      "SigningMode": {
+        "enum": [
+          "ServerSide",
+          "ClientSide",
+          "RemoteAsync"
+        ],
+        "description": "How a provider produces the signature (spec §8.1)."
+      },
+      "SigningProviderDto": {
+        "required": [
+          "code",
+          "displayName",
+          "mode",
+          "isDefault"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/SigningMode"
+          },
+          "isDefault": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SigningRequestDto": {
+        "required": [
+          "requestId",
+          "stepId",
+          "documentId",
+          "provider",
+          "mode",
+          "status",
+          "dataToSign",
+          "message",
+          "error",
+          "signatureId"
+        ],
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "stepId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "documentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/SigningMode"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SigningRequestStatus"
+          },
+          "dataToSign": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "message": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "error": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "signatureId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "SigningRequestStatus": {
+        "enum": [
+          "Pending",
+          "Completed",
+          "Failed",
+          "Expired",
+          "Cancelled"
+        ]
+      },
       "StartEditRequest": {
         "required": [
           "mode"
@@ -5097,6 +6770,57 @@
             "$ref": "#/components/schemas/EditorMode"
           }
         }
+      },
+      "StartWorkflowRequest": {
+        "required": [
+          "documentId",
+          "templateId",
+          "supplierId",
+          "facilityId",
+          "domain"
+        ],
+        "type": "object",
+        "properties": {
+          "documentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "templateId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "supplierId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "facilityId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "domain": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "StepStatus": {
+        "enum": [
+          "Pending",
+          "Active",
+          "Done",
+          "Skipped"
+        ]
       },
       "SupplierAccountRequest": {
         "required": [
@@ -6088,6 +7812,29 @@
           "Supplier"
         ]
       },
+      "VerifyResultDto": {
+        "required": [
+          "signatureCount",
+          "allValid",
+          "signatures"
+        ],
+        "type": "object",
+        "properties": {
+          "signatureCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "allValid": {
+            "type": "boolean"
+          },
+          "signatures": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PdfSignatureInfo"
+            }
+          }
+        }
+      },
       "WarehouseDto": {
         "required": [
           "id",
@@ -6151,6 +7898,413 @@
           "Asset",
           "General"
         ]
+      },
+      "WorkflowActionType": {
+        "enum": [
+          "Review",
+          "Approve",
+          "Sign",
+          "Initial",
+          "OrgSeal",
+          "SupplierReview",
+          "SupplierSign",
+          "Confirm"
+        ],
+        "description": "What a workflow step asks the assignee to do (spec §5.7)."
+      },
+      "WorkflowDto": {
+        "required": [
+          "instanceId",
+          "documentId",
+          "templateCode",
+          "status",
+          "startedByName",
+          "startedAt",
+          "completedAt",
+          "steps",
+          "events",
+          "myStepId",
+          "myCaption",
+          "returnTargets",
+          "canResubmit",
+          "canCancel",
+          "signatures"
+        ],
+        "type": "object",
+        "properties": {
+          "instanceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "documentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "templateCode": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/WorkflowStatus"
+          },
+          "startedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowStepDto"
+            }
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowEventDto"
+            }
+          },
+          "myStepId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "myCaption": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "returnTargets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReturnTargetDto"
+            }
+          },
+          "canResubmit": {
+            "type": "boolean"
+          },
+          "canCancel": {
+            "type": "boolean"
+          },
+          "signatures": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SignatureDto"
+            }
+          }
+        }
+      },
+      "WorkflowEventDto": {
+        "required": [
+          "type",
+          "stepName",
+          "actorName",
+          "note",
+          "targetOrder",
+          "at"
+        ],
+        "type": "object",
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/WorkflowEventType"
+          },
+          "stepName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "actorName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "note": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "targetOrder": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "WorkflowEventType": {
+        "enum": [
+          "Started",
+          "StepActivated",
+          "Approved",
+          "SignatureAdded",
+          "Returned",
+          "Skipped",
+          "Commented",
+          "Completed",
+          "Resubmitted",
+          "Restarted",
+          "Cancelled"
+        ]
+      },
+      "WorkflowStatus": {
+        "enum": [
+          "Running",
+          "Completed",
+          "Returned",
+          "Cancelled"
+        ]
+      },
+      "WorkflowStepDto": {
+        "required": [
+          "id",
+          "order",
+          "code",
+          "name",
+          "actionType",
+          "assigneeType",
+          "assigneeDisplay",
+          "status",
+          "actedByName",
+          "actedAt",
+          "comment",
+          "activatedAt",
+          "dueAt",
+          "isOverdue",
+          "requiresSignature",
+          "isOptional",
+          "allowEdit",
+          "signatureId"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "actionType": {
+            "$ref": "#/components/schemas/WorkflowActionType"
+          },
+          "assigneeType": {
+            "$ref": "#/components/schemas/AssigneeType"
+          },
+          "assigneeDisplay": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/StepStatus"
+          },
+          "actedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "actedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "comment": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "activatedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "dueAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "isOverdue": {
+            "type": "boolean"
+          },
+          "requiresSignature": {
+            "type": "boolean"
+          },
+          "isOptional": {
+            "type": "boolean"
+          },
+          "allowEdit": {
+            "type": "boolean"
+          },
+          "signatureId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "WorkflowStepTemplateDto": {
+        "required": [
+          "code",
+          "name",
+          "actionType",
+          "assigneeType",
+          "roleCode",
+          "userId",
+          "userName",
+          "allowEdit",
+          "isOptional",
+          "returnTo",
+          "signatureAnchor",
+          "slaHours"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "actionType": {
+            "$ref": "#/components/schemas/WorkflowActionType"
+          },
+          "assigneeType": {
+            "$ref": "#/components/schemas/AssigneeType"
+          },
+          "roleCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "userId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "userName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "allowEdit": {
+            "type": "boolean"
+          },
+          "isOptional": {
+            "type": "boolean"
+          },
+          "returnTo": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "signatureAnchor": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "slaHours": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "WorkflowTemplateDto": {
+        "required": [
+          "id",
+          "code",
+          "name",
+          "documentType",
+          "condition",
+          "isDefault",
+          "isActive",
+          "steps",
+          "runningCount"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "documentType": {
+            "$ref": "#/components/schemas/DocumentType"
+          },
+          "condition": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowStepTemplateDto"
+            }
+          },
+          "runningCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
       }
     },
     "securitySchemes": {
@@ -6209,6 +8363,18 @@
     },
     {
       "name": "System"
+    },
+    {
+      "name": "WorkflowTemplates"
+    },
+    {
+      "name": "Workflows"
+    },
+    {
+      "name": "Signing"
+    },
+    {
+      "name": "Notifications"
     }
   ]
 }

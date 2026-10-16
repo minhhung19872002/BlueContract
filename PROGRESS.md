@@ -50,13 +50,17 @@ Theo dõi tiến độ theo Phase (spec §14). Đánh dấu `[x]` khi hạng m�
 - [ ] Biểu mẫu import Excel (spec §10 mục 1–2) → Phase 4 cùng chức năng import
 
 **Kiểm chứng:** backend 195/195 test (gồm render đủ 16 mẫu, PDF thật qua Gotenberg container, luồng callback ONLYOFFICE có JWT) · trên trình duyệt: xem trước hợp đồng thuốc 4 trang PDF → tạo tài liệu thử → mở ONLYOFFICE, sửa → đóng → phiên bản v2 được lưu.
-## Phase 3 — Workflow + Ký số
-- [ ] Workflow engine (template/instance/step, state machine, idempotent, concurrency) + unit test mọi chuyển trạng thái
-- [ ] `ISigningProvider`; MockSigningProvider PAdES (self-signed theo user, incremental update) — test 5 chữ ký nối tiếp hợp lệ
-- [ ] Ký nháy (Initial), đóng dấu tổ chức (OrgSeal, chỉ CLERK), ủy quyền ký
-- [ ] Menu Trình ký: tabs, lọc, ký lẻ/hàng loạt, trả lại (chọn bước), xem PDF + lịch sử
-- [ ] Notification in-app + email (Mailpit) + SignalR
-- [ ] UI cấu hình luồng ký
+## Phase 3 — Workflow + Ký số ✅ (16/10/2026)
+- [x] Workflow engine: WorkflowTemplate (bước theo vai trò / người cụ thể / NCC của tài liệu / người lập, SLA, bước tùy chọn, danh sách bước được trả về) → WorkflowInstance + StepInstance; state machine idempotent (bấm 2 lần không ký 2 lần), xmin concurrency + unique (instance, sequence) cho sự kiện → race trả 409; trả lại về bất kỳ bước trước (0 = về người lập, tài liệu về bản nháp); trình lại; hủy; phiên bản mới → luồng khởi động lại; 19 unit test chuyển trạng thái
+- [x] 10 luồng mặc định (HĐ, phụ lục, đề xuất, tổng hợp, phiếu nhập kho 5 chữ ký, nghiệm thu, 08a, đề nghị TT, thanh lý, WF_SAMPLE để thử); khóa sửa tài liệu khi đang trình ký
+- [x] Ký số PAdES (iText 9, incremental update, đặt chữ ký theo neo {{SIG_*}} trong mẫu, font Noto Sans nhúng): MOCK (chứng thư self-signed theo user, PFX mã hóa bằng Data Protection), MOCK_REMOTE (giả lập xác nhận trên điện thoại + poll), USB_TOKEN (server trả hash cần ký → plugin ký → server ghép CMS, kiểm tra chữ ký RSA), khung VNPT SmartCA / Viettel MySign / FPT CA (báo "chưa cấu hình" rõ ràng)
+- [x] Ký nháy không cần CA (provider nội bộ INITIAL_STAMP, cấu hình Signing:InitialRequiresCa), đóng dấu tổ chức (chỉ CLERK, không ủy quyền), ủy quyền ký hiển thị "KT. …" trên chữ ký và lịch sử
+- [x] Menu **Trình ký** (nội bộ + Cổng NCC): 4 tab, lọc loại/NCC/ngày/từ khóa (lưu trên URL), ký lẻ, **ký hàng loạt** (server-side / remote poll song song / USB token tuần tự có tiến độ), xem PDF + các bước + ý kiến cạnh nhau, Trả lại (bắt buộc lý do, chọn bước), Chuyển tiếp ý kiến, badge số việc chờ trên menu
+- [x] Thông báo in-app + email (Hangfire, PostgreSQL storage, retry) + SignalR /hubs/notifications; push/email chỉ gửi **sau khi commit** (NotificationOutbox + interceptor); job nhắc SLA mỗi giờ; chuông thông báo
+- [x] UI cấu hình luồng ký (kéo thả dnd-kit), nút "Gửi ký" + luồng ký + xác minh chữ ký trên trang tài liệu; trang **Xác minh chữ ký** (upload PDF)
+
+**Kiểm chứng:** dotnet test 229/229 (101 Domain, 25 Application, 103 Integration — gồm 12 test API ký: 5 người ký PHIEU_NHAP_KHO mẫu và verify 5 chữ ký toàn vẹn, trả lại đúng bước, idempotent + 2 click đồng thời chỉ 1 chữ ký, ủy quyền "KT. KẾ TOÁN TRƯỞNG", remote poll, USB token với chứng thư tạo trong test, ký hàng loạt, ký nháy không cần CA, khóa sửa khi trình ký) · 
+pm run lint/test/build pass (23 test) · Trình duyệt (Docker): thủ kho ký từ xa → PDF có khung chữ ký đúng ô "Thủ kho"; NCC1 ký hàng loạt trên Cổng NCC; kế toán kho trả lại → thủ kho nhận toast realtime, badge cập nhật ngay; lưu cấu hình luồng.
 
 ## Phase 4 — QĐ thầu & Hợp đồng
 - [ ] BidDecision (+Supplier, +Item), Item, ItemCategory
@@ -90,13 +94,13 @@ Theo dõi tiến độ theo Phase (spec §14). Đánh dấu `[x]` khi hạng m�
 ## Phase 8 — Hồ sơ lưu trữ & Báo cáo
 - [ ] Cây hồ sơ, tải ZIP + `muc_luc.pdf`
 - [ ] Dashboard, báo cáo + xuất Excel
-- [ ] Xác minh chữ ký
+- [x] Xác minh chữ ký (làm sớm ở Phase 3)
 - [ ] E2E #4
 
 ## Phase 9 — Hoàn thiện
 - [ ] Bảo mật: rate limit, lockout, 2FA, upload checks (magic bytes), HTTPS nginx
 - [ ] Job kiểm tra hash MinIO ↔ DB
 - [ ] Tối ưu index/hiệu năng (100k bản ghi < 500 ms)
-- [ ] RemoteSigningProvider (VNPT SmartCA / Viettel MySign / FPT CA) khung + ClientSideTokenProvider
+- [ ] RemoteSigningProvider (VNPT SmartCA / Viettel MySign / FPT CA): khung + cấu hình + UI poll đã có từ Phase 3; còn tài liệu hướng dẫn đăng ký API key
 - [ ] DEPLOY.md, USER_GUIDE.md, HIS_INTEGRATION.md, API.md
 - [ ] Rà soát UI tiếng Việt; checklist mục 13; coverage Domain+Application ≥ 70%

@@ -90,3 +90,16 @@ Mỗi mục là một ADR ngắn: **Bối cảnh → Quyết định → Hệ qu
 
 ## ADR-024 — Kiểu số trong JSON / OpenAPI
 - **Quyết định:** `JsonNumberHandling.Strict` cho cả MVC và OpenAPI. Mặc định của .NET cho phép đọc số từ chuỗi, khiến schema sinh kiểu `number | string` cho mọi số nguyên trong TS client.
+
+## ADR-025 — Ký số PAdES bằng iText 9 (AGPL)
+- **Bối cảnh:** Cần ký PAdES nhiều chữ ký nối tiếp (incremental update), ký hash từ xa / USB token và xác minh. Thư viện .NET khác hoặc không hỗ trợ ký ngoài (external signature), hoặc không xác minh được nhiều revision.
+- **Quyết định:** Dùng itext 9.x + itext.bouncy-castle-adapter. Luồng: Prepare (thêm trường chữ ký + hình hiển thị tại neo {{SIG_<MÃ BƯỚC>}}, tính digest) → provider trả CMS → Embed → tự Verify lại trước khi lưu. CMS (CAdES detached, signed attributes) do CmsBuilder dựng để provider chỉ cần ký đúng chuỗi DataToSign (RSA-SHA256 PKCS#1 v1.5).
+- **Hệ quả:** iText là AGPL-3.0: hệ thống phải công bố mã nguồn cho người dùng qua mạng, hoặc bệnh viện mua license thương mại iText trước khi vận hành chính thức (ghi trong DEPLOY.md). PdfSignatureService là adapter duy nhất phụ thuộc iText, nên có thể thay thế.
+
+## ADR-026 — Chứng thư thử nghiệm và provider ký
+- **Quyết định:** MOCK tự cấp chứng thư self-signed RSA-2048 cho mỗi user (và một chứng thư cho tổ chức), PFX mã hóa bằng Data Protection, lưu DB. Màn hình xác minh gắn nhãn "Tự cấp (thử nghiệm)". Provider CA thật (VNPT SmartCA, Viettel MySign, FPT CA) dùng chung cấu hình Signing:<Ca>:{BaseUrl,ClientId,ClientSecret}. Khi chưa có thông tin này, provider ẩn khỏi danh sách và báo SIGNING_PROVIDER_NOT_CONFIGURED. Toàn bộ UI ký từ xa (poll) chạy với MOCK_REMOTE. Ký nháy mặc định không cần CA (INITIAL_STAMP dùng chứng thư nội bộ của user); bật Signing:InitialRequiresCa để bắt buộc dùng CA.
+- **Hệ quả:** Production: Signing:EnableMockProviders=false và cấu hình ít nhất một CA. USB token dùng plugin local của CA qua adapter VITE_TOKEN_PLUGIN_URL (2 endpoint /certificate, /sign). Nếu chưa có plugin, người dùng có thể ký thủ công: tải .cer, ký dữ liệu được cấp, rồi dán chữ ký.
+
+## ADR-027 — Thông báo: Hangfire + SignalR + outbox trong unit of work
+- **Quyết định:** Email gửi qua Hangfire (PostgreSQL storage, schema hangfire, retry 5 lần). Job định kỳ workflow-sla-reminders chạy mỗi giờ. Realtime dùng SignalR hub /hubs/notifications (JWT qua query ccess_token). Push và email được xếp vào NotificationOutbox (scoped), và NotificationDispatchInterceptor chỉ gửi sau khi SaveChanges thành công. Nhờ vậy trình duyệt refetch thấy ngay dữ liệu mới, và không có email cho thay đổi đã rollback. Trạng thái ký từ xa / USB token nằm trong IDistributedCache (bộ nhớ trong 1 instance).
+- **Hệ quả:** Chạy nhiều instance API cần thêm SignalR backplane (Redis) và distributed cache dùng chung. Chỉ bật Hangfire server ở một instance (Hangfire:ServerEnabled). Dashboard /hangfire chỉ mở khi môi trường là Development.
