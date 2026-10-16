@@ -418,7 +418,10 @@ public sealed class DocumentService(
         return Result.Success();
     }
 
-    internal async Task<DocumentVersion> AddDocxVersionAsync(Document document, byte[] docx, string reason, Guid? userId, string? userName, CancellationToken ct)
+    // restartWorkflow = false only where a setting lets the workflow go on after an edit: signatures stay on the earlier
+    // version and the next signers sign the new one; the audit log records it.
+    internal async Task<DocumentVersion> AddDocxVersionAsync(Document document, byte[] docx, string reason, Guid? userId, string? userName, CancellationToken ct,
+        bool restartWorkflow = true)
     {
         var version = new DocumentVersion(document.Id, reason, userId, userName, clock.UtcNow);
         var restarts = document.AddVersion(version);
@@ -426,9 +429,14 @@ public sealed class DocumentService(
         using var stream = new MemoryStream(docx);
         var stored = await storage.UploadAsync($"documents/{document.Id:N}/v{version.VersionNumber}/document.docx", stream, DocxContentType, ct);
         version.AttachDocx(stored.ObjectKey, stored.Sha256, stored.Size);
-        if (restarts)
+        if (restarts && restartWorkflow)
         {
             await RestartWorkflowsAsync(document, version, userId, userName, ct);
+        }
+        else if (restarts)
+        {
+            audit.Log("WorkflowContinued", nameof(Document), document.Id.ToString(), new { version.VersionNumber },
+                "Phiên bản mới sau khi đã có chữ ký — theo cấu hình, luồng ký đi tiếp; các chữ ký trước nằm ở phiên bản cũ.");
         }
 
         return version;

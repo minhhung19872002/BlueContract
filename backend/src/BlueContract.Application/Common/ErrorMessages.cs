@@ -149,6 +149,7 @@ public static class ErrorMessages
         ["WORKFLOW_CLOSED"] = "Luồng ký đã kết thúc.",
         ["WORKFLOW_COMMENT_REQUIRED"] = "Vui lòng nhập ý kiến.",
         ["WORKFLOW_NOT_ASSIGNEE"] = "Bạn không phải người xử lý bước này.",
+        ["WORKFLOW_CONDITION_INVALID"] = "Điều kiện áp dụng không hợp lệ. Dạng: Khóa=giá trị; Khóa=giá trị1,giá trị2 — khóa: Domain, Facility, ProcurementType, ContractKind, RequiresWarehouseReceipt.",
         ["WORKFLOW_PERMISSION_MISSING"] = "Vai trò của bạn chưa được cấp quyền thực hiện bước này (ký số / ký nháy / đóng dấu / rà soát hợp đồng). Liên hệ quản trị để cấp quyền.",
         ["WORKFLOW_OUT_OF_SCOPE"] = "Tài liệu nằm ngoài phạm vi dữ liệu được phân công cho bạn.",
         ["USER_NOT_FOUND"] = "Người dùng không tồn tại.",

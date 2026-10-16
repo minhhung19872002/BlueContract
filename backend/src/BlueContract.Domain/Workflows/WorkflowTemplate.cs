@@ -63,6 +63,7 @@ public sealed class WorkflowTemplate : Entity
         Code = Guard.Required(code, "WORKFLOW_CODE_REQUIRED").ToUpperInvariant();
         Name = Guard.Required(name, "WORKFLOW_NAME_REQUIRED");
         DocumentType = documentType;
+        WorkflowCondition.Parse(condition);
         Condition = Guard.Optional(condition);
         IsDefault = isDefault;
         IsActive = true;
@@ -74,7 +75,10 @@ public sealed class WorkflowTemplate : Entity
 
     public DocumentType DocumentType { get; private set; }
 
-    /// <summary>Optional selector such as "ContractKind=LumpSum" or "Domain=Drug" (evaluated by the module starting the workflow).</summary>
+    /// <summary>
+    /// Optional selector such as "ContractKind=LumpSum" or "Domain=Drug; Facility=CS2" (see <see cref="WorkflowCondition"/>):
+    /// when a workflow starts without an explicit template, the most specific matching active template is used.
+    /// </summary>
     public string? Condition { get; private set; }
 
     /// <summary>Used when no conditional template matches.</summary>
@@ -87,6 +91,7 @@ public sealed class WorkflowTemplate : Entity
     public void Update(string name, string? condition, bool isDefault, bool isActive)
     {
         Name = Guard.Required(name, "WORKFLOW_NAME_REQUIRED");
+        WorkflowCondition.Parse(condition);
         Condition = Guard.Optional(condition);
         IsDefault = isDefault;
         IsActive = isActive;

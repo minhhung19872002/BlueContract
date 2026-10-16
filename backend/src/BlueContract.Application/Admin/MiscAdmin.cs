@@ -161,6 +161,12 @@ public sealed class SettingService(IAppDbContext db)
         return int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var v) ? v : fallback;
     }
 
+    public async Task<bool> GetBoolAsync(string key, bool fallback, CancellationToken ct)
+    {
+        var value = await db.SystemSettings.AsNoTracking().Where(s => s.Key == key).Select(s => s.Value).FirstOrDefaultAsync(ct);
+        return bool.TryParse(value, out var v) ? v : fallback;
+    }
+
     public async Task<decimal> GetDecimalAsync(string key, decimal fallback, CancellationToken ct)
     {
         var value = await db.SystemSettings.AsNoTracking().Where(s => s.Key == key).Select(s => s.Value).FirstOrDefaultAsync(ct);

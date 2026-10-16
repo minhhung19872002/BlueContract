@@ -451,9 +451,12 @@ export function WorkflowTemplatesPage() {
                   </Form.Item>
                 </Col>
                 <Col xs={24} md={8}>
-                  <Form.Item label="Điều kiện áp dụng (tùy chọn)">
+                  <Form.Item
+                    label="Điều kiện áp dụng (tùy chọn)"
+                    tooltip="Khóa=giá trị; nhiều giá trị cách nhau dấu phẩy. Khóa: Domain (Drug, MedicalSupply, Chemical, Equipment, Administration), Facility (mã cơ sở), ProcurementType (Bidding, NonBidding), ContractKind (UnitPriceCallOff, LumpSum), RequiresWarehouseReceipt (true, false). Luồng khớp nhiều điều kiện nhất được dùng; không khớp thì dùng luồng mặc định."
+                  >
                     <Input
-                      placeholder="VD: Domain=THUOC"
+                      placeholder="VD: ProcurementType=NonBidding; Domain=Drug"
                       value={draft.condition ?? undefined}
                       onChange={(e) => setDraft({ ...draft, condition: e.target.value || null })}
                     />

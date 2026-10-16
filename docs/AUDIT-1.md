@@ -34,8 +34,8 @@ Trạng thái: ⏳ chưa xử lý · 🔴 đã tái hiện · ✅ đã sửa (te
 |---|---|---|---|
 | 11.1 | Menu "Rà soát" + so sánh hai phiên bản (DOCX diff, PDF song song) | ⏳ | |
 | 11.2 | Chi tiết HĐ đủ 9 tab ("Đề xuất & gọi hàng"); tab Lịch sử gồm AuditLog | ⏳ | |
-| 11.3 | `WorkflowTemplate.Condition` được đọc để chọn luồng theo loại HĐ / mảng / cơ sở | ⏳ | |
-| 11.4 | Cấu hình "tổ trưởng sửa SL có trả về người tổng hợp ký lại không" | ⏳ | |
+| 11.3 | `WorkflowTemplate.Condition` được đọc để chọn luồng theo loại HĐ / mảng / cơ sở | ✅ | Cú pháp `Khóa=giá trị[,…]; …` với các khóa Domain, Facility (mã cơ sở), ProcurementType, ContractKind, RequiresWarehouseReceipt; kiểm khi lưu (`WORKFLOW_CONDITION_INVALID`). Khi khởi động luồng không chỉ định mẫu (mọi module và HIS), luồng khớp nhiều điều kiện nhất được chọn, không khớp thì dùng luồng mặc định. `Contracts_follow_the_most_specific_matching_workflow` ĐỎ trên b014c35 → XANH: HĐ dịch vụ không nhập kho đi luồng riêng, HĐ nhập kho đi `WF_CONTRACT`. Ô điều kiện trên màn cấu hình có hướng dẫn cú pháp. |
+| 11.4 | Cấu hình "tổ trưởng sửa SL có trả về người tổng hợp ký lại không" | ✅ | Tham số `proposal.summary_resign_after_head_edit` (mặc định Có = như cũ). Khi Không: phiên bản mới vẫn được tạo, luồng đi tiếp tới Giám đốc, chữ ký người tổng hợp nằm ở phiên bản trước, và nhật ký ghi `WorkflowContinued`. `Head_edit_can_go_on_without_the_aggregator_signing_again` ĐỎ trên b014c35 → XANH. |
 | 11.5 | Chữ ký hiển thị có ảnh (chữ ký tay, ký nháy, con dấu) | ⏳ | |
 | 11.6 | Chứng thư số tổ chức cấu hình trên Organization | ⏳ | |
 | 11.7 | TSA timestamp thật | ⏳ | |

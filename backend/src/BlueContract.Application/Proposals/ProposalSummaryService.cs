@@ -5,6 +5,7 @@ using BlueContract.Application.Workflows;
 using BlueContract.Domain.Documents;
 using BlueContract.Domain.Identity;
 using BlueContract.Domain.Proposals;
+using BlueContract.Domain.Settings;
 using BlueContract.Domain.Workflows;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
@@ -96,7 +97,8 @@ public sealed class ProposalSummaryService(
     WorkflowService workflows,
     WorkflowAccess access,
     IHisClient his,
-    ICurrentUser current)
+    ICurrentUser current,
+    Admin.SettingService settings)
 {
     public const string OwnerType = "ProposalSummary";
 
@@ -296,7 +298,9 @@ public sealed class ProposalSummaryService(
             return Result.Success();
         }
 
-        var generated = await GenerateAsync(summary, "Tổ trưởng điều chỉnh số lượng duyệt", ct);
+        // Spec §6.2 B3: configurable — back to the aggregator for a new signature, or on to the director.
+        var resign = await settings.GetBoolAsync(SystemSettingKeys.SummaryResignAfterHeadEdit, true, ct);
+        var generated = await GenerateAsync(summary, "Tổ trưởng điều chỉnh số lượng duyệt", ct, restartWorkflow: resign);
         if (!generated.IsSuccess)
         {
             return generated;
@@ -418,7 +422,7 @@ public sealed class ProposalSummaryService(
         return result;
     }
 
-    private async Task<Result> GenerateAsync(ProposalSummary summary, string reason, CancellationToken ct)
+    private async Task<Result> GenerateAsync(ProposalSummary summary, string reason, CancellationToken ct, bool restartWorkflow = true)
     {
         var template = await db.DocumentTemplates.AsNoTracking().Where(t => t.Kind == TemplateKind.ProposalSummary && t.IsActive).OrderBy(t => t.Code).FirstOrDefaultAsync(ct);
         if (template is null)
@@ -435,7 +439,7 @@ public sealed class ProposalSummaryService(
         if (summary.DocumentId is { } docId)
         {
             var document = await db.Documents.Include(d => d.Versions).FirstAsync(d => d.Id == docId, ct);
-            await documents.AddDocxVersionAsync(document, rendered.Value, reason, current.UserId, current.FullName, ct);
+            await documents.AddDocxVersionAsync(document, rendered.Value, reason, current.UserId, current.FullName, ct, restartWorkflow);
         }
         else
         {

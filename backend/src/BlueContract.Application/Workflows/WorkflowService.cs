@@ -114,7 +114,7 @@ public sealed class WorkflowService(
 
         var template = r.TemplateId is { } tid
             ? await db.WorkflowTemplates.Include("_steps").FirstOrDefaultAsync(t => t.Id == tid && t.IsActive, ct)
-            : await db.WorkflowTemplates.Include("_steps").FirstOrDefaultAsync(t => t.DocumentType == document.Type && t.IsDefault && t.IsActive, ct);
+            : await SelectTemplateAsync(document, r.FacilityId, r.Domain, ct);
         if (template is null)
         {
             return Error.Validation("WORKFLOW_TEMPLATE_NOT_FOUND");
@@ -161,7 +161,7 @@ public sealed class WorkflowService(
             return Error.Conflict("WORKFLOW_ALREADY_RUNNING");
         }
 
-        var template = await db.WorkflowTemplates.Include("_steps").FirstOrDefaultAsync(t => t.DocumentType == document.Type && t.IsDefault && t.IsActive, ct);
+        var template = await SelectTemplateAsync(document, facilityId, domain, ct);
         if (template is null)
         {
             return Error.Validation("WORKFLOW_TEMPLATE_NOT_FOUND");
@@ -173,6 +173,55 @@ public sealed class WorkflowService(
         }
 
         return await BeginAsync(document, template, startedBy, startedByName, facilityId, domain, ct);
+    }
+
+    /// <summary>
+    /// Luồng ký theo điều kiện (spec §5.7): among the active templates of the document type, the most specific one whose
+    /// condition matches the document (contract kind / procurement type / domain / facility…) wins; otherwise the default.
+    /// </summary>
+    private async Task<WorkflowTemplate?> SelectTemplateAsync(Document document, Guid? facilityId, string? domain, CancellationToken ct)
+    {
+        var candidates = await db.WorkflowTemplates.Include("_steps").Where(t => t.DocumentType == document.Type && t.IsActive).ToListAsync(ct);
+        var conditional = candidates.Where(t => !string.IsNullOrWhiteSpace(t.Condition)).ToList();
+        if (conditional.Count > 0)
+        {
+            var context = await ConditionContextAsync(document, facilityId, domain, ct);
+            var match = conditional.Where(t => WorkflowCondition.Matches(t.Condition, context))
+                .OrderByDescending(t => WorkflowCondition.Specificity(t.Condition)).ThenBy(t => t.Code).FirstOrDefault();
+            if (match is not null)
+            {
+                return match;
+            }
+        }
+
+        return candidates.FirstOrDefault(t => t.IsDefault && string.IsNullOrWhiteSpace(t.Condition)) ?? candidates.FirstOrDefault(t => t.IsDefault);
+    }
+
+    private async Task<Dictionary<string, string?>> ConditionContextAsync(Document document, Guid? facilityId, string? domain, CancellationToken ct)
+    {
+        var context = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase) { [WorkflowCondition.Domain] = domain };
+        if (document.ContractId is { } contractId
+            && await db.Contracts.AsNoTracking().Where(c => c.Id == contractId)
+                .Select(c => new
+                {
+                    c.Kind,
+                    c.ProcurementType,
+                    c.RequiresWarehouseReceipt,
+                    c.FacilityId,
+                    Domain = db.ItemCategories.Where(x => x.Id == c.CategoryId).Select(x => (ProcurementDomain?)x.Domain).FirstOrDefault(),
+                }).FirstOrDefaultAsync(ct) is { } contract)
+        {
+            context[WorkflowCondition.ContractKind] = contract.Kind.ToString();
+            context[WorkflowCondition.ProcurementType] = contract.ProcurementType.ToString();
+            context[WorkflowCondition.RequiresWarehouseReceipt] = contract.RequiresWarehouseReceipt ? "true" : "false";
+            context[WorkflowCondition.Domain] ??= contract.Domain?.ToString();
+            facilityId ??= contract.FacilityId;
+        }
+
+        context[WorkflowCondition.Facility] = facilityId is { } fid
+            ? await db.Facilities.AsNoTracking().Where(f => f.Id == fid).Select(f => f.Code).FirstOrDefaultAsync(ct)
+            : null;
+        return context;
     }
 
     /// <summary>Re-submits a returned workflow for a module (the original sender may be a service account). Saved by the caller.</summary>

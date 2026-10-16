@@ -9,6 +9,7 @@ public static class SystemSettingKeys
     public const string ContractExpiryWarningDays = "contract.expiry_warning_days";
     public const string ContractLowQuantityPercent = "contract.low_quantity_percent";
     public const string WorkflowDefaultSlaHours = "workflow.default_sla_hours";
+    public const string SummaryResignAfterHeadEdit = "proposal.summary_resign_after_head_edit";
 
     public static IReadOnlyList<SystemSetting> Defaults() =>
     [
@@ -18,5 +19,6 @@ public static class SystemSettingKeys
         new(ContractExpiryWarningDays, "30", SettingValueType.WholeNumber, "Cảnh báo hợp đồng sắp hết hạn (ngày)"),
         new(ContractLowQuantityPercent, "10", SettingValueType.DecimalNumber, "Cảnh báo hợp đồng sắp hết số lượng (%)"),
         new(WorkflowDefaultSlaHours, "24", SettingValueType.WholeNumber, "SLA mặc định cho mỗi bước ký (giờ) để nhắc việc"),
+        new(SummaryResignAfterHeadEdit, "true", SettingValueType.YesNo, "Tổ trưởng sửa số lượng duyệt thì trả về người tổng hợp ký lại (Không: luồng đi tiếp, chữ ký người tổng hợp nằm ở phiên bản trước)"),
     ];
 }

@@ -339,6 +339,53 @@ public class ProposalFlowTests(ApiFactory factory)
         }
     }
 
+    /// <summary>AUDIT-1 §11.4 / spec §6.2 B3: with "trả về người tổng hợp ký lại" off, the head's edit goes straight on to the director.</summary>
+    [Fact]
+    public async Task Head_edit_can_go_on_without_the_aggregator_signing_again()
+    {
+        using var admin = await factory.LoginAsync("admin");
+        const string key = "proposal.summary_resign_after_head_edit";
+        (await admin.PutAsJsonAsync($"/api/admin/settings/{key}", new UpdateSettingRequest("false"), JsonDefaults.Options)).EnsureSuccessStatusCode().Dispose();
+        try
+        {
+            using var department = await factory.LoginAsync("khoanoi");
+            var departments = await department.GetFromJsonAsync<List<LookupItem>>("/api/lookups/departments");
+            var warehouses = await department.GetFromJsonAsync<List<LookupItem>>("/api/lookups/warehouses");
+            var knoi = departments!.Single(d => d.Code == "KNOI").Id;
+            var warehouse = warehouses!.Single(w => w.Code == "KHO_VTYT").Id;
+            var item = (await department.GetFromJsonAsync<ProposalCandidatesDto>(
+                $"/api/proposals/candidates?domain=MedicalSupply&warehouseId={warehouse}&from=2026-10-01&to=2026-10-31&departmentId={knoi}", JsonDefaults.Options))!
+                .Items.First(i => i.ContractRemaining >= 5);
+            var proposal = await CreateAndSignProposalAsync(department, Proposal(knoi, warehouse, (item.ContractItemId, 5)));
+
+            using var aggregator = await factory.LoginAsync("tonghopvt");
+            using var created = await aggregator.PostAsJsonAsync("/api/proposal-summaries",
+                new SaveSummaryRequest(ProcurementDomain.MedicalSupply, null, "Thử cấu hình ký lại", null, [proposal]), JsonDefaults.Options);
+            var summaryId = await created.Content.ReadFromJsonAsync<Guid>();
+            var summary = await GetSummaryAsync(aggregator, summaryId);
+            (await aggregator.PostAsync(new Uri($"/api/proposal-summaries/{summaryId}/submit", UriKind.Relative), null)).Dispose();
+            await SignAsync(aggregator, summary.DocumentId!.Value);
+
+            using var head = await factory.LoginAsync("totruongvattu");
+            (await head.PutAsJsonAsync($"/api/proposal-summaries/{summaryId}/approved-quantities",
+                new[] { new ApprovedQuantityRequest(summary.Lines.Single().Id, 3) }, JsonDefaults.Options)).StatusCode.ShouldBe(HttpStatusCode.NoContent);
+            (await GetSummaryAsync(head, summaryId)).Status.ShouldBe(ProposalSummaryStatus.DomainHeadReview, "not sent back to the aggregator");
+            await ApproveAsync(head, summary.DocumentId!.Value);
+            using var director = await factory.LoginAsync("giamdoc");
+            await SignAsync(director, summary.DocumentId!.Value);
+
+            var approved = await GetSummaryAsync(aggregator, summaryId);
+            approved.Status.ShouldBe(ProposalSummaryStatus.Approved);
+            approved.Lines.Single().ApprovedQuantity.ShouldBe(3);
+            var wf = await aggregator.GetFromJsonAsync<WorkflowDto>($"/api/workflows/by-document/{summary.DocumentId}", JsonDefaults.Options);
+            wf!.Events.ShouldNotContain(e => e.Type == WorkflowEventType.Restarted);
+        }
+        finally
+        {
+            (await admin.PutAsJsonAsync($"/api/admin/settings/{key}", new UpdateSettingRequest("true"), JsonDefaults.Options)).Dispose();
+        }
+    }
+
     /// <summary>One signed proposal of <paramref name="quantity"/> for one item, aggregated and approved by the director.</summary>
     private async Task<(Guid SummaryId, Guid LineId, Guid Warehouse)> ApprovedSummaryAsync(decimal quantity)
     {
