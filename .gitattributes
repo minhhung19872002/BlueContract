@@ -6,3 +6,6 @@
 *.pdf binary
 *.png binary
 *.jpg binary
+.githooks/* text eol=lf
+Dockerfile text eol=lf
+*.conf text eol=lf
