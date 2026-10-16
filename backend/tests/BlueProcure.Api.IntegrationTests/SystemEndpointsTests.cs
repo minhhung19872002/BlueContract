@@ -26,18 +26,17 @@ public class SystemEndpointsTests(ApiFactory factory)
     }
 
     [Fact]
-    public async Task Readiness_reports_postgres_and_storage_healthy()
+    public async Task Readiness_reports_all_dependencies_healthy()
     {
         using var client = factory.CreateClient();
 
-        // Gotenberg is intentionally unreachable in tests, so overall status is 503 — inspect per-check results.
         using var response = await client.GetAsync(new Uri("/health/ready", UriKind.Relative));
         using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
         var checks = json.RootElement.GetProperty("checks");
 
         checks.GetProperty("postgres").GetProperty("status").GetString().ShouldBe("Healthy");
         checks.GetProperty("storage").GetProperty("status").GetString().ShouldBe("Healthy");
-        checks.GetProperty("gotenberg").GetProperty("status").GetString().ShouldBe("Unhealthy");
+        checks.GetProperty("gotenberg").GetProperty("status").GetString().ShouldBe("Healthy");
     }
 
     [Fact]

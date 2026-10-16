@@ -1,6 +1,7 @@
 using System.Globalization;
 using BlueProcure.Application.Admin;
 using BlueProcure.Application.Auth;
+using BlueProcure.Application.Documents;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -28,6 +29,8 @@ public static class DependencyInjection
         services.AddScoped<AuditLogService>();
         services.AddScoped<HistoryService>();
         services.AddScoped<LookupService>();
+        services.AddScoped<TemplateService>();
+        services.AddScoped<DocumentService>();
         return services;
     }
 }

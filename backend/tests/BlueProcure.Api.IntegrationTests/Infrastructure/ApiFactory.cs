@@ -1,7 +1,11 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using BlueProcure.Application.Auth;
+using DotNet.Testcontainers.Builders;
+using DotNet.Testcontainers.Containers;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Shouldly;
 using Testcontainers.PostgreSql;
@@ -18,15 +22,23 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 
     private readonly SeaweedFsContainer _storage = new();
 
+    private readonly IContainer _gotenberg = new ContainerBuilder("gotenberg/gotenberg:8.20")
+        .WithPortBinding(3000, true)
+        .WithWaitStrategy(Wait.ForUnixContainer().UntilHttpRequestIsSucceeded(r => r.ForPort(3000).ForPath("/health")))
+        .Build();
+
+    public const string OnlyOfficeSecret = "integration-onlyoffice-secret-0123456789abcdef";
+
     public async Task InitializeAsync()
     {
-        await Task.WhenAll(_postgres.StartAsync(), _storage.StartAsync());
+        await Task.WhenAll(_postgres.StartAsync(), _storage.StartAsync(), _gotenberg.StartAsync());
     }
 
     async Task IAsyncLifetime.DisposeAsync()
     {
         await _postgres.DisposeAsync();
         await _storage.DisposeAsync();
+        await _gotenberg.DisposeAsync();
         await base.DisposeAsync();
     }
 
@@ -50,7 +62,15 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         builder.UseSetting("Storage:AccessKey", SeaweedFsContainer.AccessKey);
         builder.UseSetting("Storage:SecretKey", SeaweedFsContainer.SecretKey);
         builder.UseSetting("Storage:Bucket", "blueprocure-test");
-        builder.UseSetting("ExternalServices:GotenbergUrl", "http://127.0.0.1:1");
+        builder.UseSetting("ExternalServices:GotenbergUrl", $"http://{_gotenberg.Hostname}:{_gotenberg.GetMappedPublicPort(3000)}");
+        builder.UseSetting("OnlyOffice:JwtSecret", OnlyOfficeSecret);
+        builder.UseSetting("OnlyOffice:InternalUrl", "http://localhost");
+        builder.UseSetting("OnlyOffice:ApiBaseUrlForEditor", "http://localhost/");
+
+        // The fake "document server" downloads edited files from this test server.
+        builder.ConfigureTestServices(services => services
+            .AddHttpClient(BlueProcure.Infrastructure.DependencyInjection.OnlyOfficeClient)
+            .ConfigurePrimaryHttpMessageHandler(() => Server.CreateHandler()));
         builder.UseSetting("Auth:SigningKey", "integration-test-signing-key-0123456789abcdef");
         builder.UseSetting("Auth:LoginRateLimitPerMinute", "100000");
         builder.UseSetting("Seed:Demo", "true");

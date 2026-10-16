@@ -1,5 +1,7 @@
 using BlueProcure.Application.Auth;
 using BlueProcure.Application.Common;
+using BlueProcure.Application.Documents;
+using BlueProcure.Infrastructure.Documents;
 using BlueProcure.Infrastructure.HealthChecks;
 using BlueProcure.Infrastructure.Identity;
 using BlueProcure.Infrastructure.Messaging;
@@ -49,6 +51,7 @@ public static class DependencyInjection
         services.AddScoped<DatabaseInitializer>();
         services.AddScoped<IdentitySeeder>();
         services.AddScoped<DemoSeeder>();
+        services.AddScoped<TemplateSeeder>();
 
         // Identity
         services.Configure<AuthOptions>(configuration.GetSection(AuthOptions.SectionName));
@@ -56,6 +59,7 @@ public static class DependencyInjection
         services.AddSingleton<ITokenService, JwtTokenService>();
         services.AddSingleton<ITotpService, TotpService>();
         services.AddSingleton<ISecretProtector, DataProtectionSecretProtector>();
+        services.AddSingleton<IUrlSigner, DataProtectionUrlSigner>();
         var dataProtection = services.AddDataProtection().SetApplicationName("BlueProcure");
 
         // Keys live in PostgreSQL so every API instance shares them; skipped for the build-time OpenAPI generator (no DB).
@@ -71,6 +75,12 @@ public static class DependencyInjection
         services.AddSingleton<IAppLinkBuilder, AppLinkBuilder>();
         services.AddSingleton<IExcelExporter, ClosedXmlExcelExporter>();
 
+        // Documents: template engine, PDF conversion, online editor
+        services.AddSingleton<IDocumentGenerator, DocxTemplateEngine>();
+        services.AddScoped<IPdfConverter, GotenbergPdfConverter>();
+        services.Configure<OnlyOfficeOptions>(configuration.GetSection(OnlyOfficeOptions.SectionName));
+        services.AddScoped<IDocumentEditorService, OnlyOfficeEditorService>();
+
         // Storage
         services.Configure<StorageOptions>(configuration.GetSection(StorageOptions.SectionName));
         services.AddSingleton<IFileStorage, S3FileStorage>();
@@ -79,12 +89,12 @@ public static class DependencyInjection
         services.AddHttpClient(GotenbergClient, (sp, c) =>
         {
             c.BaseAddress = sp.GetRequiredService<IOptions<ExternalServicesOptions>>().Value.GotenbergUrl;
-            c.Timeout = TimeSpan.FromSeconds(60);
+            c.Timeout = TimeSpan.FromSeconds(180);
         });
         services.AddHttpClient(OnlyOfficeClient, (sp, c) =>
         {
-            c.BaseAddress = sp.GetRequiredService<IOptions<ExternalServicesOptions>>().Value.OnlyOfficeInternalUrl;
-            c.Timeout = TimeSpan.FromSeconds(10);
+            c.BaseAddress = sp.GetRequiredService<IOptions<OnlyOfficeOptions>>().Value.InternalUrl;
+            c.Timeout = TimeSpan.FromSeconds(60);
         });
 
         services.AddHealthChecks()

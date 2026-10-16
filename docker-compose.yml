@@ -109,7 +109,10 @@ services:
       Storage__SecretKey: ${S3_SECRET_KEY:-blueprocure_s3_dev}
       Storage__Bucket: ${S3_BUCKET:-blueprocure}
       ExternalServices__GotenbergUrl: http://gotenberg:3000
-      ExternalServices__OnlyOfficeInternalUrl: http://onlyoffice
+      OnlyOffice__PublicUrl: ${ONLYOFFICE_PUBLIC_URL:-http://localhost:47082}
+      OnlyOffice__InternalUrl: http://onlyoffice
+      OnlyOffice__ApiBaseUrlForEditor: http://api:8080
+      OnlyOffice__JwtSecret: ${ONLYOFFICE_JWT_SECRET:-onlyoffice_dev_secret_change_me_32chars}
       Auth__SigningKey: ${AUTH_SIGNING_KEY:-dev-only-signing-key-change-me-0123456789abcdef}
       Seed__Demo: ${SEED_DEMO:-true}
       Seed__AllowReset: ${SEED_ALLOW_RESET:-true}

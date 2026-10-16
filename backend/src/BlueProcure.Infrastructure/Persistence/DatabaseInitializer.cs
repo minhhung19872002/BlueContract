@@ -36,6 +36,8 @@ public sealed class DatabaseInitializer(
             await ResetDemoAsync(ct);
         }
 
+        // Storage first: template seeding uploads files.
+        await RetryAsync("storage bucket", () => storage.EnsureBucketAsync(ct), ct);
         await SeedSettingsAsync(ct);
         await services.GetRequiredService<IdentitySeeder>().SeedAsync(ct);
         if (seedOptions.Value.Demo)
@@ -43,7 +45,7 @@ public sealed class DatabaseInitializer(
             await services.GetRequiredService<DemoSeeder>().SeedAsync(ct);
         }
 
-        await RetryAsync("storage bucket", () => storage.EnsureBucketAsync(ct), ct);
+        await services.GetRequiredService<TemplateSeeder>().SeedAsync(ct);
     }
 
     private async Task ResetDemoAsync(CancellationToken ct)

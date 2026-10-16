@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using BlueProcure.Application.Common;
 using BlueProcure.Domain.Common;
+using BlueProcure.Domain.Documents;
 using BlueProcure.Domain.Identity;
 using BlueProcure.Domain.Organizations;
 using BlueProcure.Domain.Settings;
@@ -62,6 +63,14 @@ public sealed class AppDbContext : DbContext, IAppDbContext, IDataProtectionKeyC
 
     public DbSet<SupplierHistory> SupplierHistories => Set<SupplierHistory>();
 
+    public DbSet<Document> Documents => Set<Document>();
+
+    public DbSet<DocumentVersion> DocumentVersions => Set<DocumentVersion>();
+
+    public DbSet<DocumentTemplate> DocumentTemplates => Set<DocumentTemplate>();
+
+    public DbSet<DocumentEditSession> DocumentEditSessions => Set<DocumentEditSession>();
+
     public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -96,6 +105,7 @@ public sealed class AppDbContext : DbContext, IAppDbContext, IDataProtectionKeyC
         // Master data with special ownership rules.
         modelBuilder.Entity<Supplier>().HasQueryFilter(SupplierIsolationFilter, s => !IsSupplierCaller || s.Id == CallerSupplierId);
         modelBuilder.Entity<User>().HasQueryFilter(SupplierIsolationFilter, u => !IsSupplierCaller || u.SupplierId == CallerSupplierId);
+        modelBuilder.Entity<Document>().HasQueryFilter(SupplierIsolationFilter, d => !IsSupplierCaller || d.SupplierId == CallerSupplierId);
 
         // Join rows follow the soft-delete state of their required principal.
         modelBuilder.Entity<UserRole>().HasQueryFilter(SoftDeleteFilter, ur => !ur.Role!.IsDeleted);

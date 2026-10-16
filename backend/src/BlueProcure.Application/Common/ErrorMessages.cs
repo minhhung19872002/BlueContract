@@ -84,6 +84,29 @@ public static class ErrorMessages
         ["DELEGATION_NOT_OWNER"] = "Bạn chỉ được ủy quyền ký của chính mình.",
         ["DELEGATION_USER_INVALID"] = "Người ủy quyền và người được ủy quyền phải là tài khoản nội bộ đang hoạt động.",
         ["DELEGATION_OVERLAP"] = "Đã có ủy quyền khác của người này trong khoảng thời gian đã chọn.",
+
+        // Templates & documents
+        ["FILE_TOO_LARGE"] = "Tệp vượt quá dung lượng cho phép (20 MB).",
+        ["FILE_REQUIRED"] = "Vui lòng chọn tệp tải lên.",
+        ["TEMPLATE_CODE_REQUIRED"] = "Mã mẫu biểu không được để trống.",
+        ["TEMPLATE_NAME_REQUIRED"] = "Tên mẫu biểu không được để trống.",
+        ["TEMPLATE_CODE_EXISTS"] = "Mã mẫu biểu đã tồn tại.",
+        ["TEMPLATE_NOT_FOUND"] = "Không tìm thấy mẫu biểu.",
+        ["TEMPLATE_VERSION_NOT_FOUND"] = "Không tìm thấy phiên bản mẫu biểu.",
+        ["TEMPLATE_NOT_DOCX"] = "Tệp mẫu phải là tài liệu Word (.docx) hợp lệ.",
+        ["TEMPLATE_PLACEHOLDERS_INVALID"] = "Mẫu có placeholder không hợp lệ. Vui lòng kiểm tra danh sách lỗi trước khi tải lên.",
+        ["DOCUMENT_TITLE_REQUIRED"] = "Tiêu đề tài liệu không được để trống.",
+        ["DOCUMENT_OWNER_REQUIRED"] = "Tài liệu phải gắn với một hồ sơ nghiệp vụ.",
+        ["DOCUMENT_VERSION_REASON_REQUIRED"] = "Phải nêu lý do tạo phiên bản.",
+        ["DOCUMENT_CLOSED"] = "Tài liệu đã hoàn thành hoặc đã hủy, không thể thay đổi.",
+        ["DOCUMENT_VERSION_MISMATCH"] = "Phiên bản không thuộc tài liệu này.",
+        ["DOCUMENT_VERSION_LOCKED"] = "Phiên bản đã có chữ ký số nên không thể sửa. Hãy tạo phiên bản mới (luồng ký sẽ bắt đầu lại).",
+        ["DOCUMENT_PDF_REQUIRED"] = "Phiên bản chưa có bản PDF để ký.",
+        ["DOCUMENT_DOCX_REQUIRED"] = "Phiên bản không có tệp Word để chỉnh sửa hoặc chuyển PDF.",
+        ["DOCUMENT_FILE_NOT_FOUND"] = "Phiên bản không có tệp ở định dạng yêu cầu.",
+        ["DOCUMENT_FILE_TYPE_INVALID"] = "Chỉ chấp nhận tệp Word (.docx) hoặc PDF.",
+        ["EDITOR_CALLBACK_INVALID"] = "Yêu cầu lưu từ trình soạn thảo không hợp lệ.",
+        ["PDF_CONVERSION_FAILED"] = "Không chuyển được tài liệu sang PDF. Vui lòng thử lại sau.",
     }.ToFrozenDictionary();
 
     public static string Get(string code) =>

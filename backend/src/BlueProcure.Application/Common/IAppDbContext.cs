@@ -1,4 +1,5 @@
 using BlueProcure.Domain.Common;
+using BlueProcure.Domain.Documents;
 using BlueProcure.Domain.Identity;
 using BlueProcure.Domain.Organizations;
 using BlueProcure.Domain.Settings;
@@ -42,6 +43,14 @@ public interface IAppDbContext
     DbSet<UserHistory> UserHistories { get; }
 
     DbSet<SupplierHistory> SupplierHistories { get; }
+
+    DbSet<Document> Documents { get; }
+
+    DbSet<DocumentVersion> DocumentVersions { get; }
+
+    DbSet<DocumentTemplate> DocumentTemplates { get; }
+
+    DbSet<DocumentEditSession> DocumentEditSessions { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

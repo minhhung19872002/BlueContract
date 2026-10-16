@@ -71,6 +71,20 @@ try
 
     // Skip bootstrap when the build-time OpenAPI generator (GetDocument.Insider) loads the app.
     var isOpenApiGeneration = System.Reflection.Assembly.GetEntryAssembly()?.GetName().Name == "GetDocument.Insider";
+
+    // `dotnet BlueProcure.Api.dll --export-templates <dir>`: write the built-in DOCX templates and exit.
+    var exportIndex = Array.FindIndex(args, a => a.Equals("--export-templates", StringComparison.OrdinalIgnoreCase));
+    if (exportIndex >= 0)
+    {
+        var target = exportIndex + 1 < args.Length ? args[exportIndex + 1] : "templates";
+        foreach (var path in BlueProcure.Infrastructure.Persistence.Seeding.TemplateSeeder.Export(target))
+        {
+            Log.Information("Exported {Path}", path);
+        }
+
+        return;
+    }
+
     if (!isOpenApiGeneration && System.Text.Encoding.UTF8.GetByteCount(app.Configuration["Auth:SigningKey"] ?? string.Empty) < 32)
     {
         throw new InvalidOperationException("Auth:SigningKey must be configured with at least 32 bytes (env Auth__SigningKey).");
