@@ -3,6 +3,7 @@ import {
   AuditOutlined,
   BankOutlined,
   DashboardOutlined,
+  FileWordOutlined,
   HomeOutlined,
   IdcardOutlined,
   SettingOutlined,
@@ -48,6 +49,12 @@ export const internalNav: NavItem[] = [
       },
       { key: '/quan-tri/vai-tro', label: 'Vai trò & phân quyền', permissions: [P.RoleManage] },
       { key: '/quan-tri/uy-quyen', label: 'Ủy quyền ký', permissions: [P.DelegationManage, P.UserManage] },
+      {
+        key: '/quan-tri/mau-bieu',
+        label: 'Mẫu biểu',
+        icon: <FileWordOutlined />,
+        permissions: [P.TemplateManage],
+      },
       { key: '/quan-tri/tham-so', label: 'Tham số hệ thống', permissions: [P.SettingManage] },
       {
         key: '/quan-tri/nhat-ky',

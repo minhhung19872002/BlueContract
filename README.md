@@ -55,6 +55,7 @@ Người dùng NCC đăng nhập cùng trang và được chuyển sang **Cổng
 | Migrate + seed lại | `scripts\seed.ps1 [-ResetDemo]` | `scripts/seed.sh [--reset-demo]` |
 | Xóa sạch DB + kho tệp | `scripts\reset-db.ps1 [-Force]` | `scripts/reset-db.sh [--force]` |
 | Sao lưu (giữ 30 bản) | `scripts\backup.ps1` | `scripts/backup.sh` |
+| Xuất 16 mẫu DOCX chuẩn ra `templates/` | `cd backend; dotnet run --project src/BlueContract.Api -- --export-templates ../templates` | (như PowerShell) |
 
 ## Phát triển không qua Docker (tùy chọn)
 

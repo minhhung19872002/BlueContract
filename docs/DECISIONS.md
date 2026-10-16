@@ -78,3 +78,15 @@ Mỗi mục là một ADR ngắn: **Bối cảnh → Quyết định → Hệ qu
 - **Bối cảnh:** Image MinIO trên Docker Hub và quay.io không còn pull được nữa (CI báo `pull access denied for minio/minio`). Máy dev vẫn chạy được chỉ vì image đã có sẵn trong cache. Chainguard có image MinIO nhưng chỉ có tag `latest`, trái với yêu cầu ghim phiên bản.
 - **Quyết định:** Dùng `chrislusf/seaweedfs:3.97` (Apache-2.0) bật S3 gateway, credential lấy từ `.env`. Code vẫn đi qua `IFileStorage` → `S3FileStorage` (client S3 của MinIO .NET SDK), nên không phụ thuộc server cụ thể. Production có thể trỏ sang bất kỳ dịch vụ S3 nào (MinIO thương mại, Ceph RGW, AWS S3, Viettel/VNPT Cloud S3) chỉ bằng cấu hình `Storage:*`. Integration test chạy với cùng image (Testcontainers generic container), có test presigned URL. Backup dùng `amazon/aws-cli:2.27.0 s3 sync` thay cho `mc mirror`.
 - **Hệ quả:** Giao diện quản trị MinIO được thay bằng giao diện filer của SeaweedFS (cổng 47901). Health check đổi tên `minio` → `storage`.
+
+## ADR-022 — Template engine DOCX tự viết
+- **Bối cảnh:** Các thư viện template DOCX mã nguồn mở hoặc chưa hỗ trợ lặp dòng bảng kèm định dạng tiền/số kiểu Việt Nam, hoặc có license thương mại.
+- **Quyết định:** Viết engine riêng trên DocumentFormat.OpenXml (khoảng 450 dòng, có test đầy đủ). Cú pháp kiểu mustache như spec §10. Trong đoạn chứa thẻ, các run chỉ có chữ được gộp lại nên đoạn đó lấy định dạng của run đầu tiên. Người soạn mẫu cần đặt thẻ trong đoạn có định dạng thống nhất.
+- **Hệ quả:** Mẫu do bệnh viện tải lên phải qua validator; mẫu chuẩn được sinh từ code (`BuiltInTemplates`) để chữ, placeholder và anchor luôn khớp với `TemplateFieldCatalog`.
+
+## ADR-023 — Tích hợp ONLYOFFICE
+- **Quyết định:** API cấp cho document server URL tải file và callback dạng `{ApiBaseUrlForEditor}/api/onlyoffice/...?token=`, token do Data Protection ký, hạn 12 giờ. Callback phải có JWT hợp lệ (dùng chung `ONLYOFFICE_JWT_SECRET`). Link tải bản đã sửa do document server trả về được viết lại sang `OnlyOffice:InternalUrl`, vì document server dựng link theo host mà trình duyệt dùng. Mỗi lần mở trình soạn thảo tạo một `DocumentEditSession`; session id được dùng làm document key.
+- **Hệ quả:** Khi chạy API bằng `dotnet run` ngoài Docker, document server phải gọi ngược được API (cấu hình `OnlyOffice:ApiBaseUrlForEditor`, mặc định `http://host.docker.internal:5296`).
+
+## ADR-024 — Kiểu số trong JSON / OpenAPI
+- **Quyết định:** `JsonNumberHandling.Strict` cho cả MVC và OpenAPI. Mặc định của .NET cho phép đọc số từ chuỗi, khiến schema sinh kiểu `number | string` cho mọi số nguyên trong TS client.

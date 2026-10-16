@@ -36,14 +36,20 @@ Theo dõi tiến độ theo Phase (spec §14). Đánh dấu `[x]` khi hạng m�
 - [x] SystemSetting chỉnh sửa trên UI
 
 **Kiểm chứng:** backend 114/114 test (36 Domain, 23 Application, 55 Integration) · frontend 19/19 test, lint 0 lỗi · `docker compose up` → đăng nhập `admin`, `ncc1` bằng trình duyệt; menu đúng quyền; reload giữ phiên qua refresh cookie.
-## Phase 2 — Lõi tài liệu
-- [ ] Template engine DOCX (placeholder, filter `money`/`words`, bảng lặp, `#if`, anchor `{{SIG_*}}`), validate template
-- [ ] Đọc số tiền bằng chữ tiếng Việt + unit test kỹ
-- [ ] `IPdfConverter` → Gotenberg
-- [ ] Document / DocumentVersion (+SHA-256, bất biến sau chữ ký đầu)
-- [ ] `IDocumentEditorService` → ONLYOFFICE (mở/sửa/track changes/callback lưu phiên bản)
-- [ ] Quản lý mẫu biểu (upload, placeholder hợp lệ, xem trước, versioning) + bộ template `templates/` (mục 10)
+## Phase 2 — Lõi tài liệu ✅ (16/10/2026)
+- [x] `IFileStorage` (S3) + SHA-256 mỗi tệp; tải xuống qua presigned URL ngắn hạn hoặc stream qua API, có ghi nhật ký
+- [x] Template engine DOCX tự viết (OpenXml): placeholder, bộ lọc `money/words/date/datetext/datetime/number/percent/upper/lower`, lặp dòng bảng & lặp khối `{{#X}}…{{/X}}`, `{{@index}}`, `{{#if}}`/`{{#if !}}` (khối và inline), anchor chữ ký `{{SIG_*}}` (chữ trắng 1pt, vẫn trích xuất được từ PDF); tự gộp run khi Word tách thẻ
+- [x] Đọc số tiền bằng chữ tiếng Việt (39 test, ví dụ spec: "Một tỷ hai trăm linh năm triệu không trăm ba mươi nghìn đồng")
+- [x] `IPdfConverter` → Gotenberg (LibreOffice)
+- [x] Document / DocumentVersion: số phiên bản, DOCX + PDF + SHA-256, bất biến sau chữ ký đầu, phiên bản mới sau khi đã ký → đánh dấu phải ký lại
+- [x] `IDocumentEditorService` → ONLYOFFICE Docs: cấu hình ký JWT, chế độ Sửa / Rà soát (bắt buộc track changes) / Xem; URL tải file & callback có token ký thời hạn; callback xác thực JWT, tạo phiên bản mới, chống phát lại
+- [x] Danh mục placeholder hợp lệ theo 10 loại mẫu + dữ liệu mẫu; validator báo placeholder sai/bộ lọc sai/thẻ không cân bằng khi tải lên
+- [x] Quản lý mẫu biểu: tải lên (kiểm tra magic bytes + placeholder), phiên bản, kích hoạt lại phiên bản cũ, xem trước PDF với dữ liệu mẫu, tải DOCX
+- [x] 16 mẫu chuẩn (spec §10 mục 3–16) sinh từ code, cài đặt tự động khi khởi động; xuất ra `templates/` bằng `--export-templates`
+- [x] UI: trang Mẫu biểu, trang Tài liệu (phiên bản, hash, tạo PDF, xem PDF, tải, sửa trực tuyến), `PdfViewer` (pdf.js), `DocEditor` (ONLYOFFICE)
+- [ ] Biểu mẫu import Excel (spec §10 mục 1–2) → Phase 4 cùng chức năng import
 
+**Kiểm chứng:** backend 195/195 test (gồm render đủ 16 mẫu, PDF thật qua Gotenberg container, luồng callback ONLYOFFICE có JWT) · trên trình duyệt: xem trước hợp đồng thuốc 4 trang PDF → tạo tài liệu thử → mở ONLYOFFICE, sửa → đóng → phiên bản v2 được lưu.
 ## Phase 3 — Workflow + Ký số
 - [ ] Workflow engine (template/instance/step, state machine, idempotent, concurrency) + unit test mọi chuyển trạng thái
 - [ ] `ISigningProvider`; MockSigningProvider PAdES (self-signed theo user, incremental update) — test 5 chữ ký nối tiếp hợp lệ

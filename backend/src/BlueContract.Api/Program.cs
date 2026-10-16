@@ -28,10 +28,20 @@ try
             options.Filters.Add<ValidationFilter>();
             options.Filters.Add<PasswordChangeRequiredFilter>();
         })
-        .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+        .AddJsonOptions(o =>
+        {
+            o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            o.JsonSerializerOptions.NumberHandling = JsonNumberHandling.Strict;
+        });
 
     // OpenAPI schema generation reads the HTTP JSON options: keep enums as strings there too.
-    builder.Services.ConfigureHttpJsonOptions(o => o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+    builder.Services.ConfigureHttpJsonOptions(o =>
+    {
+        o.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+
+        // Numbers are numbers: otherwise the OpenAPI schema types integers as "number | string".
+        o.SerializerOptions.NumberHandling = JsonNumberHandling.Strict;
+    });
     builder.Services.Configure<Microsoft.AspNetCore.Mvc.ApiBehaviorOptions>(o => o.SuppressModelStateInvalidFilter = false);
     builder.Services.Configure<ForwardedHeadersOptions>(o =>
     {

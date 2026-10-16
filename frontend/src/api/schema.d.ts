@@ -74,16 +74,16 @@ export interface paths {
         get: {
             parameters: {
                 query?: {
-                    Page?: number | string;
-                    PageSize?: number | string;
+                    Page?: number;
+                    PageSize?: number;
                     Search?: string;
                     /** @description Property name to sort by (whitelisted per endpoint). */
                     SortBy?: string;
                     SortDesc?: boolean;
                     /** @description Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows). */
                     ForExport?: boolean;
-                    SafePage?: number | string;
-                    SafePageSize?: number | string;
+                    SafePage?: number;
+                    SafePageSize?: number;
                     isActive?: boolean;
                 };
                 header?: never;
@@ -189,16 +189,16 @@ export interface paths {
         get: {
             parameters: {
                 query?: {
-                    Page?: number | string;
-                    PageSize?: number | string;
+                    Page?: number;
+                    PageSize?: number;
                     Search?: string;
                     /** @description Property name to sort by (whitelisted per endpoint). */
                     SortBy?: string;
                     SortDesc?: boolean;
                     /** @description Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows). */
                     ForExport?: boolean;
-                    SafePage?: number | string;
-                    SafePageSize?: number | string;
+                    SafePage?: number;
+                    SafePageSize?: number;
                     facilityId?: string;
                     type?: components["schemas"]["DepartmentType"];
                     isActive?: boolean;
@@ -263,16 +263,16 @@ export interface paths {
         get: {
             parameters: {
                 query?: {
-                    Page?: number | string;
-                    PageSize?: number | string;
+                    Page?: number;
+                    PageSize?: number;
                     Search?: string;
                     /** @description Property name to sort by (whitelisted per endpoint). */
                     SortBy?: string;
                     SortDesc?: boolean;
                     /** @description Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows). */
                     ForExport?: boolean;
-                    SafePage?: number | string;
-                    SafePageSize?: number | string;
+                    SafePage?: number;
+                    SafePageSize?: number;
                     facilityId?: string;
                     type?: components["schemas"]["DepartmentType"];
                     isActive?: boolean;
@@ -413,16 +413,16 @@ export interface paths {
         get: {
             parameters: {
                 query?: {
-                    Page?: number | string;
-                    PageSize?: number | string;
+                    Page?: number;
+                    PageSize?: number;
                     Search?: string;
                     /** @description Property name to sort by (whitelisted per endpoint). */
                     SortBy?: string;
                     SortDesc?: boolean;
                     /** @description Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows). */
                     ForExport?: boolean;
-                    SafePage?: number | string;
-                    SafePageSize?: number | string;
+                    SafePage?: number;
+                    SafePageSize?: number;
                     facilityId?: string;
                     isActive?: boolean;
                 };
@@ -529,16 +529,16 @@ export interface paths {
         get: {
             parameters: {
                 query?: {
-                    Page?: number | string;
-                    PageSize?: number | string;
+                    Page?: number;
+                    PageSize?: number;
                     Search?: string;
                     /** @description Property name to sort by (whitelisted per endpoint). */
                     SortBy?: string;
                     SortDesc?: boolean;
                     /** @description Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows). */
                     ForExport?: boolean;
-                    SafePage?: number | string;
-                    SafePageSize?: number | string;
+                    SafePage?: number;
+                    SafePageSize?: number;
                     isActive?: boolean;
                 };
                 header?: never;
@@ -601,16 +601,16 @@ export interface paths {
         get: {
             parameters: {
                 query?: {
-                    Page?: number | string;
-                    PageSize?: number | string;
+                    Page?: number;
+                    PageSize?: number;
                     Search?: string;
                     /** @description Property name to sort by (whitelisted per endpoint). */
                     SortBy?: string;
                     SortDesc?: boolean;
                     /** @description Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows). */
                     ForExport?: boolean;
-                    SafePage?: number | string;
-                    SafePageSize?: number | string;
+                    SafePage?: number;
+                    SafePageSize?: number;
                     isActive?: boolean;
                 };
                 header?: never;
@@ -795,16 +795,16 @@ export interface paths {
         get: {
             parameters: {
                 query?: {
-                    Page?: number | string;
-                    PageSize?: number | string;
+                    Page?: number;
+                    PageSize?: number;
                     Search?: string;
                     /** @description Property name to sort by (whitelisted per endpoint). */
                     SortBy?: string;
                     SortDesc?: boolean;
                     /** @description Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows). */
                     ForExport?: boolean;
-                    SafePage?: number | string;
-                    SafePageSize?: number | string;
+                    SafePage?: number;
+                    SafePageSize?: number;
                     UserType?: components["schemas"]["UserType"];
                     SupplierId?: string;
                     DepartmentId?: string;
@@ -871,16 +871,16 @@ export interface paths {
         get: {
             parameters: {
                 query?: {
-                    Page?: number | string;
-                    PageSize?: number | string;
+                    Page?: number;
+                    PageSize?: number;
                     Search?: string;
                     /** @description Property name to sort by (whitelisted per endpoint). */
                     SortBy?: string;
                     SortDesc?: boolean;
                     /** @description Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows). */
                     ForExport?: boolean;
-                    SafePage?: number | string;
-                    SafePageSize?: number | string;
+                    SafePage?: number;
+                    SafePageSize?: number;
                     UserType?: components["schemas"]["UserType"];
                     SupplierId?: string;
                     DepartmentId?: string;
@@ -1457,16 +1457,16 @@ export interface paths {
         get: {
             parameters: {
                 query?: {
-                    Page?: number | string;
-                    PageSize?: number | string;
+                    Page?: number;
+                    PageSize?: number;
                     Search?: string;
                     /** @description Property name to sort by (whitelisted per endpoint). */
                     SortBy?: string;
                     SortDesc?: boolean;
                     /** @description Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows). */
                     ForExport?: boolean;
-                    SafePage?: number | string;
-                    SafePageSize?: number | string;
+                    SafePage?: number;
+                    SafePageSize?: number;
                     UserId?: string;
                     Action?: string;
                     EntityType?: string;
@@ -1544,16 +1544,16 @@ export interface paths {
         get: {
             parameters: {
                 query?: {
-                    Page?: number | string;
-                    PageSize?: number | string;
+                    Page?: number;
+                    PageSize?: number;
                     Search?: string;
                     /** @description Property name to sort by (whitelisted per endpoint). */
                     SortBy?: string;
                     SortDesc?: boolean;
                     /** @description Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows). */
                     ForExport?: boolean;
-                    SafePage?: number | string;
-                    SafePageSize?: number | string;
+                    SafePage?: number;
+                    SafePageSize?: number;
                     UserId?: string;
                     Action?: string;
                     EntityType?: string;
@@ -2288,6 +2288,668 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    kind?: components["schemas"]["TemplateKind"];
+                    activeOnly?: boolean;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TemplateListItemDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "multipart/form-data": {
+                        Code?: string;
+                        Name?: string;
+                        Kind?: components["schemas"]["TemplateKind"];
+                        Description?: string;
+                    } & {
+                        file?: components["schemas"]["IFormFile"];
+                    };
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": string;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/templates/fields": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    kind?: components["schemas"]["TemplateKind"];
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TemplateFieldsDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/templates/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TemplateDetailDto"];
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateTemplateRequest"];
+                    "text/json": components["schemas"]["UpdateTemplateRequest"];
+                    "application/*+json": components["schemas"]["UpdateTemplateRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/templates/validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Checks placeholders of a DOCX without saving it. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "multipart/form-data": {
+                        kind?: components["schemas"]["TemplateKind"];
+                    } & {
+                        file?: components["schemas"]["IFormFile"];
+                    };
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TemplateValidationResult"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/templates/{id}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "multipart/form-data": {
+                        file?: components["schemas"]["IFormFile"];
+                    } & {
+                        note?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": number;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/templates/{id}/versions/{version}/activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    version: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/templates/{id}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    version?: number;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/templates/{id}/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Renders the template with sample data ("xem trước với dữ liệu mẫu"). */
+        get: {
+            parameters: {
+                query?: {
+                    version?: number;
+                    format?: string;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/documents/samples": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateSampleDocumentRequest"];
+                    "text/json": components["schemas"]["CreateSampleDocumentRequest"];
+                    "application/*+json": components["schemas"]["CreateSampleDocumentRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": string;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/documents/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DocumentDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/documents/{id}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "multipart/form-data": {
+                        file?: components["schemas"]["IFormFile"];
+                    } & {
+                        reason?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": string;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/documents/{id}/versions/{versionId}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    versionId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DocumentVersionDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/documents/{id}/versions/{versionId}/link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Short-lived presigned link (format = pdf | docx). */
+        get: {
+            parameters: {
+                query?: {
+                    format?: string;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                    versionId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["FileLinkDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/documents/{id}/versions/{versionId}/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Streams the file through the API (PDF viewer). */
+        get: {
+            parameters: {
+                query?: {
+                    format?: string;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                    versionId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/documents/{id}/edit-sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["StartEditRequest"];
+                    "text/json": components["schemas"]["StartEditRequest"];
+                    "application/*+json": components["schemas"]["StartEditRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EditorSessionDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/system/info": {
         parameters: {
             query?: never;
@@ -2364,6 +3026,11 @@ export interface components {
             /** Format: date-time */
             validTo: string;
             reason: null | string;
+        };
+        CreateSampleDocumentRequest: {
+            /** Format: uuid */
+            templateId: string;
+            title: null | string;
         };
         CreateSupplierStaffRequest: {
             userName: string;
@@ -2454,6 +3121,60 @@ export interface components {
         DisableTwoFactorRequest: {
             password: string;
         };
+        DocumentDto: {
+            /** Format: uuid */
+            id: string;
+            type: components["schemas"]["DocumentType"];
+            title: string;
+            status: components["schemas"]["DocumentStatus"];
+            ownerEntityType: string;
+            /** Format: uuid */
+            ownerId: string;
+            /** Format: uuid */
+            contractId: null | string;
+            /** Format: uuid */
+            templateId: null | string;
+            templateName: null | string;
+            /** Format: uuid */
+            currentVersionId: null | string;
+            versions: components["schemas"]["DocumentVersionDto"][];
+            canEdit: boolean;
+        };
+        /** @enum {unknown} */
+        DocumentStatus: "Draft" | "InWorkflow" | "Completed" | "Cancelled";
+        /** @enum {unknown} */
+        DocumentType: "Contract" | "Appendix" | "Proposal" | "ProposalSummary" | "CallOrder" | "WarehouseReceipt" | "Acceptance" | "Valuation" | "PaymentRequest" | "Liquidation" | "TemplateSample";
+        DocumentVersionDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: int32 */
+            versionNumber: number;
+            reason: string;
+            createdByName: null | string;
+            /** Format: date-time */
+            createdAt: string;
+            hasDocx: boolean;
+            docxSha256: null | string;
+            /** Format: int64 */
+            docxSize: null | number;
+            hasPdf: boolean;
+            pdfSha256: null | string;
+            /** Format: int64 */
+            pdfSize: null | number;
+            /** Format: int32 */
+            signatureCount: number;
+            isLocked: boolean;
+            isFinal: boolean;
+            isCurrent: boolean;
+        };
+        /** @enum {unknown} */
+        EditorMode: "Edit" | "Review" | "View";
+        EditorSessionDto: {
+            /** Format: uuid */
+            sessionId: string;
+            editorScriptUrl: string;
+            config: components["schemas"]["JsonObject"];
+        };
         EnableTwoFactorRequest: {
             code: string;
         };
@@ -2466,17 +3187,27 @@ export interface components {
             hisFacilityCode: null | string;
             isActive: boolean;
         };
+        FileLinkDto: {
+            /** Format: uri */
+            url: string;
+            fileName: string;
+            /** Format: date-time */
+            expiresAt: string;
+        };
         /** @enum {unknown} */
         HistoryChangeType: "Created" | "Updated" | "Deleted";
         HistoryEntryDto: {
             /** Format: int32 */
-            version: number | string;
+            version: number;
             changeType: components["schemas"]["HistoryChangeType"];
             /** Format: date-time */
             changedAt: string;
             changedByName: null | string;
             snapshot: string;
         };
+        /** Format: binary */
+        IFormFile: string;
+        JsonObject: Record<string, never>;
         LoginRequest: {
             userName: string;
             password: string;
@@ -2517,56 +3248,56 @@ export interface components {
         PagedResultOfAuditLogDto: {
             items: components["schemas"]["AuditLogDto"][];
             /** Format: int32 */
-            total: number | string;
+            total: number;
             /** Format: int32 */
-            page: number | string;
+            page: number;
             /** Format: int32 */
-            pageSize: number | string;
+            pageSize: number;
         };
         PagedResultOfDepartmentDto: {
             items: components["schemas"]["DepartmentDto"][];
             /** Format: int32 */
-            total: number | string;
+            total: number;
             /** Format: int32 */
-            page: number | string;
+            page: number;
             /** Format: int32 */
-            pageSize: number | string;
+            pageSize: number;
         };
         PagedResultOfFacilityDto: {
             items: components["schemas"]["FacilityDto"][];
             /** Format: int32 */
-            total: number | string;
+            total: number;
             /** Format: int32 */
-            page: number | string;
+            page: number;
             /** Format: int32 */
-            pageSize: number | string;
+            pageSize: number;
         };
         PagedResultOfSupplierDto: {
             items: components["schemas"]["SupplierDto"][];
             /** Format: int32 */
-            total: number | string;
+            total: number;
             /** Format: int32 */
-            page: number | string;
+            page: number;
             /** Format: int32 */
-            pageSize: number | string;
+            pageSize: number;
         };
         PagedResultOfUserListItemDto: {
             items: components["schemas"]["UserListItemDto"][];
             /** Format: int32 */
-            total: number | string;
+            total: number;
             /** Format: int32 */
-            page: number | string;
+            page: number;
             /** Format: int32 */
-            pageSize: number | string;
+            pageSize: number;
         };
         PagedResultOfWarehouseDto: {
             items: components["schemas"]["WarehouseDto"][];
             /** Format: int32 */
-            total: number | string;
+            total: number;
             /** Format: int32 */
-            page: number | string;
+            page: number;
             /** Format: int32 */
-            pageSize: number | string;
+            pageSize: number;
         };
         PermissionDto: {
             code: string;
@@ -2590,7 +3321,7 @@ export interface components {
             isSystem: boolean;
             isSupplierRole: boolean;
             /** Format: int32 */
-            userCount: number | string;
+            userCount: number;
             permissions: string[];
         };
         SaveDepartmentRequest: {
@@ -2649,6 +3380,9 @@ export interface components {
         };
         /** @enum {unknown} */
         SettingValueType: "Text" | "WholeNumber" | "DecimalNumber" | "YesNo";
+        StartEditRequest: {
+            mode: components["schemas"]["EditorMode"];
+        };
         SupplierAccountRequest: {
             userName: string;
             fullName: string;
@@ -2670,7 +3404,7 @@ export interface components {
             phone: null | string;
             isActive: boolean;
             /** Format: int32 */
-            accountCount: number | string;
+            accountCount: number;
         };
         SupplierStaffDto: {
             /** Format: uuid */
@@ -2700,6 +3434,80 @@ export interface components {
             valueType: components["schemas"]["SettingValueType"];
             description: string;
         };
+        TemplateCollection: {
+            name: string;
+            description: string;
+            fields: components["schemas"]["TemplateField"][];
+        };
+        TemplateDetailDto: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            name: string;
+            kind: components["schemas"]["TemplateKind"];
+            description: null | string;
+            isBuiltIn: boolean;
+            isActive: boolean;
+            /** Format: int32 */
+            activeVersionNumber: number;
+            versions: components["schemas"]["TemplateVersionDto"][];
+            placeholders: string[];
+        };
+        TemplateField: {
+            path: string;
+            description: string;
+        };
+        TemplateFieldsDto: {
+            kind: components["schemas"]["TemplateKind"];
+            fields: components["schemas"]["TemplateField"][];
+            collections: components["schemas"]["TemplateCollection"][];
+            signatureAnchors: string[];
+            filters: string[];
+        };
+        TemplateIssue: {
+            tag: string;
+            message: string;
+        };
+        /**
+         * @description Which data model a template is rendered with (decides the valid placeholders).
+         * @enum {unknown}
+         */
+        TemplateKind: "Contract" | "Appendix" | "Proposal" | "ProposalSummary" | "CallOrder" | "WarehouseReceipt" | "Acceptance" | "Valuation" | "PaymentRequest" | "Liquidation";
+        TemplateListItemDto: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            name: string;
+            kind: components["schemas"]["TemplateKind"];
+            description: null | string;
+            isBuiltIn: boolean;
+            isActive: boolean;
+            /** Format: int32 */
+            activeVersionNumber: number;
+            /** Format: int32 */
+            versionCount: number;
+            /** Format: date-time */
+            lastUploadedAt: null | string;
+        };
+        TemplateValidationResult: {
+            isValid: boolean;
+            tags: string[];
+            errors: components["schemas"]["TemplateIssue"][];
+        };
+        TemplateVersionDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: int32 */
+            versionNumber: number;
+            sha256: string;
+            /** Format: int64 */
+            size: number;
+            note: null | string;
+            /** Format: date-time */
+            uploadedAt: string;
+            uploadedByName: null | string;
+            isActive: boolean;
+        };
         TwoFactorLoginRequest: {
             challenge: string;
             code: string;
@@ -2728,6 +3536,11 @@ export interface components {
         UpdateSupplierStaffRequest: {
             status: components["schemas"]["UserStatus"];
             isAdmin: boolean;
+        };
+        UpdateTemplateRequest: {
+            name: string;
+            description: null | string;
+            isActive: boolean;
         };
         UpdateUserRequest: {
             fullName: string;

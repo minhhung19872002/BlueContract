@@ -221,6 +221,9 @@ internal sealed class DocxBuilder
                 body.Append(e);
             }
 
+            // Normal trailing paragraph so text typed at the end of the document never inherits the hidden anchor formatting.
+            body.Append(Para(string.Empty));
+
             // A4: 11906 x 16838 twips. Margins: top/bottom 2cm, left 3cm, right 1.5cm.
             body.Append(new SectionProperties(
                 _landscape

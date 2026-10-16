@@ -19,6 +19,8 @@ import { SettingsPage } from './features/admin/SettingsPage';
 import { AuditLogsPage } from './features/admin/AuditLogsPage';
 import { MyAccountPage } from './features/account/MyAccountPage';
 import { CompanyPage } from './features/supplier/CompanyPage';
+import { TemplatesPage } from './features/templates/TemplatesPage';
+import { DocumentPage } from './features/documents/DocumentPage';
 
 const guard = (permissions: string[], element: React.ReactNode) => (
   <RequirePermission any={permissions}>{element}</RequirePermission>
@@ -57,6 +59,8 @@ export const router = createBrowserRouter([
           },
           { path: '/quan-tri/tham-so', element: guard([P.SettingManage], <SettingsPage />) },
           { path: '/quan-tri/nhat-ky', element: guard([P.AuditView], <AuditLogsPage />) },
+          { path: '/quan-tri/mau-bieu', element: guard([P.TemplateManage], <TemplatesPage />) },
+          { path: '/tai-lieu/:id', element: <DocumentPage /> },
         ],
       },
       {
