@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<title>BlueProcure — Design system</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="./favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap">
+<script src="./bp.js"></script>
+<style>
+:root{--bp-primary:#1554ad;--bp-primary-hover:#2a6bc6;--bp-primary-active:#0f428a;--bp-primary-fg:#1554ad;--bp-primary-bg:#eaf1fb;--bp-primary-bd:#bcd3f2;--bp-primary-solid:#1554ad;
+--bp-sider:#0B1F44;--bp-sider-active:#1d3a73;--bp-sider-bar:#7fb2ff;--bp-sider-text:#c3cee3;--bp-sider-muted:#8a9bbd;
+--bp-teal-fg:#0f766e;--bp-teal-bg:#e7f5f3;--bp-teal-bd:#a5dcd4;--bp-teal-solid:#0f766e;
+--bp-success-fg:#067647;--bp-success-bg:#ecfdf3;--bp-success-bd:#abefc6;--bp-success-solid:#12b76a;
+--bp-warning-fg:#8a5300;--bp-warning-bg:#fff8e6;--bp-warning-bd:#f8dc8f;--bp-warning-solid:#f0a800;
+--bp-orange-fg:#b93815;--bp-orange-bg:#fff4ed;--bp-orange-bd:#fbcfb3;--bp-orange-solid:#ef6820;
+--bp-danger-fg:#b42318;--bp-danger-bg:#fef3f2;--bp-danger-bd:#fecdca;--bp-danger-solid:#d92d20;
+--bp-info-fg:#0e6a80;--bp-info-bg:#ebf7fa;--bp-info-bd:#b2dfea;--bp-info-solid:#1592ad;
+--bp-purple-fg:#6941c6;--bp-purple-bg:#f4f3ff;--bp-purple-bd:#d9d6fe;--bp-purple-solid:#7a5af8;
+--bp-indigo-fg:#3538cd;--bp-indigo-bg:#eef4ff;--bp-indigo-bd:#c7d7fe;--bp-indigo-solid:#444ce7;
+--bp-neutral-fg:#475467;--bp-neutral-bg:#f2f4f7;--bp-neutral-bd:#dfe3ea;--bp-neutral-solid:#98a2b3;
+--bp-layout:#F6F7F9;--bp-card:#ffffff;--bp-th:#F9FAFB;--bp-hover:#F2F4F7;--bp-border:#E6E8EC;--bp-input-bd:#8a94a6;
+--bp-text:#101828;--bp-text-2:#475467;--bp-caption:#5f6b7d;--bp-overlay:rgba(16,24,40,.45);
+--bp-shadow:0 16px 40px -12px rgba(16,24,40,.22),0 4px 10px -4px rgba(16,24,40,.08);--bp-shadow-hover:0 6px 16px -6px rgba(16,24,40,.14);}
+[data-theme="dark"]{--bp-primary:#2f6fcf;--bp-primary-hover:#4683dc;--bp-primary-active:#1f5bb5;--bp-primary-fg:#8ab8ff;--bp-primary-bg:#11264a;--bp-primary-bd:#22468a;--bp-primary-solid:#4d8ae6;
+--bp-sider:#070f22;--bp-sider-active:#17305f;--bp-teal-fg:#5fd3c4;--bp-teal-bg:#0a2724;--bp-teal-bd:#145a52;
+--bp-success-fg:#75e0a7;--bp-success-bg:#0b2a1c;--bp-success-bd:#175a3a;--bp-warning-fg:#fcd36b;--bp-warning-bg:#2b2108;--bp-warning-bd:#6b4f0e;
+--bp-orange-fg:#fdac74;--bp-orange-bg:#2e1709;--bp-orange-bd:#7a3410;--bp-danger-fg:#fda29b;--bp-danger-bg:#2f1210;--bp-danger-bd:#7a271a;
+--bp-info-fg:#7cd4e8;--bp-info-bg:#0a2730;--bp-info-bd:#155e70;--bp-purple-fg:#bdb4fe;--bp-purple-bg:#1e1640;--bp-purple-bd:#4a3a9a;
+--bp-indigo-fg:#a4bcfd;--bp-indigo-bg:#141a42;--bp-indigo-bd:#3538a0;--bp-neutral-fg:#c5ccd8;--bp-neutral-bg:#1d2433;--bp-neutral-bd:#364056;--bp-neutral-solid:#7d879a;
+--bp-layout:#0a0f1a;--bp-card:#111827;--bp-th:#151d2c;--bp-hover:#1a2335;--bp-border:#253047;--bp-input-bd:#5b6780;
+--bp-text:#eef1f6;--bp-text-2:#b4bdcc;--bp-caption:#9aa5b8;--bp-overlay:rgba(0,0,0,.6);--bp-shadow:0 16px 40px -12px rgba(0,0,0,.6),0 4px 10px -4px rgba(0,0,0,.4);}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bp-layout);color:var(--bp-text);font-family:'Be Vietnam Pro','Segoe UI',Roboto,sans-serif;font-size:14px;line-height:1.5715;-webkit-font-smoothing:antialiased}
+a{color:var(--bp-primary-fg);text-decoration:none}a:hover{color:var(--bp-primary-hover);text-decoration:underline}
+button,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--bp-primary-solid);outline-offset:2px}
+@keyframes bp-pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--bp-primary-solid) 55%,transparent)}70%{box-shadow:0 0 0 5px transparent}100%{box-shadow:0 0 0 0 transparent}}
+@keyframes bp-spin{to{transform:rotate(360deg)}}
+@keyframes bp-shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
+</style>
+</helmet>
+<div style="min-height:100vh;background:var(--bp-layout)">
+  <header style="position:sticky;top:0;z-index:20;height:56px;display:flex;align-items:center;gap:12px;padding:0 20px;background:var(--bp-sider);color:#fff">
+    <img src="./favicon.svg" width="28" height="28" alt="" style="border-radius:6px">
+    <span style="font-weight:700">BlueProcure</span><span style="color:var(--bp-sider-muted)">/</span><span style="color:var(--bp-sider-text)">Design system</span>
+    <div style="flex:1"></div>
+    <a href="#/app" onClick="{{ back }}" style="display:inline-flex;align-items:center;gap:6px;color:var(--bp-sider-text);font-size:13px;white-space:nowrap"><bp-icon name="arrow-left" size="14"></bp-icon>Quay lại ứng dụng</a>
+    <button onClick="{{ toggleTheme }}" aria-label="Đổi giao diện" style="height:32px;display:inline-flex;align-items:center;gap:6px;padding:0 10px;border:1px solid rgba(255,255,255,.18);border-radius:8px;background:transparent;color:#fff;cursor:pointer;font-size:13px;white-space:nowrap"><bp-icon name="{{ themeIcon }}" size="15"></bp-icon>{{ themeLabel }}</button>
+  </header>
+  <div style="max-width:1280px;margin:0 auto;padding:32px 20px 80px;display:flex;flex-direction:column;gap:40px">
+    <div>
+      <h1 style="margin:0;font-size:30px;line-height:38px;font-weight:600;letter-spacing:-.02em">Design system</h1>
+      <p style="margin:6px 0 0;color:var(--bp-text-2);max-width:760px;text-wrap:pretty">Token, thành phần và mẫu dùng chung cho cả cổng nội bộ bệnh viện và cổng Nhà cung cấp. Mọi giá trị ánh xạ trực tiếp sang token của Ant Design 5 — xem <a href="AntD Theme Guide.md">Hướng dẫn áp vào Ant Design 5</a>.</p>
+      <nav style="display:flex;flex-wrap:wrap;gap:6px;margin-top:16px">
+        <sc-for list="{{ toc }}" as="t" hint-placeholder-count="10">
+          <a href="#{{ t.id }}" style="height:28px;display:inline-flex;align-items:center;padding:0 10px;border-radius:14px;border:1px solid var(--bp-border);background:var(--bp-card);color:var(--bp-text-2);font-size:12.5px;font-weight:500;text-decoration:none;white-space:nowrap" style-hover="border-color:var(--bp-primary-solid);color:var(--bp-primary-fg);text-decoration:none">{{ t.label }}</a>
+        </sc-for>
+      </nav>
+    </div>
+
+    <!-- COLORS -->
+    <section id="mau" style="display:flex;flex-direction:column;gap:16px">
+      <h2 style="margin:0;font-size:20px;font-weight:600">1. Màu sắc</h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px">
+        <sc-for list="{{ brandSwatches }}" as="s" hint-placeholder-count="8">
+          <div style="border:1px solid var(--bp-border);border-radius:12px;overflow:hidden;background:var(--bp-card)">
+            <div style="height:64px;background:{{ s.css }};border-bottom:1px solid var(--bp-border)"></div>
+            <div style="padding:10px 12px"><div style="font-weight:600;font-size:13px">{{ s.name }}</div><div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--bp-caption)">{{ s.hex }}</div><div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--bp-caption)">{{ s.token }}</div></div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:var(--bp-card);border:1px solid var(--bp-border);border-radius:12px;overflow:auto">
+        <table style="width:100%;min-width:760px;border-collapse:collapse;font-size:13px">
+          <thead><tr style="background:var(--bp-th)">
+            <th style="text-align:left;padding:10px 16px;font-size:12px;font-weight:600;color:var(--bp-caption);border-bottom:1px solid var(--bp-border)">Màu ngữ nghĩa</th>
+            <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;color:var(--bp-caption);border-bottom:1px solid var(--bp-border)">Chữ · -fg</th>
+            <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;color:var(--bp-caption);border-bottom:1px solid var(--bp-border)">Nền · -bg</th>
+            <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;color:var(--bp-caption);border-bottom:1px solid var(--bp-border)">Viền · -bd</th>
+            <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;color:var(--bp-caption);border-bottom:1px solid var(--bp-border)">Đặc · -solid</th>
+            <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;color:var(--bp-caption);border-bottom:1px solid var(--bp-border)">Mẫu tag</th>
+          </tr></thead>
+          <tbody>
+            <sc-for list="{{ semantic }}" as="t" hint-placeholder-count="10">
+              <tr>
+                <td style="padding:10px 16px;border-bottom:1px solid var(--bp-border)"><div style="font-weight:600">{{ t.name }}</div><div style="font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--bp-caption)">--bp-{{ t.k }}-*</div></td>
+                <sc-for list="{{ t.sw }}" as="c" hint-placeholder-count="4">
+                  <td style="padding:10px 12px;border-bottom:1px solid var(--bp-border)"><div style="display:flex;align-items:center;gap:8px"><span style="width:28px;height:28px;border-radius:6px;background:var(--bp-{{ t.k }}-{{ c.v }});box-shadow:inset 0 0 0 1px rgba(16,24,40,.08)"></span><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--bp-text-2)">{{ c.hex }}</span></div></td>
+                </sc-for>
+                <td style="padding:10px 12px;border-bottom:1px solid var(--bp-border)"><span style="display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 8px;border-radius:6px;font-size:12px;font-weight:500;border:1px solid var(--bp-{{ t.k }}-bd);background:var(--bp-{{ t.k }}-bg);color:var(--bp-{{ t.k }}-fg);white-space:nowrap"><span style="width:6px;height:6px;border-radius:50%;background:var(--bp-{{ t.k }}-solid)"></span>{{ t.sample }}</span></td>
+              </tr>
+            </sc-for>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TYPE -->
+    <section id="chu" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr));gap:16px">
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <h2 style="margin:0;font-size:20px;font-weight:600">2. Typography</h2>
+        <div style="background:var(--bp-card);border:1px solid var(--bp-border);border-radius:12px;padding:8px 20px">
+          <sc-for list="{{ typeScale }}" as="t" hint-placeholder-count="8">
+            <div style="display:flex;align-items:baseline;gap:16px;padding:12px 0;border-bottom:1px solid var(--bp-border)">
+              <span style="width:120px;flex:none;font-size:12px;color:var(--bp-caption);font-family:'JetBrains Mono',monospace">{{ t.spec }}</span>
+              <span style="min-width:0;font-size:{{ t.size }}px;font-weight:{{ t.w }};font-family:{{ t.ff }};letter-spacing:{{ t.ls }};text-transform:{{ t.tt }};font-variant-numeric:tabular-nums;color:{{ t.c }}">{{ t.sample }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <h2 style="margin:0;font-size:20px;font-weight:600">3. Bo góc · khoảng cách · chiều cao</h2>
+        <div style="background:var(--bp-card);border:1px solid var(--bp-border);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:20px">
+          <div style="display:flex;flex-wrap:wrap;gap:16px">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><span style="width:72px;height:52px;border-radius:12px;border:1px solid var(--bp-border);background:var(--bp-hover)"></span><span style="font-size:12px;color:var(--bp-caption)">Card 12</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><span style="width:72px;height:52px;border-radius:8px;border:1px solid var(--bp-border);background:var(--bp-hover)"></span><span style="font-size:12px;color:var(--bp-caption)">Input / Button 8</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><span style="width:72px;height:52px;border-radius:6px;border:1px solid var(--bp-border);background:var(--bp-hover)"></span><span style="font-size:12px;color:var(--bp-caption)">Tag 6</span></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <sc-for list="{{ spaces }}" as="s" hint-placeholder-count="8">
+              <div style="display:flex;align-items:center;gap:12px"><span style="width:44px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--bp-caption)">{{ s.v }}</span><span style="height:10px;width:{{ s.v }}px;border-radius:2px;background:var(--bp-primary-solid);opacity:.8"></span></div>
+            </sc-for>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px">
+            <span style="height:28px;display:inline-flex;align-items:center;padding:0 10px;border:1px dashed var(--bp-input-bd);border-radius:8px;font-size:12px;white-space:nowrap">Nhỏ 28</span>
+            <span style="height:36px;display:inline-flex;align-items:center;padding:0 14px;border:1px dashed var(--bp-input-bd);border-radius:8px;font-size:13px;white-space:nowrap">Mặc định 36</span>
+            <span style="height:44px;display:inline-flex;align-items:center;padding:0 16px;border:1px dashed var(--bp-input-bd);border-radius:8px;font-size:14px;white-space:nowrap">Đăng nhập 44</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ICONS -->
+    <section id="icon" style="display:flex;flex-direction:column;gap:16px">
+      <h2 style="margin:0;font-size:20px;font-weight:600">4. Icon menu <span style="font-size:13px;font-weight:400;color:var(--bp-caption)">Lucide · stroke 1.75</span></h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px">
+        <sc-for list="{{ icons }}" as="i" hint-placeholder-count="14">
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bp-card);border:1px solid var(--bp-border);border-radius:10px">
+            <span style="width:32px;height:32px;border-radius:8px;background:var(--bp-primary-bg);color:var(--bp-primary-fg);display:inline-flex;align-items:center;justify-content:center;flex:none;white-space:nowrap"><bp-icon name="{{ i.i }}" size="18"></bp-icon></span>
+            <div style="min-width:0"><div style="font-size:13px;font-weight:500">{{ i.l }}</div><div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--bp-caption);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ i.i }}</div></div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <!-- BUTTONS -->
+    <section id="nut" style="display:flex;flex-direction:column;gap:16px">
+      <h2 style="margin:0;font-size:20px;font-weight:600">5. Button</h2>
+      <div style="background:var(--bp-card);border:1px solid var(--bp-border);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:18px">
+        <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+          <button style="height:36px;display:inline-flex;align-items:center;gap:8px;padding:0 14px;border:1px solid var(--bp-primary);border-radius:8px;background:var(--bp-primary);color:#fff;font-weight:600;cursor:pointer;white-space:nowrap" style-hover="background:var(--bp-primary-hover)"><bp-icon name="plus" size="16"></bp-icon>Primary</button>
+          <button style="height:36px;display:inline-flex;align-items:center;gap:8px;padding:0 14px;border:1px solid var(--bp-border);border-radius:8px;background:var(--bp-card);color:var(--bp-text);font-weight:500;cursor:pointer;white-space:nowrap" style-hover="border-color:var(--bp-primary-solid);color:var(--bp-primary-fg)"><bp-icon name="file-spreadsheet" size="16"></bp-icon>Default</button>
+          <button style="height:36px;display:inline-flex;align-items:center;gap:8px;padding:0 14px;border:1px dashed var(--bp-input-bd);border-radius:8px;background:var(--bp-card);color:var(--bp-text);font-weight:500;cursor:pointer;white-space:nowrap"><bp-icon name="plus" size="16"></bp-icon>Dashed</button>
+          <button style="height:36px;display:inline-flex;align-items:center;gap:8px;padding:0 12px;border:0;border-radius:8px;background:transparent;color:var(--bp-text-2);font-weight:500;cursor:pointer;white-space:nowrap" style-hover="background:var(--bp-hover)"><bp-icon name="history" size="16"></bp-icon>Text</button>
+          <button style="height:36px;display:inline-flex;align-items:center;gap:6px;padding:0 4px;border:0;background:transparent;color:var(--bp-primary-fg);font-weight:500;cursor:pointer;white-space:nowrap">Link<bp-icon name="arrow-up-right" size="15"></bp-icon></button>
+          <button style="height:36px;display:inline-flex;align-items:center;gap:8px;padding:0 14px;border:1px solid var(--bp-danger-solid);border-radius:8px;background:var(--bp-danger-solid);color:#fff;font-weight:600;cursor:pointer;white-space:nowrap"><bp-icon name="undo-2" size="16"></bp-icon>Trả lại</button>
+          <button style="height:36px;display:inline-flex;align-items:center;gap:8px;padding:0 14px;border:1px solid var(--bp-danger-bd);border-radius:8px;background:var(--bp-card);color:var(--bp-danger-fg);font-weight:500;cursor:pointer;white-space:nowrap"><bp-icon name="ban" size="16"></bp-icon>Hủy luồng</button>
+          <button style="height:36px;display:inline-flex;align-items:center;gap:8px;padding:0 14px;border:1px dashed var(--bp-warning-bd);border-radius:8px;background:transparent;color:var(--bp-warning-fg);font-weight:500;cursor:pointer;white-space:nowrap"><bp-icon name="flask-conical" size="16"></bp-icon>Giả lập HIS gửi phiếu<span style="height:18px;padding:0 5px;border-radius:4px;background:var(--bp-warning-solid);color:#3d2600;font-size:10px;font-weight:700;display:inline-flex;align-items:center;white-space:nowrap">DEV</span></button>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+          <button style="height:28px;display:inline-flex;align-items:center;gap:6px;padding:0 10px;border:1px solid var(--bp-primary);border-radius:6px;background:var(--bp-primary);color:#fff;font-weight:600;font-size:13px;cursor:pointer;white-space:nowrap">Nhỏ 28</button>
+          <button style="height:36px;padding:0 14px;border:1px solid var(--bp-primary);border-radius:8px;background:var(--bp-primary);color:#fff;font-weight:600;cursor:pointer">Mặc định 36</button>
+          <button style="height:44px;padding:0 18px;border:1px solid var(--bp-primary);border-radius:8px;background:var(--bp-primary);color:#fff;font-weight:600;font-size:15px;cursor:pointer">Lớn 44</button>
+          <button aria-busy="true" style="height:36px;display:inline-flex;align-items:center;gap:8px;padding:0 14px;border:1px solid var(--bp-primary);border-radius:8px;background:var(--bp-primary);color:#fff;font-weight:600;opacity:.8;cursor:wait;white-space:nowrap"><span style="width:14px;height:14px;border-radius:50%;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;animation:bp-spin .8s linear infinite"></span>Đang ký…</button>
+          <button disabled="{{ true }}" style="height:36px;padding:0 14px;border:1px solid var(--bp-border);border-radius:8px;background:var(--bp-hover);color:var(--bp-caption);font-weight:500;cursor:not-allowed">Disabled</button>
+          <button aria-label="Thao tác" style="width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--bp-border);border-radius:8px;background:var(--bp-card);cursor:pointer;white-space:nowrap"><bp-icon name="ellipsis" size="16"></bp-icon></button>
+          <span style="display:inline-flex;white-space:nowrap"><button style="height:36px;display:inline-flex;align-items:center;gap:8px;padding:0 14px;border:1px solid var(--bp-primary);border-radius:8px 0 0 8px;background:var(--bp-primary);color:#fff;font-weight:600;cursor:pointer;white-space:nowrap"><bp-icon name="pen-line" size="16"></bp-icon>Ký số</button><button aria-label="Chọn nhà cung cấp chữ ký số" style="height:36px;width:32px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--bp-primary);border-left-color:rgba(255,255,255,.35);border-radius:0 8px 8px 0;background:var(--bp-primary);color:#fff;cursor:pointer;white-space:nowrap"><bp-icon name="chevron-down" size="15"></bp-icon></button></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- FORM -->
+    <section id="form" style="display:flex;flex-direction:column;gap:16px">
+      <h2 style="margin:0;font-size:20px;font-weight:600">6. Điều khiển nhập liệu</h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:16px">
+        <div style="background:var(--bp-card);border:1px solid var(--bp-border);border-radius:12px;padding:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px">
+          <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Số hợp đồng <span style="color:var(--bp-danger-fg)">*</span></span><span style="height:36px;display:flex;align-items:center;padding:0 12px;border:1px solid var(--bp-input-bd);border-radius:8px;background:var(--bp-card);font-family:'JetBrains Mono',monospace;font-size:13px">15/2026/HĐ-BVĐK</span></label>
+          <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Tìm kiếm</span><span style="height:36px;display:flex;align-items:center;gap:8px;padding:0 12px;border:1px solid var(--bp-primary-solid);box-shadow:0 0 0 3px var(--bp-primary-bg);border-radius:8px;background:var(--bp-card);color:var(--bp-caption)"><bp-icon name="search" size="16"></bp-icon><span style="color:var(--bp-text)">Minh An|</span></span><span style="font-size:12px;color:var(--bp-caption)">Trạng thái focus</span></label>
+          <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Mã số thuế <span style="color:var(--bp-danger-fg)">*</span></span><span style="height:36px;display:flex;align-items:center;padding:0 12px;border:1px solid var(--bp-danger-solid);border-radius:8px;background:var(--bp-card);font-family:'JetBrains Mono',monospace;font-size:13px">03012</span><span style="font-size:12px;color:var(--bp-danger-fg)">Mã số thuế gồm 10 chữ số hoặc dạng 0123456789-001</span></label>
+          <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Giá trị trước thuế</span><span style="height:36px;display:flex;align-items:center;padding:0 12px;border:1px solid var(--bp-input-bd);border-radius:8px;background:var(--bp-card);font-variant-numeric:tabular-nums;justify-content:space-between"><span>4.502.175.926</span><span style="color:var(--bp-caption)">₫</span></span></label>
+          <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Nhà cung cấp</span><span style="height:36px;display:flex;align-items:center;justify-content:space-between;padding:0 10px 0 12px;border:1px solid var(--bp-input-bd);border-radius:8px;background:var(--bp-card)"><span>Công ty CP Dược phẩm Minh An</span><bp-icon name="chevron-down" size="16"></bp-icon></span></label>
+          <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Ngày ký</span><span style="height:36px;display:flex;align-items:center;justify-content:space-between;padding:0 10px 0 12px;border:1px solid var(--bp-input-bd);border-radius:8px;background:var(--bp-card);font-variant-numeric:tabular-nums"><span>16/10/2026</span><bp-icon name="calendar" size="16"></bp-icon></span></label>
+          <label style="display:flex;flex-direction:column;gap:6px;grid-column:1/-1"><span style="font-size:13px;font-weight:500">Gửi từ ngày – Đến ngày</span><span style="height:36px;display:flex;align-items:center;gap:10px;padding:0 10px 0 12px;border:1px solid var(--bp-input-bd);border-radius:8px;background:var(--bp-card);font-variant-numeric:tabular-nums"><span>01/10/2026</span><bp-icon name="arrow-right" size="14"></bp-icon><span>16/10/2026</span><span style="flex:1"></span><bp-icon name="calendar-range" size="16"></bp-icon></span></label>
+          <label style="display:flex;flex-direction:column;gap:6px;grid-column:1/-1"><span style="font-size:13px;font-weight:500">Lý do trả lại <span style="color:var(--bp-danger-fg)">*</span></span><span style="min-height:76px;padding:8px 12px;border:1px solid var(--bp-input-bd);border-radius:8px;background:var(--bp-card);color:var(--bp-text)">Đơn giá mặt hàng số 4 chưa khớp quyết định thầu.</span><span style="font-size:12px;color:var(--bp-caption);text-align:right">48 / 500</span></label>
+          <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500;color:var(--bp-caption)">Disabled</span><span style="height:36px;display:flex;align-items:center;padding:0 12px;border:1px solid var(--bp-border);border-radius:8px;background:var(--bp-hover);color:var(--bp-caption)">Tự điền từ NCC</span></label>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div style="background:var(--bp-card);border:1px solid var(--bp-border);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:16px">
+            <div style="display:flex;flex-wrap:wrap;gap:20px">
+              <sc-for list="{{ checksDemo }}" as="c" hint-placeholder-count="3">
+                <span onClick="{{ c.onClick }}" style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;white-space:nowrap"><span role="checkbox" aria-checked="{{ c.on }}" style="width:16px;height:16px;border-radius:4px;border:1px solid {{ c.bd }};background:{{ c.bg }};display:inline-flex;align-items:center;justify-content:center;color:#fff;white-space:nowrap"><sc-if value="{{ c.on }}" hint-placeholder-val="{{ false }}"><bp-icon name="check" size="12" stroke="3"></bp-icon></sc-if></span>{{ c.label }}</span>
+              </sc-for>
+            </div>
+            <div role="radiogroup" style="display:flex;flex-wrap:wrap;gap:20px">
+              <sc-for list="{{ radios }}" as="r" hint-placeholder-count="2">
+                <span onClick="{{ r.onClick }}" role="radio" aria-checked="{{ r.on }}" style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;white-space:nowrap"><span style="width:16px;height:16px;border-radius:50%;border:{{ r.bw }} solid {{ r.bd }};background:var(--bp-card)"></span>{{ r.label }}</span>
+              </sc-for>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:20px;align-items:center">
+              <span onClick="{{ toggleSwitch }}" role="switch" aria-checked="{{ sw }}" style="display:inline-flex;align-items:center;gap:10px;cursor:pointer;white-space:nowrap"><span style="width:36px;height:20px;border-radius:10px;background:{{ swBg }};position:relative;transition:background .15s"><span style="position:absolute;top:2px;left:{{ swLeft }}px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(16,24,40,.3);transition:left .15s"></span></span>Chỉ hiện ủy quyền đang hiệu lực</span>
+            </div>
+            <div role="radiogroup" style="display:inline-flex;align-self:flex-start;padding:2px;border-radius:8px;background:var(--bp-hover);border:1px solid var(--bp-border);white-space:nowrap">
+              <sc-for list="{{ segs }}" as="s" hint-placeholder-count="3">
+                <button onClick="{{ s.onClick }}" role="radio" aria-checked="{{ s.sel }}" style="height:30px;padding:0 12px;border:0;border-radius:6px;cursor:pointer;font-size:13px;font-weight:500;background:{{ s.bg }};color:{{ s.fg }};box-shadow:{{ s.sh }}">{{ s.label }}</button>
+              </sc-for>
+            </div>
+          </div>
+          <div style="border:1.5px dashed var(--bp-input-bd);border-radius:12px;background:var(--bp-card);padding:28px 20px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px" style-hover="border-color:var(--bp-primary-solid);background:var(--bp-primary-bg)">
+            <span style="width:44px;height:44px;border-radius:10px;background:var(--bp-primary-bg);color:var(--bp-primary-fg);display:inline-flex;align-items:center;justify-content:center;white-space:nowrap"><bp-icon name="upload" size="20"></bp-icon></span>
+            <div style="font-weight:600">Kéo thả tệp vào đây hoặc <span style="color:var(--bp-primary-fg)">chọn tệp</span></div>
+            <div style="font-size:12.5px;color:var(--bp-caption)">PDF, DOCX, XML hóa đơn · tối đa 20 MB</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STATUS -->
+    <section id="trang-thai" style="display:flex;flex-direction:column;gap:16px">
+      <div>
+        <h2 style="margin:0;font-size:20px;font-weight:600">7. Tag trạng thái</h2>
+        <p style="margin:4px 0 0;color:var(--bp-text-2);font-size:13.5px">Nhãn lấy nguyên văn từ <span style="font-family:'JetBrains Mono',monospace">StatusTag.tsx</span>. Tag trạng thái có chấm màu đặc; tag phân loại không có chấm. Trạng thái đang chạy có chấm nhấp nháy.</p>
+      </div>
+      <div style="background:var(--bp-card);border:1px solid var(--bp-border);border-radius:12px;overflow:hidden">
+        <sc-for list="{{ statusGroups }}" as="g" hint-placeholder-count="12">
+          <div style="display:grid;grid-template-columns:minmax(150px,220px) minmax(0,1fr);border-bottom:1px solid var(--bp-border)">
+            <div style="padding:12px 16px;background:var(--bp-th);border-right:1px solid var(--bp-border)"><div style="font-weight:600;font-size:13px">{{ g.name }}</div><div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--bp-caption)">{{ g.domain }}</div></div>
+            <div style="padding:12px 16px;display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+              <sc-for list="{{ g.items }}" as="t" hint-placeholder-count="5">
+                <span style="display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 8px;border-radius:6px;font-size:12px;font-weight:500;border:1px {{ t.bs }} var(--bp-{{ t.tone }}-bd);background:var(--bp-{{ t.tone }}-bg);color:var(--bp-{{ t.tone }}-fg);white-space:nowrap"><sc-if value="{{ t.dot }}" hint-placeholder-val="{{ true }}"><span style="width:6px;height:6px;border-radius:50%;background:var(--bp-{{ t.tone }}-solid);animation:{{ t.anim }}"></span></sc-if>{{ t.label }}</span>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <!-- CARDS -->
+    <section id="card" style="display:flex;flex-direction:column;gap:16px">
+      <h2 style="margin:0;font-size:20px;font-weight:600">8. Card · KPI card</h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px">
+        <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="4">
+          <a href="#" class="kpi-card" style="display:flex;flex-direction:column;gap:12px;padding:18px;background:var(--bp-card);border:1px solid {{ k.bd }};border-radius:12px;color:var(--bp-text);text-decoration:none;transition:box-shadow .15s" style-hover="box-shadow:var(--bp-shadow-hover);text-decoration:none;color:var(--bp-text)">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+              <span style="font-size:13px;font-weight:500;color:var(--bp-text-2)">{{ k.label }}</span>
+              <span style="width:32px;height:32px;border-radius:8px;background:var(--bp-{{ k.tone }}-bg);color:var(--bp-{{ k.tone }}-fg);display:inline-flex;align-items:center;justify-content:center;white-space:nowrap"><bp-icon name="{{ k.icon }}" size="17"></bp-icon></span>
+            </div>
+            <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap"><span style="font-size:30px;line-height:36px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:{{ k.valueFg }}">{{ k.value }}</span><span style="font-size:13px;color:var(--bp-caption);font-variant-numeric:tabular-nums">{{ k.sub }}</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;font-size:12.5px"><span style="display:inline-flex;align-items:center;gap:4px;font-weight:500;color:var(--bp-{{ k.trendTone }}-fg);white-space:nowrap"><bp-icon name="{{ k.trendIcon }}" size="14"></bp-icon>{{ k.trend }}</span><span style="color:var(--bp-primary-fg);font-weight:500;display:inline-flex;align-items:center;gap:2px;white-space:nowrap">Xem<bp-icon name="chevron-right" size="14"></bp-icon></span></div>
+          </a>
+        </sc-for>
+      </div>
+    </section>
+
+    <!-- NAV -->
+    <section id="dieu-huong" style="display:flex;flex-direction:column;gap:16px">
+      <h2 style="margin:0;font-size:20px;font-weight:600">9. Tabs · Breadcrumb · Pagination · Avatar · Progress · Tooltip</h2>
+      <div style="background:var(--bp-card);border:1px solid var(--bp-border);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:22px">
+        <div role="tablist" style="display:flex;gap:4px;border-bottom:1px solid var(--bp-border);overflow-x:auto;scrollbar-width:none">
+          <sc-for list="{{ tabsDemo }}" as="t" hint-placeholder-count="4">
+            <button onClick="{{ t.onClick }}" role="tab" aria-selected="{{ t.sel }}" style="position:relative;display:inline-flex;align-items:center;gap:8px;height:42px;padding:0 12px;border:0;background:transparent;cursor:pointer;white-space:nowrap;font-weight:{{ t.fw }};color:{{ t.fg }}">{{ t.label }}<span style="min-width:22px;height:20px;padding:0 7px;border-radius:10px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;background:{{ t.cbg }};color:{{ t.cfg }};white-space:nowrap">{{ t.count }}</span><span style="position:absolute;left:8px;right:8px;bottom:-1px;height:2px;background:var(--bp-primary-solid);opacity:{{ t.bar }}"></span></button>
+          </sc-for>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:32px;align-items:center">
+          <nav style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--bp-caption)"><bp-icon name="house" size="14"></bp-icon><bp-icon name="chevron-right" size="14"></bp-icon><a href="#">Hợp đồng</a><bp-icon name="chevron-right" size="14"></bp-icon><span style="color:var(--bp-text);font-weight:500;font-family:'JetBrains Mono',monospace">15/2026/HĐ-BVĐK</span></nav>
+          <div style="display:flex;align-items:center;gap:4px"><button style="width:32px;height:32px;border:1px solid var(--bp-border);border-radius:8px;background:var(--bp-card);display:inline-flex;align-items:center;justify-content:center;color:var(--bp-caption);white-space:nowrap"><bp-icon name="chevron-left" size="16"></bp-icon></button><button style="min-width:32px;height:32px;border:1px solid var(--bp-primary-solid);border-radius:8px;background:var(--bp-card);color:var(--bp-primary-fg);font-weight:600">1</button><button style="min-width:32px;height:32px;border:0;background:transparent">2</button><button style="min-width:32px;height:32px;border:0;background:transparent">3</button><button style="width:32px;height:32px;border:1px solid var(--bp-border);border-radius:8px;background:var(--bp-card);display:inline-flex;align-items:center;justify-content:center;white-space:nowrap"><bp-icon name="chevron-right" size="16"></bp-icon></button><span style="margin-left:8px;font-size:13px;color:var(--bp-text-2)">Tổng 48 bản ghi</span></div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:32px;align-items:center">
+          <div style="display:flex">
+            <sc-for list="{{ avatars }}" as="a" hint-placeholder-count="4"><span title="{{ a.name }}" style="width:32px;height:32px;margin-left:-6px;border-radius:50%;background:var(--bp-{{ a.tone }}-bg);color:var(--bp-{{ a.tone }}-fg);box-shadow:0 0 0 2px var(--bp-card);font-size:12px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap">{{ a.ini }}</span></sc-for>
+            <span style="width:32px;height:32px;margin-left:-6px;border-radius:50%;background:var(--bp-hover);color:var(--bp-text-2);box-shadow:0 0 0 2px var(--bp-card);font-size:12px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap">+3</span>
+          </div>
+          <div style="flex:1 1 260px;display:flex;flex-direction:column;gap:10px;max-width:360px">
+            <sc-for list="{{ progress }}" as="p" hint-placeholder-count="3">
+              <div style="display:flex;align-items:center;gap:10px"><span style="width:90px;font-size:12.5px;color:var(--bp-text-2)">{{ p.label }}</span><div style="flex:1;height:6px;border-radius:3px;background:var(--bp-hover);box-shadow:inset 0 0 0 1px var(--bp-border);overflow:hidden"><div style="height:100%;width:{{ p.v }}%;background:var(--bp-{{ p.tone }}-solid);border-radius:3px"></div></div><span style="width:36px;text-align:right;font-size:12.5px;font-variant-numeric:tabular-nums">{{ p.v }}%</span></div>
+            </sc-for>
+          </div>
+          <div style="position:relative;display:inline-flex;flex-direction:column;align-items:center;gap:8px;white-space:nowrap">
+            <span role="tooltip" style="padding:6px 10px;border-radius:6px;background:#101828;color:#fff;font-size:12px;max-width:240px;box-shadow:var(--bp-shadow)">Tổng tiền hóa đơn lệch 1.250.000 ₫ so với phiếu</span>
+            <span style="display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 8px;border-radius:6px;font-size:12px;font-weight:500;border:1px solid var(--bp-danger-bd);background:var(--bp-danger-bg);color:var(--bp-danger-fg);white-space:nowrap"><span style="width:6px;height:6px;border-radius:50%;background:var(--bp-danger-solid)"></span>Không hợp lệ<bp-icon name="info" size="13"></bp-icon></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SIGN FLOW + TIMELINE + DESCRIPTIONS -->
+    <section id="luong-ky" style="display:flex;flex-direction:column;gap:16px">
+      <h2 style="margin:0;font-size:20px;font-weight:600">10. Luồng ký (Steps dọc) · Timeline · Descriptions</h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:16px;align-items:start">
+        <div class="sign-flow" style="background:var(--bp-card);border:1px solid var(--bp-border);border-radius:12px;overflow:hidden">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:14px 16px;border-bottom:1px solid var(--bp-border)">
+            <span style="font-weight:600;font-size:15px">Luồng ký</span>
+            <span style="display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 8px;border-radius:6px;font-size:12px;font-weight:500;border:1px solid var(--bp-primary-bd);background:var(--bp-primary-bg);color:var(--bp-primary-fg);white-space:nowrap"><span style="width:6px;height:6px;border-radius:50%;background:var(--bp-primary-solid);animation:bp-pulse 1.6s ease-out infinite"></span>Đang trình ký · 3/5</span>
+          </div>
+          <ol style="list-style:none;margin:0;padding:16px">
+            <sc-for list="{{ steps }}" as="s" hint-placeholder-count="5">
+              <li style="display:grid;grid-template-columns:28px minmax(0,1fr);gap:12px">
+                <div style="display:flex;flex-direction:column;align-items:center">
+                  <span style="width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;background:{{ s.nbg }};color:{{ s.nfg }};border:1.5px solid {{ s.nbd }};box-shadow:{{ s.ring }};white-space:nowrap"><sc-if value="{{ s.done }}" hint-placeholder-val="{{ false }}"><bp-icon name="check" size="14" stroke="2.5"></bp-icon></sc-if><sc-if value="{{ s.notDone }}" hint-placeholder-val="{{ true }}">{{ s.n }}</sc-if></span>
+                  <sc-if value="{{ s.line }}" hint-placeholder-val="{{ true }}"><span style="flex:1;width:2px;min-height:16px;margin:4px 0;background:{{ s.lineBg }};border-radius:1px"></span></sc-if>
+                </div>
+                <div style="padding-bottom:18px;min-width:0;display:flex;flex-direction:column;gap:6px">
+                  <div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px"><span style="font-weight:600;font-size:13.5px;color:{{ s.titleFg }}">{{ s.title }}</span><span style="height:20px;display:inline-flex;align-items:center;padding:0 6px;border-radius:5px;font-size:11px;font-weight:500;border:1px solid var(--bp-{{ s.kt }}-bd);background:var(--bp-{{ s.kt }}-bg);color:var(--bp-{{ s.kt }}-fg);white-space:nowrap">{{ s.kind }}</span><sc-if value="{{ s.optional }}" hint-placeholder-val="{{ false }}"><span style="height:20px;display:inline-flex;align-items:center;padding:0 6px;border-radius:5px;font-size:11px;font-weight:500;border:1px dashed var(--bp-neutral-bd);color:var(--bp-neutral-fg);white-space:nowrap">Tùy chọn</span></sc-if></div>
+                  <div style="font-size:12.5px;color:var(--bp-text-2)">{{ s.assignee }}</div>
+                  <sc-if value="{{ s.done }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--bp-text-2);font-variant-numeric:tabular-nums"><bp-icon name="file-badge" size="14"></bp-icon><span><strong style="color:var(--bp-text);font-weight:500">{{ s.signer }}</strong> · {{ s.at }}</span></div></sc-if>
+                  <sc-if value="{{ s.deadline }}" hint-placeholder-val="{{ false }}"><div style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:500;color:var(--bp-{{ s.dlTone }}-fg);white-space:nowrap"><bp-icon name="clock" size="14"></bp-icon>{{ s.deadline }}</div></sc-if>
+                  <sc-if value="{{ s.mine }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">
+                      <button style="height:30px;display:inline-flex;align-items:center;gap:6px;padding:0 12px;border:0;border-radius:7px;background:var(--bp-primary);color:#fff;font-weight:600;font-size:13px;cursor:pointer;white-space:nowrap"><bp-icon name="pen-line" size="14"></bp-icon>Ký số</button>
+                      <button style="height:30px;padding:0 10px;border:1px solid var(--bp-border);border-radius:7px;background:var(--bp-card);font-weight:500;font-size:13px;cursor:pointer">Đồng ý</button>
+                      <button style="height:30px;padding:0 10px;border:1px solid var(--bp-danger-bd);border-radius:7px;background:var(--bp-card);color:var(--bp-danger-fg);font-weight:500;font-size:13px;cursor:pointer">Trả lại</button>
+                      <button style="height:30px;padding:0 10px;border:0;border-radius:7px;background:transparent;color:var(--bp-text-2);font-weight:500;font-size:13px;cursor:pointer">Ý kiến</button>
+                    </div>
+                  </sc-if>
+                </div>
+              </li>
+            </sc-for>
+          </ol>
+          <div style="display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--bp-border);background:var(--bp-th)"><span style="font-size:12px;color:var(--bp-caption);flex:1;align-self:center">Người gửi</span><button style="height:28px;padding:0 10px;border:1px solid var(--bp-border);border-radius:6px;background:var(--bp-card);font-size:12.5px;font-weight:500">Trình lại</button><button style="height:28px;padding:0 10px;border:1px solid var(--bp-danger-bd);border-radius:6px;background:var(--bp-card);color:var(--bp-danger-fg);font-size:12.5px;font-weight:500">Hủy luồng</button></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div style="background:var(--bp-card);border:1px solid var(--bp-border);border-radius:12px;overflow:hidden">
+            <div style="padding:14px 16px;border-bottom:1px solid var(--bp-border);font-weight:600;font-size:15px">Ý kiến &amp; lịch sử</div>
+            <div style="padding:16px;display:flex;flex-direction:column">
+              <sc-for list="{{ timeline }}" as="e" hint-placeholder-count="4">
+                <div style="display:grid;grid-template-columns:32px minmax(0,1fr);gap:12px">
+                  <div style="display:flex;flex-direction:column;align-items:center"><span style="width:32px;height:32px;border-radius:50%;background:var(--bp-{{ e.tone }}-bg);color:var(--bp-{{ e.tone }}-fg);font-size:12px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap">{{ e.ini }}</span><sc-if value="{{ e.line }}" hint-placeholder-val="{{ true }}"><span style="flex:1;width:1px;background:var(--bp-border);margin:4px 0"></span></sc-if></div>
+                  <div style="padding-bottom:16px;min-width:0">
+                    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px"><span style="font-weight:600;font-size:13.5px">{{ e.who }}</span><span style="height:20px;display:inline-flex;align-items:center;padding:0 6px;border-radius:5px;font-size:11px;font-weight:500;border:1px solid var(--bp-{{ e.tone }}-bd);background:var(--bp-{{ e.tone }}-bg);color:var(--bp-{{ e.tone }}-fg);white-space:nowrap">{{ e.ev }}</span><span style="font-size:12px;color:var(--bp-caption);font-variant-numeric:tabular-nums">{{ e.at }}</span></div>
+                    <sc-if value="{{ e.note }}" hint-placeholder-val="{{ false }}"><div style="margin-top:6px;padding:8px 10px;border-radius:8px;background:var(--bp-hover);font-size:13px;color:var(--bp-text)">{{ e.note }}</div></sc-if>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="background:var(--bp-card);border:1px solid var(--bp-border);border-radius:12px;padding:16px 20px">
+            <div style="font-weight:600;font-size:15px;margin-bottom:12px">Descriptions</div>
+            <dl style="margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px 20px">
+              <sc-for list="{{ desc }}" as="d" hint-placeholder-count="6">
+                <div style="min-width:0"><dt style="font-size:12px;font-weight:500;color:var(--bp-caption);margin-bottom:2px">{{ d.k }}</dt><dd style="margin:0;font-size:14px;font-family:{{ d.ff }};font-variant-numeric:tabular-nums;overflow-wrap:anywhere">{{ d.v }}</dd></div>
+              </sc-for>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEEDBACK -->
+    <section id="phan-hoi" style="display:flex;flex-direction:column;gap:16px">
+      <h2 style="margin:0;font-size:20px;font-weight:600">11. Alert · Toast · Notification · Empty · Skeleton</h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:16px;align-items:start">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <sc-for list="{{ alerts }}" as="a" hint-placeholder-count="4">
+            <div role="alert" style="display:flex;gap:10px;padding:12px 14px;border-radius:8px;border:1px solid var(--bp-{{ a.tone }}-bd);background:var(--bp-{{ a.tone }}-bg);color:var(--bp-{{ a.tone }}-fg)"><bp-icon name="{{ a.icon }}" size="18"></bp-icon><div style="font-size:13.5px;min-width:0"><div style="font-weight:600">{{ a.title }}</div><div style="color:var(--bp-text)">{{ a.body }}</div></div></div>
+          </sc-for>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;flex-direction:column;gap:8px;align-items:center">
+            <span style="display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border-radius:8px;background:var(--bp-card);border:1px solid var(--bp-border);box-shadow:var(--bp-shadow);font-size:13.5px;white-space:nowrap"><span style="color:var(--bp-success-solid);display:inline-flex;white-space:nowrap"><bp-icon name="circle-check" size="17"></bp-icon></span>Đã ký số và gắn chữ ký vào PDF</span>
+            <span style="display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border-radius:8px;background:var(--bp-card);border:1px solid var(--bp-border);box-shadow:var(--bp-shadow);font-size:13.5px;white-space:nowrap"><span style="color:var(--bp-danger-solid);display:inline-flex;white-space:nowrap"><bp-icon name="circle-x" size="17"></bp-icon></span>Không kết nối được token USB</span>
+          </div>
+          <div style="display:flex;gap:12px;padding:14px 16px;border-radius:12px;background:var(--bp-card);border:1px solid var(--bp-border);box-shadow:var(--bp-shadow)">
+            <span style="flex:none;width:32px;height:32px;border-radius:8px;background:var(--bp-indigo-bg);color:var(--bp-indigo-fg);display:inline-flex;align-items:center;justify-content:center;white-space:nowrap"><bp-icon name="pen-line" size="16"></bp-icon></span>
+            <div style="flex:1;min-width:0"><div style="font-weight:600;font-size:13.5px">Tài liệu mới chờ bạn xử lý</div><div style="font-size:13px;color:var(--bp-text-2)">Hợp đồng 31/2026/HĐ-BVĐK · Kế toán ký nháy</div><a href="#" style="font-size:13px;font-weight:500">Mở tài liệu</a></div>
+            <button aria-label="Đóng" style="width:24px;height:24px;border:0;background:transparent;color:var(--bp-caption);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap"><bp-icon name="x" size="15"></bp-icon></button>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div style="background:var(--bp-card);border:1px solid var(--bp-border);border-radius:12px;padding:24px 12px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px"><span style="width:44px;height:44px;border-radius:12px;background:var(--bp-success-bg);color:var(--bp-success-fg);display:inline-flex;align-items:center;justify-content:center;white-space:nowrap"><bp-icon name="inbox" size="22"></bp-icon></span><div style="font-weight:600;font-size:13.5px">Không có tài liệu chờ xử lý</div><div style="font-size:12.5px;color:var(--bp-caption)">Bạn đã xử lý hết. Tài liệu mới sẽ hiện tại đây.</div></div>
+            <div aria-busy="true" style="background:var(--bp-card);border:1px solid var(--bp-border);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px">
+              <span style="height:12px;width:60%;border-radius:4px;background:linear-gradient(90deg,var(--bp-hover) 0,var(--bp-border) 50%,var(--bp-hover) 100%);background-size:800px 100%;animation:bp-shimmer 1.4s linear infinite"></span>
+              <span style="height:28px;width:45%;border-radius:6px;background:linear-gradient(90deg,var(--bp-hover) 0,var(--bp-border) 50%,var(--bp-hover) 100%);background-size:800px 100%;animation:bp-shimmer 1.4s linear infinite"></span>
+              <span style="height:10px;width:90%;border-radius:4px;background:linear-gradient(90deg,var(--bp-hover) 0,var(--bp-border) 50%,var(--bp-hover) 100%);background-size:800px 100%;animation:bp-shimmer 1.4s linear infinite"></span>
+              <span style="height:10px;width:75%;border-radius:4px;background:linear-gradient(90deg,var(--bp-hover) 0,var(--bp-border) 50%,var(--bp-hover) 100%);background-size:800px 100%;animation:bp-shimmer 1.4s linear infinite"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- OVERLAYS -->
+    <section id="overlay" style="display:flex;flex-direction:column;gap:16px">
+      <h2 style="margin:0;font-size:20px;font-weight:600">12. Modal xác nhận · Drawer lịch sử (diff)</h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px;align-items:start">
+        <div style="position:relative;border-radius:12px;background:var(--bp-overlay);padding:32px 20px;display:flex;justify-content:center">
+          <div role="dialog" aria-label="Trả lại tài liệu" style="width:100%;max-width:440px;background:var(--bp-card);border-radius:12px;box-shadow:var(--bp-shadow);overflow:hidden">
+            <div style="display:flex;gap:12px;padding:20px 20px 0">
+              <span style="flex:none;width:40px;height:40px;border-radius:10px;background:var(--bp-danger-bg);color:var(--bp-danger-fg);display:inline-flex;align-items:center;justify-content:center;white-space:nowrap"><bp-icon name="undo-2" size="20"></bp-icon></span>
+              <div><div style="font-weight:600;font-size:16px">Trả lại tài liệu?</div><div style="font-size:13.5px;color:var(--bp-text-2)">Hợp đồng <span style="font-family:'JetBrains Mono',monospace">31/2026/HĐ-BVĐK</span> sẽ quay về người gửi. Luồng ký chuyển sang trạng thái <strong>Bị trả lại</strong>.</div></div>
+            </div>
+            <label style="display:flex;flex-direction:column;gap:6px;padding:16px 20px"><span style="font-size:13px;font-weight:500">Lý do <span style="color:var(--bp-danger-fg)">*</span></span><span style="min-height:72px;padding:8px 12px;border:1px solid var(--bp-danger-solid);border-radius:8px;color:var(--bp-caption)">Nhập lý do trả lại…</span><span style="font-size:12px;color:var(--bp-danger-fg)">Vui lòng nhập lý do</span></label>
+            <div style="display:flex;justify-content:flex-end;gap:8px;padding:12px 20px;border-top:1px solid var(--bp-border);background:var(--bp-th)"><button style="height:36px;padding:0 14px;border:1px solid var(--bp-border);border-radius:8px;background:var(--bp-card);font-weight:500">Hủy</button><button style="height:36px;padding:0 14px;border:0;border-radius:8px;background:var(--bp-danger-solid);color:#fff;font-weight:600">Trả lại</button></div>
+          </div>
+        </div>
+        <div style="position:relative;border-radius:12px;background:var(--bp-overlay);padding:20px 0 20px 20%;display:flex;justify-content:flex-end;overflow:hidden">
+          <div role="dialog" aria-label="Lịch sử cập nhật" style="width:100%;background:var(--bp-card);border-radius:12px 0 0 12px;box-shadow:var(--bp-shadow);display:flex;flex-direction:column">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--bp-border)"><span style="font-weight:600">Lịch sử cập nhật — Khoa Hồi sức tích cực</span><bp-icon name="x" size="16"></bp-icon></div>
+            <div style="padding:16px;display:flex;flex-direction:column;gap:16px">
+              <sc-for list="{{ history }}" as="h" hint-placeholder-count="2">
+                <div style="display:flex;flex-direction:column;gap:8px">
+                  <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px"><span style="font-weight:600;font-size:13.5px">Phiên bản {{ h.v }}</span><span style="height:20px;display:inline-flex;align-items:center;padding:0 6px;border-radius:5px;font-size:11px;font-weight:500;border:1px solid var(--bp-{{ h.tone }}-bd);background:var(--bp-{{ h.tone }}-bg);color:var(--bp-{{ h.tone }}-fg);white-space:nowrap">{{ h.type }}</span><span style="font-size:12px;color:var(--bp-caption)">{{ h.at }} · {{ h.by }}</span></div>
+                  <div style="border:1px solid var(--bp-border);border-radius:8px;overflow:hidden">
+                    <sc-for list="{{ h.diff }}" as="d" hint-placeholder-count="2">
+                      <div style="display:grid;grid-template-columns:120px minmax(0,1fr);border-bottom:1px solid var(--bp-border);font-size:13px"><span style="padding:8px 10px;background:var(--bp-th);color:var(--bp-caption);font-weight:500">{{ d.k }}</span><span style="padding:8px 10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center"><sc-if value="{{ d.old }}" hint-placeholder-val="{{ false }}"><span style="text-decoration:line-through;color:var(--bp-caption);background:var(--bp-danger-bg);padding:0 4px;border-radius:4px">{{ d.old }}</span><bp-icon name="arrow-right" size="13"></bp-icon></sc-if><span style="background:var(--bp-success-bg);color:var(--bp-success-fg);padding:0 4px;border-radius:4px;font-weight:500">{{ d.nw }}</span></span></div>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const G = (name, domain, items, opts = {}) => ({ name, domain, items: items.map(([label, tone, x]) => ({ label, tone, dot: opts.dot !== false, anim: x === 'run' ? 'bp-pulse 1.6s ease-out infinite' : 'none', bs: x === 'dashed' ? 'dashed' : 'solid' })) });
+const STATUS = [
+  G('Hợp đồng', 'contractStatus', [['Bản nháp','neutral'],['Tổ rà soát kiểm tra','primary','run'],['NCC rà soát','warning'],['Kế toán xem thay đổi','orange'],['NCC ký số','purple'],['Kế toán ký nháy','indigo'],['Giám đốc ký','purple'],['Văn thư đóng dấu','orange'],['Đang hiệu lực','success'],['Đã thanh lý','info'],['Đã hủy','neutral'],['Bị trả lại','danger']]),
+  G('Hình thức / loại HĐ', 'procurementType · contractKind', [['Trong thầu','primary'],['Ngoài thầu','purple'],['Theo đơn giá, gọi hàng từng đợt','info'],['Trọn gói','indigo']], { dot: false }),
+  G('Phụ lục — loại', 'appendixType', [['Bổ sung số lượng','primary'],['Giảm giá','success'],['Thay đổi thông tin','warning'],['Gia hạn','purple']], { dot: false }),
+  G('Phụ lục — trạng thái', 'appendixStatus', [['Bản nháp','neutral'],['Đang trình ký','primary','run'],['Đã hiệu lực','success'],['Đã hủy','neutral']]),
+  G('Quyết định thầu', 'bidStatus', [['Đang nhập liệu','neutral'],['Đã ban hành','success'],['Đã đóng','danger']]),
+  G('Đề xuất', 'proposalStatus', [['Bản nháp','neutral'],['Đang ký','primary','run'],['Đã gửi — chờ tổng hợp','primary'],['Đã tổng hợp','success'],['Bị trả lại','danger'],['Đã hủy','neutral']]),
+  G('Tổng hợp đề xuất', 'summaryStatus', [['Bản nháp','neutral'],['Người tổng hợp ký','primary','run'],['Tổ trưởng duyệt','warning'],['Giám đốc ký','purple'],['Đã duyệt','success'],['Bị trả lại','danger'],['Đã hủy','neutral']]),
+  G('Gọi hàng', 'callOrderStatus', [['Chờ NCC xác nhận','warning'],['NCC đã xác nhận','success'],['Xác nhận một phần','orange'],['NCC từ chối','danger'],['Đã giao hàng','info'],['Đã hủy','neutral'],['Quá hạn','danger']]),
+  G('Phiếu nhập kho — ký', 'receiptStatus', [['Chưa gửi ký','neutral'],['Đang ký 3/5','primary','run'],['Bị trả lại','danger'],['Đã ký đủ','success'],['Đã hủy','neutral']]),
+  G('Phiếu nhập kho — kiểm tra', 'receiptValidation', [['Hợp lệ','success'],['Cảnh báo','warning'],['Không hợp lệ','danger']]),
+  G('Phiếu nhập kho — loại / nguồn', 'receiptType · receiptSource', [['Nhập kho','primary'],['Hoàn trả','orange'],['HIS','teal'],['Lập trên cổng','indigo'],['Phiếu ảo (không qua kho)','purple','dashed']], { dot: false }),
+  G('Biên bản thanh toán', 'paymentRecordStatus · paymentStatus', [['Bản nháp','neutral'],['Đang trình ký','primary','run'],['Bị trả lại','danger'],['Đã ký xong','success'],['Đã hủy','neutral'],['Chưa thanh toán đủ','orange'],['Đã thanh toán','success']]),
+  G('Luồng ký — luồng / bước', 'workflowStatus · stepStatus', [['Đang trình ký','primary','run'],['Đã ký xong','success'],['Bị trả lại','danger'],['Đã hủy','neutral'],['Chờ đến lượt','neutral'],['Đang xử lý','primary','run'],['Đã xử lý','success'],['Bỏ qua','neutral']]),
+  G('Kiểu bước', 'workflowAction', [['Kiểm tra','primary'],['Duyệt','info'],['Ký số','purple'],['Ký nháy','indigo'],['Đóng dấu điện tử','orange'],['NCC rà soát','warning'],['NCC ký số','purple'],['Xác nhận','success']], { dot: false }),
+  G('Sự kiện luồng', 'workflowEvent', [['Gửi ký','primary'],['Chuyển bước','neutral'],['Đồng ý','success'],['Đã ký','purple'],['Trả lại','danger'],['Bỏ qua','neutral'],['Ý kiến','info'],['Hoàn tất','success'],['Trình lại','primary'],['Bắt đầu lại (phiên bản mới)','orange'],['Hủy luồng','neutral']], { dot: false }),
+  G('Chữ ký', 'signatureKind', [['Chữ ký cá nhân','purple'],['Dấu tổ chức','orange'],['Ký nháy','indigo']], { dot: false }),
+  G('Nguồn danh mục', 'itemSource', [['Nhập tay','neutral'],['Import Excel','indigo'],['Đồng bộ HIS','teal']], { dot: false }),
+  G('Tích hợp HIS', 'integrationStatus · integrationDirection', [['Thành công','success'],['Lỗi','danger'],['Gửi trùng','neutral'],['Bị từ chối','orange'],['HIS → Cổng','teal'],['Cổng → HIS','indigo']]),
+  G('Tài liệu', 'documentStatus · revisionKind', [['Bản nháp','neutral'],['Đang trình ký','primary','run'],['Hoàn thành','success'],['Đã hủy','neutral'],['Thêm','success'],['Xóa','danger'],['Định dạng','neutral']]),
+  G('Danh mục quản trị', 'active · userStatus · userType', [['Đang hoạt động','success'],['Ngừng hoạt động','neutral'],['Hoạt động','success'],['Chờ kích hoạt','warning'],['Nội bộ','primary'],['Nhà cung cấp','purple']]),
+  G('Khoa / kho', 'departmentType · warehouseType', [['Lâm sàng','info'],['Cận lâm sàng','indigo'],['Phòng chức năng','neutral'],['Kho thuốc','primary'],['Kho vật tư y tế','info'],['Kho hóa chất','orange'],['Kho tài sản','purple'],['Kho chung','neutral']], { dot: false }),
+  G('Ủy quyền ký', 'delegation', [['Đang hiệu lực','success'],['Chưa đến hạn','primary'],['Hết hạn','neutral'],['Đã thu hồi','danger']]),
+  G('Lịch sử cập nhật', 'historyChange', [['Tạo mới','success'],['Cập nhật','primary'],['Xóa','danger']], { dot: false }),
+  G('Hệ thống', 'service health', [['Hoạt động','success'],['Lỗi','danger']]),
+];
+const SEM = [
+  ['primary', 'Primary', ['#1554ad', '#eaf1fb', '#bcd3f2', '#1554ad'], 'Đã gửi'], ['success', 'Success', ['#067647', '#ecfdf3', '#abefc6', '#12b76a'], 'Đang hiệu lực'],
+  ['warning', 'Warning', ['#8a5300', '#fff8e6', '#f8dc8f', '#f0a800'], 'NCC rà soát'], ['orange', 'Orange', ['#b93815', '#fff4ed', '#fbcfb3', '#ef6820'], 'Xác nhận một phần'],
+  ['danger', 'Danger', ['#b42318', '#fef3f2', '#fecdca', '#d92d20'], 'Bị trả lại'], ['info', 'Info', ['#0e6a80', '#ebf7fa', '#b2dfea', '#1592ad'], 'Đã thanh lý'],
+  ['purple', 'Purple', ['#6941c6', '#f4f3ff', '#d9d6fe', '#7a5af8'], 'NCC ký số'], ['indigo', 'Indigo', ['#3538cd', '#eef4ff', '#c7d7fe', '#444ce7'], 'Ký nháy'],
+  ['neutral', 'Neutral', ['#475467', '#f2f4f7', '#dfe3ea', '#98a2b3'], 'Bản nháp'], ['teal', 'Teal (HIS)', ['#0f766e', '#e7f5f3', '#a5dcd4', '#0f766e'], 'Đồng bộ HIS'],
+];
+class Component extends DCLogic {
+  state = { dark: false, chk: { a: true, b: false, c: true }, radio: 'r1', sw: true, seg: 'internal', tab: 0 };
+  componentDidMount() { this.setState({ dark: window.bpGetTheme && window.bpGetTheme() === 'dark' }); }
+  renderVals() {
+    const s = this.state;
+    const seg = (sel) => ({ bg: sel ? 'var(--bp-card)' : 'transparent', fg: sel ? 'var(--bp-text)' : 'var(--bp-text-2)', sh: sel ? '0 1px 2px rgba(16,24,40,.1)' : 'none' });
+    return {
+      back: (e) => { if (this.props.onNavigate) { e.preventDefault(); this.props.onNavigate('app'); } },
+      themeIcon: s.dark ? 'sun' : 'moon', themeLabel: s.dark ? 'Giao diện sáng' : 'Giao diện tối',
+      toggleTheme: () => { const d = !s.dark; window.bpSetTheme(d ? 'dark' : 'light'); this.setState({ dark: d }); },
+      toc: [['mau','Màu'],['chu','Typography'],['icon','Icon'],['nut','Button'],['form','Nhập liệu'],['trang-thai','Trạng thái'],['card','KPI card'],['dieu-huong','Điều hướng'],['luong-ky','Luồng ký'],['phan-hoi','Phản hồi'],['overlay','Modal · Drawer']].map(([id, label]) => ({ id, label })),
+      brandSwatches: [
+        ['Primary', '#1554ad', 'var(--bp-primary)', '--bp-primary'], ['Primary hover', '#2a6bc6', 'var(--bp-primary-hover)', '--bp-primary-hover'], ['Primary nhấn', '#0f428a', 'var(--bp-primary-active)', '--bp-primary-active'], ['Primary nền nhạt', '#eaf1fb', 'var(--bp-primary-bg)', '--bp-primary-bg'],
+        ['Sidebar navy', '#0B1F44', 'var(--bp-sider)', '--bp-sider'], ['Sidebar chọn', '#1d3a73', 'var(--bp-sider-active)', '--bp-sider-active'], ['Thanh chọn', '#7fb2ff', 'var(--bp-sider-bar)', '--bp-sider-bar'], ['Accent teal', '#0f766e', 'var(--bp-teal-solid)', '--bp-teal-*'],
+        ['Layout', '#F6F7F9', 'var(--bp-layout)', '--bp-layout'], ['Header bảng', '#F9FAFB', 'var(--bp-th)', '--bp-th'], ['Hover', '#F2F4F7', 'var(--bp-hover)', '--bp-hover'], ['Viền', '#E6E8EC', 'var(--bp-border)', '--bp-border'],
+        ['Viền ô nhập', '#8a94a6', 'var(--bp-input-bd)', '--bp-input-bd'], ['Chữ chính', '#101828', 'var(--bp-text)', '--bp-text'], ['Chữ phụ', '#475467', 'var(--bp-text-2)', '--bp-text-2'], ['Nhãn / caption', '#5f6b7d', 'var(--bp-caption)', '--bp-caption'],
+      ].map(([name, hex, css, token]) => ({ name, hex, css, token })),
+      semantic: SEM.map(([k, name, hex, sample]) => ({ k, name, sample, sw: ['fg', 'bg', 'bd', 'solid'].map((v, i) => ({ v, hex: hex[i] })) })),
+      typeScale: [
+        ['KPI 30/600', 30, 600, '123.000.000 ₫'], ['Page 24/600', 24, 600, 'Phiếu nhập kho'], ['Mã CT 20/600 mono', 20, 600, 'PNK-2026-01482', 'mono'], ['Section 16/600', 16, 600, 'Hàng hóa & theo dõi thực hiện'],
+        ['Body 14/400', 14, 400, 'Toàn bộ tài liệu cần xử lý, ký số của anh/chị.'], ['Mono 13/500', 13, 500, '0301234567 · 9f2c…a71e', 'mono'], ['Caption 12/500', 12, 500, 'Hạn xử lý 17/10/2026 17:00', null, 'cap'], ['Nhóm menu 11/600', 11, 600, 'Kho & tài chính', null, 'up'],
+      ].map(([spec, size, w, sample, ff, x]) => ({ spec, size, w, sample, ff: ff ? "'JetBrains Mono',monospace" : 'inherit', ls: size >= 24 ? '-.02em' : x === 'up' ? '.06em' : 'normal', tt: x === 'up' ? 'uppercase' : 'none', c: x ? 'var(--bp-caption)' : 'var(--bp-text)' })),
+      spaces: [4, 8, 12, 16, 20, 24, 32, 48].map((v) => ({ v })),
+      icons: [['Tổng quan','layout-dashboard'],['Trình ký','pen-line'],['Quyết định thầu','file-check-2'],['Danh mục','package'],['Hợp đồng','file-text'],['Đề xuất','clipboard-list'],['Tổng hợp đề xuất','merge'],['Gọi hàng','truck'],['Phiếu nhập kho','warehouse'],['Thanh toán','wallet'],['Hồ sơ lưu trữ','archive'],['Báo cáo','chart-column'],['Xác minh chữ ký','shield-check'],['Quản trị','settings']].map(([l, i]) => ({ l, i })),
+      checksDemo: [['a', 'Còn hiệu lực'], ['b', 'Chưa có hóa đơn'], ['c', 'Quá hạn chưa xác nhận']].map(([k, label]) => { const on = s.chk[k]; return { label, on, bd: on ? 'var(--bp-primary-solid)' : 'var(--bp-input-bd)', bg: on ? 'var(--bp-primary-solid)' : 'var(--bp-card)', onClick: () => this.setState({ chk: { ...s.chk, [k]: !on } }) }; }),
+      radios: [['r1', 'Lập trên cổng'], ['r2', 'Phiếu ảo (không qua kho)']].map(([k, label]) => { const on = s.radio === k; return { label, on, bd: on ? 'var(--bp-primary-solid)' : 'var(--bp-input-bd)', bw: on ? '5px' : '1px', onClick: () => this.setState({ radio: k }) }; }),
+      sw: s.sw, swBg: s.sw ? 'var(--bp-primary-solid)' : 'var(--bp-input-bd)', swLeft: s.sw ? 18 : 2, toggleSwitch: () => this.setState({ sw: !s.sw }),
+      segs: [['internal', 'Nội bộ'], ['supplier', 'Nhà cung cấp'], ['all', 'Tất cả']].map(([k, label]) => ({ label, sel: s.seg === k, ...seg(s.seg === k), onClick: () => this.setState({ seg: k }) })),
+      statusGroups: STATUS,
+      kpis: [
+        { label: 'Tài liệu chờ tôi xử lý', value: '7', sub: '2 quá hạn', icon: 'pen-line', tone: 'primary', trend: '+3 so với hôm qua', trendIcon: 'trending-up', trendTone: 'neutral', bd: 'var(--bp-border)', valueFg: 'var(--bp-text)' },
+        { label: 'Phiếu nhập kho cảnh báo / không hợp lệ', value: '1 / 1', sub: 'phiếu', icon: 'triangle-alert', tone: 'danger', trend: 'Cần xử lý', trendIcon: 'circle-alert', trendTone: 'danger', bd: 'var(--bp-danger-bd)', valueFg: 'var(--bp-danger-fg)' },
+        { label: 'Gọi hàng chờ NCC xác nhận', value: '1', sub: '(0 quá hạn)', icon: 'truck', tone: 'warning', trend: 'Đúng hạn', trendIcon: 'check', trendTone: 'success', bd: 'var(--bp-border)', valueFg: 'var(--bp-text)' },
+        { label: 'Đã thanh toán / còn phải trả', value: '123 tr', sub: '/ 0 ₫', icon: 'wallet', tone: 'success', trend: '+12% so với kỳ trước', trendIcon: 'trending-up', trendTone: 'success', bd: 'var(--bp-border)', valueFg: 'var(--bp-text)' },
+      ],
+      tabsDemo: [['Chờ tôi xử lý', 7], ['Tôi đã xử lý', 128], ['Tôi đã gửi', 24], ['Bị trả lại', 2]].map(([label, count], i) => { const sel = s.tab === i; return { label, count, sel, fw: sel ? 600 : 500, fg: sel ? 'var(--bp-primary-fg)' : 'var(--bp-text-2)', bar: sel ? 1 : 0, cbg: sel ? 'var(--bp-primary-bg)' : i === 3 ? 'var(--bp-danger-bg)' : 'var(--bp-hover)', cfg: sel ? 'var(--bp-primary-fg)' : i === 3 ? 'var(--bp-danger-fg)' : 'var(--bp-text-2)', onClick: () => this.setState({ tab: i }) }; }),
+      avatars: [['NH', 'Nguyễn Thị Thu Hà', 'primary'], ['LT', 'Lê Văn Tâm', 'teal'], ['PM', 'Phạm Thị Mai', 'purple'], ['VK', 'Võ Đình Khang', 'orange']].map(([ini, name, tone]) => ({ ini, name, tone })),
+      progress: [['Đã gọi', 62, 'primary'], ['Đã nhập kho', 46, 'info'], ['Đã thanh toán', 100, 'success']].map(([label, v, tone]) => ({ label, v, tone })),
+      steps: [
+        { title: 'Thủ kho ký nhận', kind: 'Ký số', kt: 'purple', assignee: 'Thủ kho · Kho Dược', state: 'done', signer: 'Lê Văn Tâm', at: '14/10/2026 08:12' },
+        { title: 'Người giao hàng (NCC) ký', kind: 'NCC ký số', kt: 'purple', assignee: 'Nhà cung cấp của tài liệu', state: 'done', signer: 'Trần Minh Quân', at: '14/10/2026 10:47' },
+        { title: 'Kế toán kho ký', kind: 'Ký số', kt: 'purple', assignee: 'Vai trò: Kế toán kho', state: 'active', deadline: 'Quá hạn 1 ngày · hạn 15/10/2026 17:00', dlTone: 'danger', mine: true },
+        { title: 'Trưởng khoa ký', kind: 'Ký số', kt: 'purple', assignee: 'Trưởng khoa Dược', state: 'pending', optional: true },
+        { title: 'Kế toán trưởng ký', kind: 'Ký số', kt: 'purple', assignee: 'Nguyễn Thị Thu Hà', state: 'pending' },
+      ].map((x, i, arr) => ({ ...x, n: i + 1, done: x.state === 'done', notDone: x.state !== 'done', line: i < arr.length - 1, lineBg: x.state === 'done' ? 'var(--bp-success-solid)' : 'var(--bp-border)',
+        nbg: x.state === 'done' ? 'var(--bp-success-solid)' : x.state === 'active' ? 'var(--bp-primary-solid)' : 'var(--bp-card)', nfg: x.state === 'pending' ? 'var(--bp-text-2)' : '#fff', nbd: x.state === 'done' ? 'var(--bp-success-solid)' : x.state === 'active' ? 'var(--bp-primary-solid)' : 'var(--bp-input-bd)',
+        ring: x.state === 'active' ? '0 0 0 4px var(--bp-primary-bg)' : 'none', titleFg: x.state === 'pending' ? 'var(--bp-text-2)' : 'var(--bp-text)', deadline: x.deadline || '', dlTone: x.dlTone || 'neutral', mine: !!x.mine, optional: !!x.optional })),
+      timeline: [
+        { ini: 'LT', who: 'Lê Văn Tâm', ev: 'Gửi ký', tone: 'primary', at: '14/10/2026 08:05' },
+        { ini: 'LT', who: 'Lê Văn Tâm', ev: 'Đã ký', tone: 'purple', at: '14/10/2026 08:12' },
+        { ini: 'TQ', who: 'Trần Minh Quân', ev: 'Ý kiến', tone: 'info', at: '14/10/2026 10:40', note: 'Lô 240915 giao bổ sung 20 hộp vào ngày 18/10.' },
+        { ini: 'TQ', who: 'Trần Minh Quân', ev: 'Đã ký', tone: 'purple', at: '14/10/2026 10:47' },
+      ].map((e, i, a) => ({ ...e, note: e.note || '', line: i < a.length - 1 })),
+      desc: [['Ngày phiếu', '14/10/2026'], ['Kho', 'Kho Dược'], ['Mã phiếu HIS', 'HIS-NK-2026-008812', 1], ['Nhà cung cấp', 'Công ty CP Dược phẩm Minh An'], ['Hợp đồng', '15/2026/HĐ-BVĐK', 1], ['Tổng thanh toán', '482.150.000 ₫']].map(([k, v, m]) => ({ k, v, ff: m ? "'JetBrains Mono',monospace" : 'inherit' })),
+      alerts: [
+        { tone: 'danger', icon: 'circle-x', title: 'Phiếu không hợp lệ', body: 'Đơn giá Amoxicillin 500mg (2.150 ₫) khác đơn giá hợp đồng (1.980 ₫).' },
+        { tone: 'warning', icon: 'triangle-alert', title: 'Cảnh báo cận date', body: 'Lô 240915 hết hạn 30/01/2027 — còn dưới 6 tháng.' },
+        { tone: 'info', icon: 'info', title: 'Đồng bộ từ HIS', body: 'Phiếu được HIS đẩy sang lúc 14/10/2026 07:58.' },
+        { tone: 'success', icon: 'circle-check', title: 'Toàn vẹn ✓', body: 'SHA-256 khớp với giá trị lúc tải lên (kiểm tra 16/10/2026 02:00).' },
+      ],
+      history: [
+        { v: 3, type: 'Cập nhật', tone: 'primary', at: '12/10/2026 14:22', by: 'Phạm Thị Mai', diff: [{ k: 'Tên', old: 'Khoa Hồi sức', nw: 'Khoa Hồi sức tích cực' }, { k: 'Mã HIS', old: 'HS01', nw: 'ICU01' }] },
+        { v: 1, type: 'Tạo mới', tone: 'success', at: '02/01/2026 09:00', by: 'Quản trị hệ thống', diff: [{ k: 'Mã', old: '', nw: 'K-HSTC' }, { k: 'Loại', old: '', nw: 'Lâm sàng' }] },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -3,7 +3,8 @@ import viVN from 'antd/locale/vi_VN';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider } from 'react-router-dom';
 import { router } from './router';
-import { theme } from './theme';
+import { darkTheme, lightTheme } from './theme';
+import { ThemeModeProvider, useThemeMode } from './hooks/useThemeMode';
 import { SessionBootstrap } from './auth/guards';
 import { isApiProblem } from './api/http';
 import './i18n/dayjs';
@@ -52,9 +53,10 @@ const queryClient = new QueryClient({
   },
 });
 
-export function App() {
+function ThemedApp() {
+  const { mode } = useThemeMode();
   return (
-    <ConfigProvider locale={locale} theme={theme}>
+    <ConfigProvider locale={locale} theme={mode === 'dark' ? darkTheme : lightTheme}>
       <AntApp>
         <QueryClientProvider client={queryClient}>
           <SessionBootstrap>
@@ -63,5 +65,13 @@ export function App() {
         </QueryClientProvider>
       </AntApp>
     </ConfigProvider>
+  );
+}
+
+export function App() {
+  return (
+    <ThemeModeProvider>
+      <ThemedApp />
+    </ThemeModeProvider>
   );
 }

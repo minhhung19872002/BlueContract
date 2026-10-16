@@ -1,238 +1,252 @@
-import { Tag } from 'antd';
+/** Colour families of the design system (CSS variables --bp-{tone}-fg / -bg / -bd / -solid). */
+export type Tone =
+  'primary' | 'success' | 'warning' | 'orange' | 'danger' | 'info' | 'purple' | 'indigo' | 'neutral' | 'teal';
+
+interface StatusStyle {
+  label: string;
+  tone: Tone;
+  /** In progress: the dot pulses. */
+  running?: boolean;
+  /** Dashed border (virtual receipt). */
+  dashed?: boolean;
+}
 
 /**
- * The single place where status values get their Vietnamese label and colour (spec §9.3).
- * Add new domains (contract, proposal, receipt...) here as they are introduced.
+ * The single place where status values get their Vietnamese label and colour (spec §9.3). A status always shows its
+ * text, never colour alone. Add new domains here as they are introduced.
  */
-const STATUS: Record<string, Record<string, { label: string; color: string }>> = {
+const STATUS: Record<string, Record<string, StatusStyle>> = {
+  flag: {
+    Overdue: { label: 'Quá hạn', tone: 'danger' },
+  },
   active: {
-    true: { label: 'Đang hoạt động', color: 'green' },
-    false: { label: 'Ngừng hoạt động', color: 'default' },
+    true: { label: 'Đang hoạt động', tone: 'success' },
+    false: { label: 'Ngừng hoạt động', tone: 'neutral' },
   },
   userStatus: {
-    Active: { label: 'Hoạt động', color: 'green' },
-    Inactive: { label: 'Ngừng hoạt động', color: 'default' },
-    PendingActivation: { label: 'Chờ kích hoạt', color: 'gold' },
+    Active: { label: 'Hoạt động', tone: 'success' },
+    Inactive: { label: 'Ngừng hoạt động', tone: 'neutral' },
+    PendingActivation: { label: 'Chờ kích hoạt', tone: 'warning' },
   },
   userType: {
-    Internal: { label: 'Nội bộ', color: 'blue' },
-    Supplier: { label: 'Nhà cung cấp', color: 'purple' },
+    Internal: { label: 'Nội bộ', tone: 'primary' },
+    Supplier: { label: 'Nhà cung cấp', tone: 'purple' },
   },
   departmentType: {
-    Clinical: { label: 'Lâm sàng', color: 'cyan' },
-    Paraclinical: { label: 'Cận lâm sàng', color: 'geekblue' },
-    Functional: { label: 'Phòng chức năng', color: 'default' },
+    Clinical: { label: 'Lâm sàng', tone: 'info' },
+    Paraclinical: { label: 'Cận lâm sàng', tone: 'indigo' },
+    Functional: { label: 'Phòng chức năng', tone: 'neutral' },
   },
   warehouseType: {
-    Drug: { label: 'Kho thuốc', color: 'blue' },
-    MedicalSupply: { label: 'Kho vật tư y tế', color: 'cyan' },
-    Chemical: { label: 'Kho hóa chất', color: 'orange' },
-    Asset: { label: 'Kho tài sản', color: 'purple' },
-    General: { label: 'Kho chung', color: 'default' },
+    Drug: { label: 'Kho thuốc', tone: 'primary' },
+    MedicalSupply: { label: 'Kho vật tư y tế', tone: 'info' },
+    Chemical: { label: 'Kho hóa chất', tone: 'orange' },
+    Asset: { label: 'Kho tài sản', tone: 'purple' },
+    General: { label: 'Kho chung', tone: 'neutral' },
   },
   delegation: {
-    effective: { label: 'Đang hiệu lực', color: 'green' },
-    upcoming: { label: 'Chưa đến hạn', color: 'blue' },
-    expired: { label: 'Hết hạn', color: 'default' },
-    revoked: { label: 'Đã thu hồi', color: 'red' },
+    effective: { label: 'Đang hiệu lực', tone: 'success' },
+    upcoming: { label: 'Chưa đến hạn', tone: 'primary' },
+    expired: { label: 'Hết hạn', tone: 'neutral' },
+    revoked: { label: 'Đã thu hồi', tone: 'danger' },
   },
   templateKind: {
-    Contract: { label: 'Hợp đồng', color: 'blue' },
-    Appendix: { label: 'Phụ lục', color: 'geekblue' },
-    Proposal: { label: 'Phiếu đề xuất', color: 'cyan' },
-    ProposalSummary: { label: 'Tổng hợp đề xuất', color: 'cyan' },
-    CallOrder: { label: 'Đơn gọi hàng', color: 'purple' },
-    WarehouseReceipt: { label: 'Phiếu nhập kho', color: 'orange' },
-    Acceptance: { label: 'BB nghiệm thu', color: 'green' },
-    Valuation: { label: 'BB xác định giá trị (08a)', color: 'green' },
-    PaymentRequest: { label: 'Đề nghị thanh toán', color: 'gold' },
-    Liquidation: { label: 'BB thanh lý', color: 'volcano' },
+    Contract: { label: 'Hợp đồng', tone: 'primary' },
+    Appendix: { label: 'Phụ lục', tone: 'indigo' },
+    Proposal: { label: 'Phiếu đề xuất', tone: 'info' },
+    ProposalSummary: { label: 'Tổng hợp đề xuất', tone: 'info' },
+    CallOrder: { label: 'Đơn gọi hàng', tone: 'purple' },
+    WarehouseReceipt: { label: 'Phiếu nhập kho', tone: 'orange' },
+    Acceptance: { label: 'BB nghiệm thu', tone: 'success' },
+    Valuation: { label: 'BB xác định giá trị (08a)', tone: 'success' },
+    PaymentRequest: { label: 'Đề nghị thanh toán', tone: 'warning' },
+    Liquidation: { label: 'BB thanh lý', tone: 'orange' },
   },
   documentStatus: {
-    Draft: { label: 'Bản nháp', color: 'default' },
-    InWorkflow: { label: 'Đang trình ký', color: 'processing' },
-    Completed: { label: 'Hoàn thành', color: 'green' },
-    Cancelled: { label: 'Đã hủy', color: 'red' },
+    Draft: { label: 'Bản nháp', tone: 'neutral' },
+    InWorkflow: { label: 'Đang trình ký', tone: 'primary', running: true },
+    Completed: { label: 'Hoàn thành', tone: 'success' },
+    Cancelled: { label: 'Đã hủy', tone: 'danger' },
   },
   documentType: {
-    Contract: { label: 'Hợp đồng', color: 'blue' },
-    Appendix: { label: 'Phụ lục hợp đồng', color: 'geekblue' },
-    Proposal: { label: 'Phiếu đề xuất', color: 'cyan' },
-    ProposalSummary: { label: 'Tổng hợp đề xuất', color: 'cyan' },
-    CallOrder: { label: 'Đơn gọi hàng', color: 'purple' },
-    WarehouseReceipt: { label: 'Phiếu nhập kho', color: 'orange' },
-    Acceptance: { label: 'Biên bản nghiệm thu', color: 'green' },
-    Valuation: { label: 'Biên bản XĐGT (08a)', color: 'green' },
-    PaymentRequest: { label: 'Đề nghị thanh toán', color: 'gold' },
-    Liquidation: { label: 'Biên bản thanh lý', color: 'volcano' },
-    TemplateSample: { label: 'Tài liệu thử từ mẫu', color: 'default' },
+    Contract: { label: 'Hợp đồng', tone: 'primary' },
+    Appendix: { label: 'Phụ lục hợp đồng', tone: 'indigo' },
+    Proposal: { label: 'Phiếu đề xuất', tone: 'info' },
+    ProposalSummary: { label: 'Tổng hợp đề xuất', tone: 'info' },
+    CallOrder: { label: 'Đơn gọi hàng', tone: 'purple' },
+    WarehouseReceipt: { label: 'Phiếu nhập kho', tone: 'orange' },
+    Acceptance: { label: 'Biên bản nghiệm thu', tone: 'success' },
+    Valuation: { label: 'Biên bản XĐGT (08a)', tone: 'success' },
+    PaymentRequest: { label: 'Đề nghị thanh toán', tone: 'warning' },
+    Liquidation: { label: 'Biên bản thanh lý', tone: 'orange' },
+    TemplateSample: { label: 'Tài liệu thử từ mẫu', tone: 'neutral' },
   },
   bidStatus: {
-    Draft: { label: 'Đang nhập liệu', color: 'default' },
-    Active: { label: 'Đã ban hành', color: 'green' },
-    Closed: { label: 'Đã đóng', color: 'red' },
+    Draft: { label: 'Đang nhập liệu', tone: 'neutral' },
+    Active: { label: 'Đã ban hành', tone: 'success' },
+    Closed: { label: 'Đã đóng', tone: 'danger' },
   },
   itemSource: {
-    His: { label: 'Đồng bộ HIS', color: 'blue' },
-    Import: { label: 'Import Excel', color: 'purple' },
-    Manual: { label: 'Nhập tay', color: 'default' },
+    His: { label: 'Đồng bộ HIS', tone: 'teal' },
+    Import: { label: 'Import Excel', tone: 'indigo' },
+    Manual: { label: 'Nhập tay', tone: 'neutral' },
   },
   contractStatus: {
-    Draft: { label: 'Bản nháp', color: 'default' },
-    InReview: { label: 'Tổ rà soát kiểm tra', color: 'processing' },
-    SupplierReview: { label: 'NCC rà soát', color: 'gold' },
-    AccountantReview: { label: 'Kế toán xem thay đổi', color: 'orange' },
-    SupplierSigning: { label: 'NCC ký số', color: 'purple' },
-    AccountantInitialing: { label: 'Kế toán ký nháy', color: 'geekblue' },
-    DirectorSigning: { label: 'Giám đốc ký', color: 'purple' },
-    Stamping: { label: 'Văn thư đóng dấu', color: 'volcano' },
-    Effective: { label: 'Đang hiệu lực', color: 'green' },
-    Liquidated: { label: 'Đã thanh lý', color: 'cyan' },
-    Cancelled: { label: 'Đã hủy', color: 'default' },
-    Returned: { label: 'Bị trả lại', color: 'red' },
+    Draft: { label: 'Bản nháp', tone: 'neutral' },
+    InReview: { label: 'Tổ rà soát kiểm tra', tone: 'primary', running: true },
+    SupplierReview: { label: 'NCC rà soát', tone: 'warning' },
+    AccountantReview: { label: 'Kế toán xem thay đổi', tone: 'orange' },
+    SupplierSigning: { label: 'NCC ký số', tone: 'purple' },
+    AccountantInitialing: { label: 'Kế toán ký nháy', tone: 'indigo' },
+    DirectorSigning: { label: 'Giám đốc ký', tone: 'purple' },
+    Stamping: { label: 'Văn thư đóng dấu', tone: 'orange' },
+    Effective: { label: 'Đang hiệu lực', tone: 'success' },
+    Liquidated: { label: 'Đã thanh lý', tone: 'info' },
+    Cancelled: { label: 'Đã hủy', tone: 'neutral' },
+    Returned: { label: 'Bị trả lại', tone: 'danger' },
   },
   procurementType: {
-    Bidding: { label: 'Trong thầu', color: 'blue' },
-    NonBidding: { label: 'Ngoài thầu', color: 'orange' },
+    Bidding: { label: 'Trong thầu', tone: 'primary' },
+    NonBidding: { label: 'Ngoài thầu', tone: 'purple' },
   },
   contractKind: {
-    UnitPriceCallOff: { label: 'Theo đơn giá, gọi hàng từng đợt', color: 'cyan' },
-    LumpSum: { label: 'Trọn gói', color: 'geekblue' },
+    UnitPriceCallOff: { label: 'Theo đơn giá, gọi hàng từng đợt', tone: 'info' },
+    LumpSum: { label: 'Trọn gói', tone: 'indigo' },
   },
   appendixType: {
-    AddQuantity: { label: 'Bổ sung số lượng', color: 'blue' },
-    PriceReduction: { label: 'Giảm giá', color: 'green' },
-    InfoChange: { label: 'Thay đổi thông tin', color: 'gold' },
-    Extension: { label: 'Gia hạn', color: 'purple' },
+    AddQuantity: { label: 'Bổ sung số lượng', tone: 'primary' },
+    PriceReduction: { label: 'Giảm giá', tone: 'success' },
+    InfoChange: { label: 'Thay đổi thông tin', tone: 'warning' },
+    Extension: { label: 'Gia hạn', tone: 'purple' },
   },
   appendixStatus: {
-    Draft: { label: 'Bản nháp', color: 'default' },
-    InWorkflow: { label: 'Đang trình ký', color: 'processing' },
-    Effective: { label: 'Đã hiệu lực', color: 'green' },
-    Cancelled: { label: 'Đã hủy', color: 'default' },
+    Draft: { label: 'Bản nháp', tone: 'neutral' },
+    InWorkflow: { label: 'Đang trình ký', tone: 'primary', running: true },
+    Effective: { label: 'Đã hiệu lực', tone: 'success' },
+    Cancelled: { label: 'Đã hủy', tone: 'neutral' },
   },
   revisionKind: {
-    Insertion: { label: 'Thêm', color: 'green' },
-    Deletion: { label: 'Xóa', color: 'red' },
-    Formatting: { label: 'Định dạng', color: 'default' },
+    Insertion: { label: 'Thêm', tone: 'success' },
+    Deletion: { label: 'Xóa', tone: 'danger' },
+    Formatting: { label: 'Định dạng', tone: 'neutral' },
   },
   proposalStatus: {
-    Draft: { label: 'Bản nháp', color: 'default' },
-    Signing: { label: 'Đang ký', color: 'processing' },
-    Submitted: { label: 'Đã gửi — chờ tổng hợp', color: 'blue' },
-    Aggregated: { label: 'Đã tổng hợp', color: 'green' },
-    Returned: { label: 'Bị trả lại', color: 'red' },
-    Cancelled: { label: 'Đã hủy', color: 'default' },
+    Draft: { label: 'Bản nháp', tone: 'neutral' },
+    Signing: { label: 'Đang ký', tone: 'primary', running: true },
+    Submitted: { label: 'Đã gửi — chờ tổng hợp', tone: 'primary' },
+    Aggregated: { label: 'Đã tổng hợp', tone: 'success' },
+    Returned: { label: 'Bị trả lại', tone: 'danger' },
+    Cancelled: { label: 'Đã hủy', tone: 'neutral' },
   },
   summaryStatus: {
-    Draft: { label: 'Bản nháp', color: 'default' },
-    AggregatorSigning: { label: 'Người tổng hợp ký', color: 'processing' },
-    DomainHeadReview: { label: 'Tổ trưởng duyệt', color: 'gold' },
-    DirectorSigning: { label: 'Giám đốc ký', color: 'purple' },
-    Approved: { label: 'Đã duyệt', color: 'green' },
-    Returned: { label: 'Bị trả lại', color: 'red' },
-    Cancelled: { label: 'Đã hủy', color: 'default' },
+    Draft: { label: 'Bản nháp', tone: 'neutral' },
+    AggregatorSigning: { label: 'Người tổng hợp ký', tone: 'primary', running: true },
+    DomainHeadReview: { label: 'Tổ trưởng duyệt', tone: 'warning' },
+    DirectorSigning: { label: 'Giám đốc ký', tone: 'purple' },
+    Approved: { label: 'Đã duyệt', tone: 'success' },
+    Returned: { label: 'Bị trả lại', tone: 'danger' },
+    Cancelled: { label: 'Đã hủy', tone: 'neutral' },
   },
   callOrderStatus: {
-    Sent: { label: 'Chờ NCC xác nhận', color: 'gold' },
-    SupplierConfirmed: { label: 'NCC đã xác nhận', color: 'green' },
-    PartiallyConfirmed: { label: 'Xác nhận một phần', color: 'orange' },
-    Rejected: { label: 'NCC từ chối', color: 'red' },
-    Delivered: { label: 'Đã giao hàng', color: 'cyan' },
-    Cancelled: { label: 'Đã hủy', color: 'default' },
+    Sent: { label: 'Chờ NCC xác nhận', tone: 'warning' },
+    SupplierConfirmed: { label: 'NCC đã xác nhận', tone: 'success' },
+    PartiallyConfirmed: { label: 'Xác nhận một phần', tone: 'orange' },
+    Rejected: { label: 'NCC từ chối', tone: 'danger' },
+    Delivered: { label: 'Đã giao hàng', tone: 'info' },
+    Cancelled: { label: 'Đã hủy', tone: 'neutral' },
   },
   workflowStatus: {
-    Running: { label: 'Đang trình ký', color: 'processing' },
-    Completed: { label: 'Đã ký xong', color: 'green' },
-    Returned: { label: 'Bị trả lại', color: 'red' },
-    Cancelled: { label: 'Đã hủy', color: 'default' },
+    Running: { label: 'Đang trình ký', tone: 'primary', running: true },
+    Completed: { label: 'Đã ký xong', tone: 'success' },
+    Returned: { label: 'Bị trả lại', tone: 'danger' },
+    Cancelled: { label: 'Đã hủy', tone: 'neutral' },
   },
   stepStatus: {
-    Pending: { label: 'Chờ đến lượt', color: 'default' },
-    Active: { label: 'Đang xử lý', color: 'processing' },
-    Done: { label: 'Đã xử lý', color: 'green' },
-    Skipped: { label: 'Bỏ qua', color: 'default' },
+    Pending: { label: 'Chờ đến lượt', tone: 'neutral' },
+    Active: { label: 'Đang xử lý', tone: 'primary', running: true },
+    Done: { label: 'Đã xử lý', tone: 'success' },
+    Skipped: { label: 'Bỏ qua', tone: 'neutral' },
   },
   workflowAction: {
-    Review: { label: 'Kiểm tra', color: 'blue' },
-    Approve: { label: 'Duyệt', color: 'cyan' },
-    Sign: { label: 'Ký số', color: 'purple' },
-    Initial: { label: 'Ký nháy', color: 'geekblue' },
-    OrgSeal: { label: 'Đóng dấu điện tử', color: 'volcano' },
-    SupplierReview: { label: 'NCC rà soát', color: 'gold' },
-    SupplierSign: { label: 'NCC ký số', color: 'orange' },
-    Confirm: { label: 'Xác nhận', color: 'green' },
+    Review: { label: 'Kiểm tra', tone: 'primary' },
+    Approve: { label: 'Duyệt', tone: 'info' },
+    Sign: { label: 'Ký số', tone: 'purple' },
+    Initial: { label: 'Ký nháy', tone: 'indigo' },
+    OrgSeal: { label: 'Đóng dấu điện tử', tone: 'orange' },
+    SupplierReview: { label: 'NCC rà soát', tone: 'warning' },
+    SupplierSign: { label: 'NCC ký số', tone: 'purple' },
+    Confirm: { label: 'Xác nhận', tone: 'success' },
   },
   assigneeType: {
-    Role: { label: 'Theo vai trò', color: 'blue' },
-    User: { label: 'Người cụ thể', color: 'purple' },
-    DocumentSupplier: { label: 'Nhà cung cấp của tài liệu', color: 'gold' },
-    Creator: { label: 'Người lập', color: 'default' },
+    Role: { label: 'Theo vai trò', tone: 'primary' },
+    User: { label: 'Người cụ thể', tone: 'purple' },
+    DocumentSupplier: { label: 'Nhà cung cấp của tài liệu', tone: 'warning' },
+    Creator: { label: 'Người lập', tone: 'neutral' },
   },
   workflowEvent: {
-    Started: { label: 'Gửi ký', color: 'blue' },
-    StepActivated: { label: 'Chuyển bước', color: 'default' },
-    Approved: { label: 'Đồng ý', color: 'green' },
-    SignatureAdded: { label: 'Đã ký', color: 'purple' },
-    Returned: { label: 'Trả lại', color: 'red' },
-    Skipped: { label: 'Bỏ qua', color: 'default' },
-    Commented: { label: 'Ý kiến', color: 'cyan' },
-    Completed: { label: 'Hoàn tất', color: 'green' },
-    Resubmitted: { label: 'Trình lại', color: 'blue' },
-    Restarted: { label: 'Bắt đầu lại (phiên bản mới)', color: 'orange' },
-    Cancelled: { label: 'Hủy luồng', color: 'default' },
+    Started: { label: 'Gửi ký', tone: 'primary' },
+    StepActivated: { label: 'Chuyển bước', tone: 'neutral' },
+    Approved: { label: 'Đồng ý', tone: 'success' },
+    SignatureAdded: { label: 'Đã ký', tone: 'purple' },
+    Returned: { label: 'Trả lại', tone: 'danger' },
+    Skipped: { label: 'Bỏ qua', tone: 'neutral' },
+    Commented: { label: 'Ý kiến', tone: 'info' },
+    Completed: { label: 'Hoàn tất', tone: 'success' },
+    Resubmitted: { label: 'Trình lại', tone: 'primary' },
+    Restarted: { label: 'Bắt đầu lại (phiên bản mới)', tone: 'orange' },
+    Cancelled: { label: 'Hủy luồng', tone: 'neutral' },
   },
   signatureKind: {
-    Personal: { label: 'Chữ ký cá nhân', color: 'purple' },
-    Organization: { label: 'Dấu tổ chức', color: 'volcano' },
-    Initial: { label: 'Ký nháy', color: 'geekblue' },
+    Personal: { label: 'Chữ ký cá nhân', tone: 'purple' },
+    Organization: { label: 'Dấu tổ chức', tone: 'orange' },
+    Initial: { label: 'Ký nháy', tone: 'indigo' },
   },
   historyChange: {
-    Created: { label: 'Tạo mới', color: 'green' },
-    Updated: { label: 'Cập nhật', color: 'blue' },
-    Deleted: { label: 'Xóa', color: 'red' },
+    Created: { label: 'Tạo mới', tone: 'success' },
+    Updated: { label: 'Cập nhật', tone: 'primary' },
+    Deleted: { label: 'Xóa', tone: 'danger' },
   },
   receiptStatus: {
-    Draft: { label: 'Chưa gửi ký', color: 'default' },
-    Signing: { label: 'Đang ký', color: 'processing' },
-    Returned: { label: 'Bị trả lại', color: 'red' },
-    Completed: { label: 'Đã ký đủ', color: 'green' },
-    Cancelled: { label: 'Đã hủy', color: 'default' },
+    Draft: { label: 'Chưa gửi ký', tone: 'neutral' },
+    Signing: { label: 'Đang ký', tone: 'primary', running: true },
+    Returned: { label: 'Bị trả lại', tone: 'danger' },
+    Completed: { label: 'Đã ký đủ', tone: 'success' },
+    Cancelled: { label: 'Đã hủy', tone: 'neutral' },
   },
   receiptValidation: {
-    Valid: { label: 'Hợp lệ', color: 'green' },
-    Warning: { label: 'Cảnh báo', color: 'gold' },
-    Invalid: { label: 'Không hợp lệ', color: 'red' },
+    Valid: { label: 'Hợp lệ', tone: 'success' },
+    Warning: { label: 'Cảnh báo', tone: 'warning' },
+    Invalid: { label: 'Không hợp lệ', tone: 'danger' },
   },
   receiptType: {
-    Receipt: { label: 'Nhập kho', color: 'blue' },
-    Return: { label: 'Hoàn trả', color: 'volcano' },
+    Receipt: { label: 'Nhập kho', tone: 'primary' },
+    Return: { label: 'Hoàn trả', tone: 'orange' },
   },
   receiptSource: {
-    His: { label: 'HIS', color: 'cyan' },
-    Portal: { label: 'Lập trên cổng', color: 'geekblue' },
-    VirtualPortal: { label: 'Phiếu ảo (không qua kho)', color: 'purple' },
+    His: { label: 'HIS', tone: 'teal' },
+    Portal: { label: 'Lập trên cổng', tone: 'indigo' },
+    VirtualPortal: { label: 'Phiếu ảo (không qua kho)', tone: 'purple', dashed: true },
   },
   integrationStatus: {
-    Success: { label: 'Thành công', color: 'green' },
-    Failed: { label: 'Lỗi', color: 'red' },
-    Duplicate: { label: 'Gửi trùng', color: 'default' },
-    Rejected: { label: 'Bị từ chối', color: 'volcano' },
+    Success: { label: 'Thành công', tone: 'success' },
+    Failed: { label: 'Lỗi', tone: 'danger' },
+    Duplicate: { label: 'Gửi trùng', tone: 'neutral' },
+    Rejected: { label: 'Bị từ chối', tone: 'orange' },
   },
   paymentRecordStatus: {
-    Draft: { label: 'Bản nháp', color: 'default' },
-    Signing: { label: 'Đang trình ký', color: 'processing' },
-    Returned: { label: 'Bị trả lại', color: 'red' },
-    Completed: { label: 'Đã ký xong', color: 'green' },
-    Cancelled: { label: 'Đã hủy', color: 'default' },
+    Draft: { label: 'Bản nháp', tone: 'neutral' },
+    Signing: { label: 'Đang trình ký', tone: 'primary', running: true },
+    Returned: { label: 'Bị trả lại', tone: 'danger' },
+    Completed: { label: 'Đã ký xong', tone: 'success' },
+    Cancelled: { label: 'Đã hủy', tone: 'neutral' },
   },
   paymentStatus: {
-    Unpaid: { label: 'Chưa thanh toán đủ', color: 'orange' },
-    Paid: { label: 'Đã thanh toán', color: 'green' },
+    Unpaid: { label: 'Chưa thanh toán đủ', tone: 'orange' },
+    Paid: { label: 'Đã thanh toán', tone: 'success' },
   },
   integrationDirection: {
-    Inbound: { label: 'HIS → Cổng', color: 'blue' },
-    Outbound: { label: 'Cổng → HIS', color: 'purple' },
+    Inbound: { label: 'HIS → Cổng', tone: 'teal' },
+    Outbound: { label: 'Cổng → HIS', tone: 'indigo' },
   },
 };
 
@@ -247,14 +261,66 @@ export function statusOptions(domain: StatusDomain) {
   return Object.entries(STATUS[domain] ?? {}).map(([value, s]) => ({ value, label: s.label }));
 }
 
+/** Classification tags (type, kind, source…) carry no status dot. */
+const CATEGORY_DOMAINS = new Set<string>([
+  'procurementType',
+  'contractKind',
+  'appendixType',
+  'workflowAction',
+  'workflowEvent',
+  'signatureKind',
+  'itemSource',
+  'receiptType',
+  'receiptSource',
+  'departmentType',
+  'warehouseType',
+  'templateKind',
+  'documentType',
+  'assigneeType',
+  'historyChange',
+  'revisionKind',
+  'userType',
+  'integrationDirection',
+]);
+
+export function statusTone(domain: StatusDomain, value: string | boolean | null | undefined): Tone {
+  if (value === null || value === undefined) return 'neutral';
+  return STATUS[domain]?.[String(value)]?.tone ?? 'neutral';
+}
+
 export function StatusTag({
   domain,
   value,
+  suffix,
 }: {
   domain: StatusDomain;
   value: string | boolean | null | undefined;
+  /** Appended to the label, e.g. " 3/5" → "Đang ký 3/5". */
+  suffix?: string;
 }) {
   if (value === null || value === undefined) return null;
   const s = STATUS[domain]?.[String(value)];
-  return <Tag color={s?.color ?? 'default'}>{s?.label ?? String(value)}</Tag>;
+  const tone = s?.tone ?? 'neutral';
+  const dot = !CATEGORY_DOMAINS.has(domain);
+  const className = [
+    'status-tag',
+    `status-tag--${tone}`,
+    s?.running && 'status-tag--running',
+    s?.dashed && 'status-tag--dashed',
+  ]
+    .filter(Boolean)
+    .join(' ');
+  const style = {
+    '--t-fg': `var(--bp-${tone}-fg)`,
+    '--t-bg': `var(--bp-${tone}-bg)`,
+    '--t-bd': `var(--bp-${tone}-bd)`,
+    '--t-solid': `var(--bp-${tone}-solid, var(--bp-${tone}-fg))`,
+  } as React.CSSProperties;
+  return (
+    <span className={className} style={style}>
+      {dot && <span className="status-tag__dot" aria-hidden />}
+      {s?.label ?? String(value)}
+      {suffix}
+    </span>
+  );
 }
