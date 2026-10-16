@@ -136,3 +136,19 @@ public sealed class ReportsController(ReportService service, IExcelExporter exce
         ], report.Steps), "tien-do-ky.xlsx");
     }
 }
+
+/// <summary>Kiểm tra toàn vẹn tài liệu (spec §11): lịch sử các lần kiểm tra và chạy ngay.</summary>
+[Route("api/admin/integrity")]
+[HasPermission(P.SettingManage, P.AuditView)]
+public sealed class IntegrityController(BlueContract.Application.Admin.IntegrityService service, ICurrentUser current) : ApiControllerBase
+{
+    [HttpGet]
+    public Task<PagedResult<BlueContract.Application.Admin.IntegrityRunListItemDto>> List([FromQuery] PageQuery query, CancellationToken ct) =>
+        service.ListAsync(query, ct);
+
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<BlueContract.Application.Admin.IntegrityRunDto>> Get(Guid id, CancellationToken ct) => FromResult(await service.GetAsync(id, ct));
+
+    [HttpPost("run")]
+    public Task<BlueContract.Application.Admin.IntegrityRunDto> Run(CancellationToken ct) => service.RunAsync(current.FullName ?? "Quản trị", ct);
+}

@@ -5,6 +5,9 @@ Cổng Quản lý & Thanh toán Mua sắm Hàng hóa Trực tuyến cho bệnh v
 - Đặc tả: [`docs/SPEC.md`](docs/SPEC.md)
 - Tiến độ: [`PROGRESS.md`](PROGRESS.md)
 - Quyết định kiến trúc: [`docs/DECISIONS.md`](docs/DECISIONS.md)
+- Hướng dẫn sử dụng: [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md)
+- Triển khai & vận hành: [`docs/DEPLOY.md`](docs/DEPLOY.md)
+- Tích hợp HIS: [`docs/HIS_INTEGRATION.md`](docs/HIS_INTEGRATION.md)
 
 ## Chạy nhanh trên Windows
 
@@ -26,7 +29,7 @@ Lần đầu chạy sẽ mất vài phút vì phải tải image (riêng ONLYOFF
 | Mailpit (email dev) | http://localhost:47025 |
 | Kho tệp S3 — giao diện filer (SeaweedFS) | http://localhost:47901 |
 | ONLYOFFICE | http://localhost:47082 |
-| Hangfire dashboard | http://localhost:47080/hangfire *(từ Phase 3)* |
+| Hangfire dashboard | http://localhost:47080/hangfire |
 | Seq (tùy chọn) | http://localhost:47341, chạy bằng `scripts\dev-up.ps1 -Seq` |
 
 Có thể đổi các cổng trong `.env` (xem `.env.example`).
@@ -57,6 +60,7 @@ Người dùng NCC đăng nhập cùng trang và được chuyển sang **Cổng
 | Sao lưu (giữ 30 bản) | `scripts\backup.ps1` | `scripts/backup.sh` |
 | Xuất 16 mẫu DOCX + 2 biểu mẫu import Excel ra `templates/` | `scripts\export-templates.ps1` | `scripts/export-templates.sh` |
 | Kiểm thử E2E (Playwright) trên stack đang chạy | `scripts\e2e.ps1` | `scripts/e2e.sh` |
+| Cổng coverage Domain + Application (≥ 70%) sau `dotnet test --collect "XPlat Code Coverage"` | `scripts\coverage.ps1 [dir] [min]` | `scripts/coverage.sh [dir] [min]` |
 
 ## Phát triển không qua Docker (tùy chọn)
 
@@ -77,7 +81,7 @@ cd frontend; npm install; npm run dev                           # http://localho
 ```
 backend/   .NET 10 — Domain / Application / Infrastructure / Api + tests
 frontend/  React 18 + Vite + TypeScript + Ant Design 5
-templates/ Mẫu DOCX/XLSX (Phase 2+)
-scripts/   dev-up, seed, reset-db, backup (.ps1 + .sh)
-docs/      SPEC, DECISIONS, (DEPLOY, USER_GUIDE, HIS_INTEGRATION, API — Phase 9)
+templates/ Mẫu DOCX/XLSX
+scripts/   dev-up, seed, reset-db, backup, e2e, coverage (.ps1 + .sh)
+docs/      SPEC, DECISIONS, DEPLOY, USER_GUIDE, HIS_INTEGRATION (API: Scalar tại /docs)
 ```

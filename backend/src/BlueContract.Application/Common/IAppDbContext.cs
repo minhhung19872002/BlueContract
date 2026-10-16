@@ -104,5 +104,7 @@ public interface IAppDbContext
 
     DbSet<LiquidationRecord> LiquidationRecords { get; }
 
+    DbSet<IntegrityCheckRun> IntegrityCheckRuns { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

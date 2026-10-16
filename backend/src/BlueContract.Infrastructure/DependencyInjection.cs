@@ -156,6 +156,7 @@ public static class DependencyInjection
         services.AddScoped<WorkflowReminderJob>();
         services.AddScoped<HisReceiptPullJob>();
         services.AddScoped<AcceptanceJob>();
+        services.AddScoped<IntegrityCheckJob>();
 
         // Storage
         services.Configure<StorageOptions>(configuration.GetSection(StorageOptions.SectionName));

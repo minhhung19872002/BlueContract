@@ -25,6 +25,8 @@ jobs:
       - run: dotnet build BlueContract.sln -c Release --no-restore
       # Integration tests use Testcontainers (Docker is available on ubuntu runners).
       - run: dotnet test BlueContract.sln -c Release --no-build --collect:"XPlat Code Coverage" --results-directory ./TestResults
+      # Spec §13: line coverage of Domain + Application >= 70 %.
+      - run: bash ../scripts/coverage.sh TestResults 70
       - uses: actions/upload-artifact@v4
         if: always()
         with:

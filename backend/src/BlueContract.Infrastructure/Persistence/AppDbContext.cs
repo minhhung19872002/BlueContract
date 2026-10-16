@@ -123,11 +123,14 @@ public sealed class AppDbContext : DbContext, IAppDbContext, IDataProtectionKeyC
 
     public DbSet<LiquidationRecord> LiquidationRecords => Set<LiquidationRecord>();
 
+    public DbSet<IntegrityCheckRun> IntegrityCheckRuns => Set<IntegrityCheckRun>();
+
     public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+        ConfigurePerformanceIndexes(modelBuilder);
 
         foreach (var entityType in modelBuilder.Model.GetEntityTypes().ToList())
         {
@@ -172,6 +175,37 @@ public sealed class AppDbContext : DbContext, IAppDbContext, IDataProtectionKeyC
     {
         configurationBuilder.Properties<decimal>().HavePrecision(18, 2);
         configurationBuilder.Properties<Enum>().HaveConversion<string>().HaveMaxLength(40);
+    }
+
+    /// <summary>
+    /// Spec §11 (danh sách 100k bản ghi &lt; 500 ms): lists are paged server-side and ordered by creation time, and the search
+    /// box uses ILIKE '%…%' — so created_at B-tree indexes plus pg_trgm GIN indexes on the searched text columns (ADR-052).
+    /// </summary>
+    private static void ConfigurePerformanceIndexes(ModelBuilder modelBuilder)
+    {
+        modelBuilder.HasPostgresExtension("pg_trgm");
+
+        modelBuilder.Entity<Contract>().HasIndex(x => x.CreatedAt);
+        modelBuilder.Entity<Proposal>().HasIndex(x => x.CreatedAt);
+        modelBuilder.Entity<ProposalSummary>().HasIndex(x => x.CreatedAt);
+        modelBuilder.Entity<CallOrder>().HasIndex(x => x.CreatedAt);
+        modelBuilder.Entity<WarehouseReceipt>().HasIndex(x => new { x.ReceiptDate, x.CreatedAt });
+        modelBuilder.Entity<AcceptanceRecord>().HasIndex(x => x.CreatedAt);
+        modelBuilder.Entity<ValuationRecord>().HasIndex(x => x.CreatedAt);
+        modelBuilder.Entity<LiquidationRecord>().HasIndex(x => x.CreatedAt);
+        modelBuilder.Entity<Document>().HasIndex(x => x.CreatedAt);
+
+        static void Trigram<T>(ModelBuilder b, System.Linq.Expressions.Expression<Func<T, object?>> column, string name)
+            where T : class =>
+            b.Entity<T>().HasIndex(column, name).HasMethod("gin").HasOperators("gin_trgm_ops");
+
+        Trigram<Contract>(modelBuilder, x => x.Number, "ix_contracts_number_trgm");
+        Trigram<Contract>(modelBuilder, x => x.Name, "ix_contracts_name_trgm");
+        Trigram<Item>(modelBuilder, x => x.Name, "ix_items_name_trgm");
+        Trigram<Item>(modelBuilder, x => x.Code, "ix_items_code_trgm");
+        Trigram<Supplier>(modelBuilder, x => x.Name, "ix_suppliers_name_trgm");
+        Trigram<Document>(modelBuilder, x => x.Title, "ix_documents_title_trgm");
+        Trigram<AuditLog>(modelBuilder, x => x.Action, "ix_audit_logs_action_trgm");
     }
 
     private LambdaExpression BuildSupplierFilter(Type clr, string supplierProperty)

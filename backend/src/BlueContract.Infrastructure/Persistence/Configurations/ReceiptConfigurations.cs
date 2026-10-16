@@ -1,4 +1,5 @@
 using System.Text.Json;
+using BlueContract.Domain.Documents;
 using BlueContract.Domain.Integration;
 using BlueContract.Domain.Receipts;
 using Microsoft.EntityFrameworkCore;
@@ -80,6 +81,30 @@ internal sealed class WarehouseReceiptLineConfiguration : IEntityTypeConfigurati
         b.Property(x => x.VatRate).HasPrecision(5, 2);
         b.HasIndex(x => x.ContractItemId);
         b.HasIndex(x => new { x.ReceiptId, x.LineNo }).IsUnique();
+    }
+}
+
+internal sealed class IntegrityCheckRunConfiguration : IEntityTypeConfiguration<IntegrityCheckRun>
+{
+    private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
+
+    public void Configure(EntityTypeBuilder<IntegrityCheckRun> b)
+    {
+        b.ToTable("integrity_check_runs");
+        b.Property(x => x.Trigger).HasMaxLength(200).IsRequired();
+        b.Property(x => x.Error).HasMaxLength(2000);
+        b.Property<List<IntegrityIssue>>("_issues")
+            .HasColumnName("issues")
+            .HasColumnType("jsonb")
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, Json),
+                v => JsonSerializer.Deserialize<List<IntegrityIssue>>(v, Json) ?? new List<IntegrityIssue>(),
+                new ValueComparer<List<IntegrityIssue>>((a, c) => JsonSerializer.Serialize(a, Json) == JsonSerializer.Serialize(c, Json),
+                    v => JsonSerializer.Serialize(v, Json).GetHashCode(StringComparison.Ordinal), v => v.ToList()))
+            .IsRequired();
+        b.Ignore(x => x.Issues);
+        b.Ignore(x => x.IsHealthy);
+        b.HasIndex(x => x.StartedAt);
     }
 }
 

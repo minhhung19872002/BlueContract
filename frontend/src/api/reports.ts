@@ -87,3 +87,23 @@ export const usePaymentReport = (params: {
 
 export const useSigningReport = () =>
   useQuery({ queryKey: [REPORTS, 'signing'], queryFn: get<SigningReportDto>(`${REPORTS}/signing`) });
+
+type IntegrityRunDto = components['schemas']['IntegrityRunDto'];
+export const INTEGRITY = '/api/admin/integrity';
+
+export const useIntegrityRun = (id: string | null) =>
+  useQuery({
+    queryKey: [INTEGRITY, id],
+    queryFn: async () => (await apiClient.get<IntegrityRunDto>(`${INTEGRITY}/${id}`)).data,
+    enabled: !!id,
+  });
+
+/** Full re-hash of every stored file: can take minutes on a large store. */
+export function useRunIntegrityCheck() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async () =>
+      (await apiClient.post<IntegrityRunDto>(`${INTEGRITY}/run`, null, { timeout: 600_000 })).data,
+    onSuccess: () => qc.invalidateQueries({ queryKey: [INTEGRITY] }),
+  });
+}

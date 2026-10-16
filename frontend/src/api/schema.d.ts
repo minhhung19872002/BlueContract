@@ -7781,6 +7781,124 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/integrity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    Page?: number;
+                    PageSize?: number;
+                    Search?: string;
+                    /** @description Property name to sort by (whitelisted per endpoint). */
+                    SortBy?: string;
+                    SortDesc?: boolean;
+                    /** @description Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows). */
+                    ForExport?: boolean;
+                    SafePage?: number;
+                    SafePageSize?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PagedResultOfIntegrityRunListItemDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/integrity/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["IntegrityRunDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/integrity/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["IntegrityRunDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/system/info": {
         parameters: {
             query?: never;
@@ -9885,6 +10003,38 @@ export interface components {
         };
         /** @enum {unknown} */
         IntegrationLogStatus: "Success" | "Failed" | "Duplicate" | "Rejected";
+        /** @description Một tệp không đạt khi kiểm tra toàn vẹn: mất trên kho lưu trữ hoặc SHA-256 khác giá trị đã lưu. */
+        IntegrityIssue: {
+            objectKey: string;
+            source: string;
+            title: null | string;
+            expectedSha256: string;
+            actualSha256: null | string;
+            missing: boolean;
+        };
+        IntegrityRunDto: {
+            run: components["schemas"]["IntegrityRunListItemDto"];
+            issues: components["schemas"]["IntegrityIssue"][];
+        };
+        IntegrityRunListItemDto: {
+            /** Format: uuid */
+            id: string;
+            trigger: string;
+            /** Format: date-time */
+            startedAt: string;
+            /** Format: date-time */
+            finishedAt: null | string;
+            /** Format: int32 */
+            filesChecked: number;
+            /** Format: int64 */
+            bytesChecked: number;
+            /** Format: int32 */
+            mismatchCount: number;
+            /** Format: int32 */
+            missingCount: number;
+            error: null | string;
+            isHealthy: boolean;
+        };
         InternalDashboardDto: {
             /** Format: int32 */
             pendingTotal: number;
@@ -10253,6 +10403,15 @@ export interface components {
         };
         PagedResultOfIntegrationLogListItemDto: {
             items: components["schemas"]["IntegrationLogListItemDto"][];
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+        };
+        PagedResultOfIntegrityRunListItemDto: {
+            items: components["schemas"]["IntegrityRunListItemDto"][];
             /** Format: int32 */
             total: number;
             /** Format: int32 */

@@ -121,6 +121,12 @@ export const internalNav: NavItem[] = [
       },
       { key: '/quan-tri/tham-so', label: 'Tham số hệ thống', permissions: [P.SettingManage] },
       {
+        key: '/quan-tri/toan-ven',
+        label: 'Kiểm tra toàn vẹn',
+        icon: <SafetyCertificateOutlined />,
+        permissions: [P.SettingManage, P.AuditView],
+      },
+      {
         key: '/quan-tri/nhat-ky',
         label: 'Nhật ký hoạt động',
         icon: <AuditOutlined />,

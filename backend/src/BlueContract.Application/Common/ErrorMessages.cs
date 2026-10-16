@@ -350,6 +350,8 @@ public static class ErrorMessages
         ["SETTLEMENT_NOT_FOUND"] = "Không tìm thấy khoản chốt công nợ.",
 
         // Archive
+        ["INTEGRITY_TRIGGER_REQUIRED"] = "Thiếu nguồn kích hoạt kiểm tra toàn vẹn.",
+        ["INTEGRITY_ALREADY_RUNNING"] = "Đang có một lần kiểm tra toàn vẹn chạy, vui lòng chờ kết quả.",
         ["ARCHIVE_CONTRACT_NOT_SIGNED"] = "Chỉ xác nhận hồ sơ đầy đủ cho hợp đồng đã ký.",
 
         // HIS integration

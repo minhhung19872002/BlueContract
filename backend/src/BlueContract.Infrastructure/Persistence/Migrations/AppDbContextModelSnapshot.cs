@@ -20,6 +20,7 @@ namespace BlueContract.Infrastructure.Persistence.Migrations
                 .HasAnnotation("ProductVersion", "10.0.13")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
+            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "pg_trgm");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("BlueContract.Domain.Bids.BidDecision", b =>
@@ -350,6 +351,18 @@ namespace BlueContract.Infrastructure.Persistence.Migrations
                     b.HasIndex("BidDecisionId", "SupplierId", "Code")
                         .HasDatabaseName("ix_items_bid_decision_id_supplier_id_code");
 
+                    b.HasIndex(new[] { "Code" }, "ix_items_code_trgm")
+                        .HasDatabaseName("ix_items_code");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex(new[] { "Code" }, "ix_items_code_trgm"), "gin");
+                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex(new[] { "Code" }, "ix_items_code_trgm"), new[] { "gin_trgm_ops" });
+
+                    b.HasIndex(new[] { "Name" }, "ix_items_name_trgm")
+                        .HasDatabaseName("ix_items_name");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex(new[] { "Name" }, "ix_items_name_trgm"), "gin");
+                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex(new[] { "Name" }, "ix_items_name_trgm"), new[] { "gin_trgm_ops" });
+
                     b.ToTable("items", (string)null);
                 });
 
@@ -503,6 +516,12 @@ namespace BlueContract.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("UserId", "OccurredAt")
                         .HasDatabaseName("ix_audit_logs_user_id_occurred_at");
+
+                    b.HasIndex(new[] { "Action" }, "ix_audit_logs_action_trgm")
+                        .HasDatabaseName("ix_audit_logs_action");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex(new[] { "Action" }, "ix_audit_logs_action_trgm"), "gin");
+                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex(new[] { "Action" }, "ix_audit_logs_action_trgm"), new[] { "gin_trgm_ops" });
 
                     b.ToTable("audit_logs", (string)null);
                 });
@@ -877,6 +896,9 @@ namespace BlueContract.Infrastructure.Persistence.Migrations
                     b.HasIndex("CategoryId")
                         .HasDatabaseName("ix_contracts_category_id");
 
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_contracts_created_at");
+
                     b.HasIndex("DocumentId")
                         .HasDatabaseName("ix_contracts_document_id");
 
@@ -890,6 +912,18 @@ namespace BlueContract.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("SupplierId", "Status")
                         .HasDatabaseName("ix_contracts_supplier_id_status");
+
+                    b.HasIndex(new[] { "Name" }, "ix_contracts_name_trgm")
+                        .HasDatabaseName("ix_contracts_name");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex(new[] { "Name" }, "ix_contracts_name_trgm"), "gin");
+                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex(new[] { "Name" }, "ix_contracts_name_trgm"), new[] { "gin_trgm_ops" });
+
+                    b.HasIndex(new[] { "Number" }, "ix_contracts_number_trgm")
+                        .HasDatabaseName("ix_contracts_number1");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex(new[] { "Number" }, "ix_contracts_number_trgm"), "gin");
+                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex(new[] { "Number" }, "ix_contracts_number_trgm"), new[] { "gin_trgm_ops" });
 
                     b.ToTable("contracts", (string)null);
                 });
@@ -1246,11 +1280,20 @@ namespace BlueContract.Infrastructure.Persistence.Migrations
                     b.HasIndex("ContractId")
                         .HasDatabaseName("ix_documents_contract_id");
 
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_documents_created_at");
+
                     b.HasIndex("SupplierId")
                         .HasDatabaseName("ix_documents_supplier_id");
 
                     b.HasIndex("OwnerEntityType", "OwnerId")
                         .HasDatabaseName("ix_documents_owner_entity_type_owner_id");
+
+                    b.HasIndex(new[] { "Title" }, "ix_documents_title_trgm")
+                        .HasDatabaseName("ix_documents_title");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex(new[] { "Title" }, "ix_documents_title_trgm"), "gin");
+                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex(new[] { "Title" }, "ix_documents_title_trgm"), new[] { "gin_trgm_ops" });
 
                     b.ToTable("documents", (string)null);
                 });
@@ -1512,6 +1555,87 @@ namespace BlueContract.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_document_versions_document_id_version_number");
 
                     b.ToTable("document_versions", (string)null);
+                });
+
+            modelBuilder.Entity("BlueContract.Domain.Documents.IntegrityCheckRun", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<long>("BytesChecked")
+                        .HasColumnType("bigint")
+                        .HasColumnName("bytes_checked");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("Error")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("error");
+
+                    b.Property<int>("FilesChecked")
+                        .HasColumnType("integer")
+                        .HasColumnName("files_checked");
+
+                    b.Property<DateTimeOffset?>("FinishedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("finished_at");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<int>("MismatchCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("mismatch_count");
+
+                    b.Property<int>("MissingCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("missing_count");
+
+                    b.Property<uint>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.Property<DateTimeOffset>("StartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("started_at");
+
+                    b.Property<string>("Trigger")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("trigger");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.Property<string>("_issues")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("issues");
+
+                    b.HasKey("Id")
+                        .HasName("pk_integrity_check_runs");
+
+                    b.HasIndex("StartedAt")
+                        .HasDatabaseName("ix_integrity_check_runs_started_at");
+
+                    b.ToTable("integrity_check_runs", (string)null);
                 });
 
             modelBuilder.Entity("BlueContract.Domain.Identity.RefreshToken", b =>
@@ -2440,6 +2564,12 @@ namespace BlueContract.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_suppliers_tax_code");
 
+                    b.HasIndex(new[] { "Name" }, "ix_suppliers_name_trgm")
+                        .HasDatabaseName("ix_suppliers_name");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex(new[] { "Name" }, "ix_suppliers_name_trgm"), "gin");
+                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex(new[] { "Name" }, "ix_suppliers_name_trgm"), new[] { "gin_trgm_ops" });
+
                     b.ToTable("suppliers", (string)null);
                 });
 
@@ -2741,6 +2871,9 @@ namespace BlueContract.Infrastructure.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("pk_acceptance_records");
 
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_acceptance_records_created_at");
+
                     b.HasIndex("DocumentId")
                         .HasDatabaseName("ix_acceptance_records_document_id");
 
@@ -2847,6 +2980,9 @@ namespace BlueContract.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_liquidation_records");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_liquidation_records_created_at");
 
                     b.HasIndex("DocumentId")
                         .HasDatabaseName("ix_liquidation_records_document_id");
@@ -3268,6 +3404,9 @@ namespace BlueContract.Infrastructure.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("pk_valuation_records");
 
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_valuation_records_created_at");
+
                     b.HasIndex("DocumentId")
                         .HasDatabaseName("ix_valuation_records_document_id");
 
@@ -3392,6 +3531,9 @@ namespace BlueContract.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_call_orders");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_call_orders_created_at");
 
                     b.HasIndex("Number")
                         .IsUnique()
@@ -3596,6 +3738,9 @@ namespace BlueContract.Infrastructure.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("pk_proposals");
 
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_proposals_created_at");
+
                     b.HasIndex("DocumentId")
                         .HasDatabaseName("ix_proposals_document_id");
 
@@ -3797,6 +3942,9 @@ namespace BlueContract.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_proposal_summaries");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_proposal_summaries_created_at");
 
                     b.HasIndex("DocumentId")
                         .HasDatabaseName("ix_proposal_summaries_document_id");
@@ -4175,6 +4323,9 @@ namespace BlueContract.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("ContractId", "Status")
                         .HasDatabaseName("ix_warehouse_receipts_contract_id_status");
+
+                    b.HasIndex("ReceiptDate", "CreatedAt")
+                        .HasDatabaseName("ix_warehouse_receipts_receipt_date_created_at");
 
                     b.HasIndex("Status", "ValidationStatus")
                         .HasDatabaseName("ix_warehouse_receipts_status_validation_status");

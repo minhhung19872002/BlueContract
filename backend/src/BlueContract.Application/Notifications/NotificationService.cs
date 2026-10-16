@@ -184,4 +184,5 @@ public static class NotificationTypes
     public const string AcceptanceDrafted = "acceptance.drafted";
     public const string PaymentCompleted = "payment.completed";
     public const string ContractLiquidated = "contract.liquidated";
+    public const string IntegrityAlert = "integrity.alert";
 }

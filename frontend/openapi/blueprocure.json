@@ -9469,6 +9469,138 @@
         }
       }
     },
+    "/api/admin/integrity": {
+      "get": {
+        "tags": [
+          "Integrity"
+        ],
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SortBy",
+            "in": "query",
+            "description": "Property name to sort by (whitelisted per endpoint).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SortDesc",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "ForExport",
+            "in": "query",
+            "description": "Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows).",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "SafePage",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "SafePageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResultOfIntegrityRunListItemDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/integrity/{id}": {
+      "get": {
+        "tags": [
+          "Integrity"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrityRunDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/integrity/run": {
+      "post": {
+        "tags": [
+          "Integrity"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrityRunDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/system/info": {
       "get": {
         "tags": [
@@ -14968,6 +15100,122 @@
           "Rejected"
         ]
       },
+      "IntegrityIssue": {
+        "required": [
+          "objectKey",
+          "source",
+          "title",
+          "expectedSha256",
+          "actualSha256",
+          "missing"
+        ],
+        "type": "object",
+        "properties": {
+          "objectKey": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "title": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "expectedSha256": {
+            "type": "string"
+          },
+          "actualSha256": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "missing": {
+            "type": "boolean"
+          }
+        },
+        "description": "Một tệp không đạt khi kiểm tra toàn vẹn: mất trên kho lưu trữ hoặc SHA-256 khác giá trị đã lưu."
+      },
+      "IntegrityRunDto": {
+        "required": [
+          "run",
+          "issues"
+        ],
+        "type": "object",
+        "properties": {
+          "run": {
+            "$ref": "#/components/schemas/IntegrityRunListItemDto"
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IntegrityIssue"
+            }
+          }
+        }
+      },
+      "IntegrityRunListItemDto": {
+        "required": [
+          "id",
+          "trigger",
+          "startedAt",
+          "finishedAt",
+          "filesChecked",
+          "bytesChecked",
+          "mismatchCount",
+          "missingCount",
+          "error",
+          "isHealthy"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "trigger": {
+            "type": "string"
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "finishedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "filesChecked": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "bytesChecked": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "mismatchCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "missingCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "error": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isHealthy": {
+            "type": "boolean"
+          }
+        }
+      },
       "InternalDashboardDto": {
         "required": [
           "pendingTotal",
@@ -16305,6 +16553,35 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/IntegrationLogListItemDto"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PagedResultOfIntegrityRunListItemDto": {
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IntegrityRunListItemDto"
             }
           },
           "total": {
@@ -21863,6 +22140,9 @@
     },
     {
       "name": "Reports"
+    },
+    {
+      "name": "Integrity"
     },
     {
       "name": "System"

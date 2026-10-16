@@ -111,3 +111,13 @@ public sealed class AcceptanceJob(BlueContract.Application.Payments.AcceptanceSe
         logger.LogInformation("Monthly acceptance job: {Count} drafts for {Period}", result.Created, result.PeriodText);
     }
 }
+
+/// <summary>Spec §11: daily re-hash of every stored file against the SHA-256 kept in the database (02:00 Vietnam time).</summary>
+public sealed class IntegrityCheckJob(BlueContract.Application.Admin.IntegrityService integrity)
+{
+    public const string Id = "integrity-check";
+
+    [DisableConcurrentExecution(3600)]
+    [AutomaticRetry(Attempts = 0)]
+    public Task RunAsync(CancellationToken ct) => integrity.RunAsync("Lịch định kỳ", ct);
+}

@@ -173,6 +173,11 @@ try
             BlueContract.Infrastructure.Jobs.AcceptanceJob.Id, job => job.RunAsync(CancellationToken.None), "0 1 * * *",
             new RecurringJobOptions { TimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh") });
 
+        // Spec §11: daily integrity check of stored files (SHA-256).
+        app.Services.GetRequiredService<IRecurringJobManager>().AddOrUpdate<BlueContract.Infrastructure.Jobs.IntegrityCheckJob>(
+            BlueContract.Infrastructure.Jobs.IntegrityCheckJob.Id, job => job.RunAsync(CancellationToken.None), "0 2 * * *",
+            new RecurringJobOptions { TimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh") });
+
         // Spec §6.4 B1: optional periodic pull of warehouse receipts from the HIS.
         var hisOptions = app.Configuration.GetSection(BlueContract.Infrastructure.Integration.HisOptions.SectionName).Get<BlueContract.Infrastructure.Integration.HisOptions>()
             ?? new BlueContract.Infrastructure.Integration.HisOptions();

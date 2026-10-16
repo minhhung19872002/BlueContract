@@ -219,7 +219,7 @@ function LogDrawer({ id, onClose }: { id: string | null; onClose: () => void }) 
             <Descriptions.Item label="Nghiệp vụ" span={2}>
               {OPERATIONS[l.operation] ?? l.operation}
             </Descriptions.Item>
-            <Descriptions.Item label="Request" span={2}>
+            <Descriptions.Item label="Yêu cầu" span={2}>
               <Typography.Text code>
                 {l.method} {l.path}
               </Typography.Text>
@@ -249,11 +249,11 @@ function LogDrawer({ id, onClose }: { id: string | null; onClose: () => void }) 
               </Descriptions.Item>
             )}
           </Descriptions>
-          <Typography.Title level={5}>Request</Typography.Title>
+          <Typography.Title level={5}>Nội dung gửi (request)</Typography.Title>
           <pre style={{ maxHeight: 320, overflow: 'auto', background: '#fafafa', padding: 12, fontSize: 12 }}>
             {pretty(l.requestBody)}
           </pre>
-          <Typography.Title level={5}>Response</Typography.Title>
+          <Typography.Title level={5}>Kết quả trả về (response)</Typography.Title>
           <pre style={{ maxHeight: 320, overflow: 'auto', background: '#fafafa', padding: 12, fontSize: 12 }}>
             {pretty(l.responseBody)}
           </pre>

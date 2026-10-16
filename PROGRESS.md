@@ -65,7 +65,7 @@ pm run lint/test/build pass (23 test) · Trình duyệt (Docker): thủ kho ký 
 ## Phase 4 — QĐ thầu & Hợp đồng ✅ (16/10/2026)
 - [x] Danh mục: 8 hạng mục (seed mọi môi trường), Item (mã key HIS, nguồn HIS / Import / Nhập tay), màn hình Danh mục hàng hóa theo tab hạng mục, nhập tay, xuất Excel
 - [x] BidDecision (+ NCC trúng thầu, + hàng trúng thầu, đính kèm PDF QĐ, ban hành/đóng, số QĐ khóa sau ban hành), SL đã vào HĐ / còn lại theo từng mặt hàng
-- [x] Import Excel 2 biểu mẫu (.xlsx — thuốc/VTYT/hóa chất/sinh phẩm; hàng hóa/tài sản/dịch vụ, có sheet hướng dẫn + danh sách mã hạng mục + dropdown): xem trước từng dòng, tô đỏ ô lỗi (thiếu cột bắt buộc, số kiểu VN, MST, hạng mục, trùng mã), chỉ import khi hết lỗi; import lại = cập nhật; 	emplates/01_…xlsx,  2_…xlsx
+- [x] Import Excel 2 biểu mẫu (.xlsx — thuốc/VTYT/hóa chất/sinh phẩm; hàng hóa/tài sản/dịch vụ, có sheet hướng dẫn + danh sách mã hạng mục + dropdown): xem trước từng dòng, tô đỏ ô lỗi (thiếu cột bắt buộc, số kiểu VN, MST, hạng mục, trùng mã), chỉ import khi hết lỗi; import lại = cập nhật; `templates/01_…xlsx`, `02_…xlsx`
 - [x] `IHisClient`: `MockHisClient` tất định (cùng Số QĐ + MST → cùng danh mục; X–N–T cân đối) và `RestHisClient` cấu hình URL + ánh xạ trường (`His:*`), retry/circuit breaker/timeout; đồng bộ danh mục theo (Số QĐ + MST), idempotent
 - [x] Hợp đồng: wizard 4 bước (Nguồn → NCC & hàng hóa → Điều khoản → Mẫu & xem trước PDF), lưu nháp tự động; SL ≤ còn lại của QĐ, đơn giá ≤ giá trúng thầu (client + server); sinh DOCX từ mẫu; sửa trực tiếp trong ONLYOFFICE; chi tiết HĐ 6 tab (thông tin, hàng hóa & theo dõi thực hiện, tài liệu, luồng ký, phụ lục, lịch sử)
 - [x] Luồng ký HĐ đầy đủ: Tổ rà soát → NCC rà soát (menu Hợp đồng, ONLYOFFICE Review hoặc tải lên DOCX Track Changes) → Kế toán xem từng thay đổi, chấp nhận/từ chối từng thay đổi → gửi lại NCC (vòng lặp) → NCC đồng ý bản cuối → **chốt bản** (chấp nhận thay đổi còn lại → phiên bản mới → PDF) → NCC ký → KT ký nháy → GĐ ký → Văn thư đóng dấu → **Hiệu lực** + email NCC; trạng thái HĐ đồng bộ theo luồng (observer)
@@ -132,10 +132,14 @@ pm run lint/test/build pass (23 test) · Trình duyệt (Docker): thủ kho ký 
 
 **Kiểm chứng:** `dotnet test` 317/317 (Domain 140, Application 50, Integration 127 — cây hồ sơ, ZIP + mục lục + đối chiếu hash, chặn NCC, dashboard hai cổng có cô lập NCC, 4 báo cáo + xuất Excel, phân quyền báo cáo) · `npm run lint/build` pass · **E2E #1–#4 pass (1,6 phút)**.
 
-## Phase 9 — Hoàn thiện
-- [ ] Bảo mật: rate limit, lockout, 2FA, upload checks (magic bytes), HTTPS nginx
-- [ ] Job kiểm tra hash MinIO ↔ DB
-- [ ] Tối ưu index/hiệu năng (100k bản ghi < 500 ms)
-- [ ] RemoteSigningProvider (VNPT SmartCA / Viettel MySign / FPT CA): khung + cấu hình + UI poll đã có từ Phase 3; còn tài liệu hướng dẫn đăng ký API key
-- [ ] DEPLOY.md, USER_GUIDE.md, HIS_INTEGRATION.md, API.md
-- [ ] Rà soát UI tiếng Việt; checklist mục 13; coverage Domain+Application ≥ 70%
+## Phase 9 — Hoàn thiện ✅ (16/10/2026)
+- [x] **Bảo mật**: giới hạn tần suất (đăng nhập theo IP, HIS inbound theo client), khóa tài khoản sau 5 lần sai, 2FA TOTP, kiểm tra tệp tải lên (đuôi + magic bytes + dung lượng), chính sách mật khẩu (từ Phase 1–6) · header bảo mật nginx (CSP frame-ancestors, Permissions-Policy, COOP…) gom vào một snippet, include ở mọi location · HTTPS/HSTS ở reverse proxy biên (hướng dẫn trong DEPLOY.md)
+- [x] **Kiểm tra toàn vẹn** hằng ngày 02:00: băm lại mọi tệp (phiên bản tài liệu, mẫu biểu, đính kèm QĐ thầu), so với SHA-256 trong DB, lưu lịch sử từng lần, báo admin khi lệch hoặc thiếu; không cho hai lần kiểm tra chạy chồng nhau; màn hình **Quản trị → Kiểm tra toàn vẹn** (xem lịch sử, chi tiết tệp lỗi, nút "Kiểm tra ngay")
+- [x] **Hiệu năng**: index `created_at` cho các bảng danh sách + `pg_trgm` GIN cho các cột tìm kiếm; đo với 100.000 mặt hàng: danh sách/tìm kiếm/phân trang sâu đều 0,26–0,46 s (< 500 ms)
+- [x] Script sao lưu (`backup.ps1/.sh`, giữ 30 bản) và khôi phục (DEPLOY.md)
+- [x] RemoteSigningProvider (VNPT SmartCA / Viettel MySign / FPT CA): khung + cấu hình + UI poll từ Phase 3; DEPLOY.md hướng dẫn đăng ký và cấu hình từng nhà cung cấp
+- [x] Tài liệu: **DEPLOY.md** (cấu hình, TLS, ký số, HIS, backup/restore, vận hành, checklist bảo mật, mở rộng), **USER_GUIDE.md** (theo vai trò), **HIS_INTEGRATION.md** (Phase 6); API: OpenAPI + Scalar tại `/docs` (thay cho API.md viết tay)
+- [x] Rà soát UI tiếng Việt: phân trang "/ trang", bảng trống "Không có dữ liệu", nhãn còn sót ở Tích hợp HIS / chi tiết phiếu nhập kho; số thập phân dùng dấu phẩy
+- [x] **Checklist mục 13**: unit test (state machine workflow, rule số lượng, lũy kế 08a, đọc số thành chữ, validation engine, template engine) · integration test Testcontainers (cô lập NCC, HIS inbound HMAC + idempotent, ký nối tiếp nhiều chữ ký, 2 người ký cùng bước) · E2E #1–#4 · **coverage Domain + Application 75,7% ≥ 70%**, CI fail nếu thấp hơn (`scripts/coverage.sh|.ps1`)
+
+**Kiểm chứng:** `dotnet test` 318/318 (Domain 140, Application 50, Integration 128, thêm kiểm tra chặn chạy chồng) · `npm run lint/test/build` pass · **E2E #1–#4 pass (1,8 phút)** · header nginx kiểm tra bằng `curl -I` · kiểm tra toàn vẹn trên dữ liệu demo: 169 tệp / 19,5 MB, tất cả khớp.

@@ -414,7 +414,7 @@ function InvoiceCard({ receipt: r }: { receipt: ReceiptDto }) {
           <Descriptions.Item label="Cập nhật">
             {i.updatedByName} {formatDateTime(i.updatedAt)}
           </Descriptions.Item>
-          <Descriptions.Item label="File">
+          <Descriptions.Item label="Tệp">
             <Space>
               {i.hasXml && <a onClick={() => open('xml')}>XML hóa đơn điện tử</a>}
               {i.hasPdf && <a onClick={() => open('pdf')}>PDF bản thể hiện</a>}
