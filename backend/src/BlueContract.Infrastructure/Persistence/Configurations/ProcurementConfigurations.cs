@@ -127,6 +127,8 @@ internal sealed class ContractConfiguration : IEntityTypeConfiguration<Contract>
         b.HasMany(x => x.Items).WithOne().HasForeignKey(i => i.ContractId).OnDelete(DeleteBehavior.Cascade);
         b.Ignore(x => x.IsEditable);
         b.Ignore(x => x.IsEffective);
+        b.Ignore(x => x.SingleFacilityId);
+        b.Property(x => x.FacilityIds).HasColumnType("uuid[]");
     }
 }
 

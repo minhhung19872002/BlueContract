@@ -95,8 +95,11 @@ public sealed class Contract : Entity, ISupplierScoped
 
     public Guid CategoryId { get; private set; }
 
-    /// <summary>Cơ sở thực hiện (null = toàn bệnh viện).</summary>
-    public Guid? FacilityId { get; private set; }
+    /// <summary>Cơ sở thực hiện (empty = toàn bệnh viện).</summary>
+    public IReadOnlyList<Guid> FacilityIds { get; private set; } = [];
+
+    /// <summary>The facility of a contract carried out at exactly one facility (workflow scope); null otherwise.</summary>
+    public Guid? SingleFacilityId => FacilityIds.Count == 1 ? FacilityIds[0] : null;
 
     public DateOnly? SignedDate { get; private set; }
 
@@ -149,7 +152,7 @@ public sealed class Contract : Entity, ISupplierScoped
 
     public bool IsEffective => Status == ContractStatus.Effective;
 
-    public void UpdateHeader(string number, string name, ContractKind kind, bool requiresWarehouseReceipt, Guid categoryId, Guid? facilityId, string? note)
+    public void UpdateHeader(string number, string name, ContractKind kind, bool requiresWarehouseReceipt, Guid categoryId, IEnumerable<Guid> facilityIds, string? note)
     {
         EnsureEditable();
         Number = Guard.Required(number, "CONTRACT_NUMBER_REQUIRED");
@@ -157,7 +160,7 @@ public sealed class Contract : Entity, ISupplierScoped
         Kind = kind;
         RequiresWarehouseReceipt = requiresWarehouseReceipt;
         CategoryId = categoryId;
-        FacilityId = facilityId;
+        FacilityIds = [.. facilityIds.Where(f => f != Guid.Empty).Distinct()];
         Note = Guard.Optional(note);
     }
 

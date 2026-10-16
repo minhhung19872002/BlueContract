@@ -273,7 +273,10 @@ export function ContractDetailPage() {
                         </>
                       ),
                     },
-                    { label: 'Cơ sở', value: c.facilityName ?? 'Toàn bệnh viện' },
+                    {
+                      label: 'Cơ sở',
+                      value: c.facilityNames.length ? c.facilityNames.join(', ') : 'Toàn bệnh viện',
+                    },
                     { label: 'Thời gian thực hiện', value: c.duration },
                     { label: 'Ngày ký', value: formatDate(c.signedDate) },
                     {

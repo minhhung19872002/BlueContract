@@ -28,7 +28,7 @@ Menu **Trình ký** chứa toàn bộ tài liệu cần ký của bạn, chia ta
 
 ### Tổ Mua sắm (`muasam`)
 1. **Quyết định thầu**: tạo quyết định, thêm NCC trúng thầu, **đồng bộ danh mục từ HIS** hoặc **import Excel** (tải biểu mẫu tại màn hình), ban hành.
-2. **Hợp đồng → Tạo mới** (4 bước): Nguồn (trong thầu: chọn QĐ; ngoài thầu: chọn hoặc **tạo NCC mới** ngay trong form, hệ thống tự cấp tài khoản và gửi email kích hoạt) → NCC & hàng hóa → Điều khoản → Mẫu & xem trước → **Gửi rà soát**.
+2. **Hợp đồng → Tạo mới** (4 bước): Nguồn (trong thầu: chọn QĐ; ngoài thầu: chọn hoặc **tạo NCC mới** ngay trong form, hệ thống tự cấp tài khoản và gửi email kích hoạt) → NCC & hàng hóa → Điều khoản → Mẫu & xem trước → **Gửi rà soát**. *Cơ sở thực hiện* chọn được nhiều cơ sở (để trống = toàn bệnh viện); người dùng bị giới hạn theo cơ sở chỉ thấy hợp đồng của cơ sở mình và hợp đồng toàn bệnh viện.
 3. Theo dõi hợp đồng: tab *Hàng hóa & theo dõi thực hiện* (SL HĐ / đã gọi / đã nhập / đã nghiệm thu / đã thanh toán / còn lại), *Phụ lục*, *Nhập kho*, *Thanh toán*, *Lịch sử*.
 4. **Phiếu nhập kho**: phiếu từ HIS tự vào hệ thống; khi cần, **Lập phiếu trên cổng** hoặc **phiếu xác nhận khối lượng** (hợp đồng dịch vụ không qua kho — hoàn thành không cần ký). Phiếu bị trả lại: sửa/bổ sung rồi **Gửi ký lại**.
 5. **Thanh toán**:

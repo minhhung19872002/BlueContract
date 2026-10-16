@@ -207,7 +207,7 @@ public sealed class WorkflowService(
                     c.Kind,
                     c.ProcurementType,
                     c.RequiresWarehouseReceipt,
-                    c.FacilityId,
+                    c.FacilityIds,
                     Domain = db.ItemCategories.Where(x => x.Id == c.CategoryId).Select(x => (ProcurementDomain?)x.Domain).FirstOrDefault(),
                 }).FirstOrDefaultAsync(ct) is { } contract)
         {
@@ -215,7 +215,7 @@ public sealed class WorkflowService(
             context[WorkflowCondition.ProcurementType] = contract.ProcurementType.ToString();
             context[WorkflowCondition.RequiresWarehouseReceipt] = contract.RequiresWarehouseReceipt ? "true" : "false";
             context[WorkflowCondition.Domain] ??= contract.Domain?.ToString();
-            facilityId ??= contract.FacilityId;
+            facilityId ??= contract.FacilityIds.Count == 1 ? contract.FacilityIds[0] : null;
         }
 
         context[WorkflowCondition.Facility] = facilityId is { } fid

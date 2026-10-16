@@ -151,7 +151,8 @@ public sealed class ContractService(
 
         var supplier = await db.Suppliers.AsNoTracking().IgnoreQueryFilters().FirstAsync(s => s.Id == c.SupplierId, ct);
         var category = await db.ItemCategories.AsNoTracking().Where(x => x.Id == c.CategoryId).Select(x => x.Name).FirstAsync(ct);
-        var facility = c.FacilityId is { } fid ? await db.Facilities.AsNoTracking().Where(x => x.Id == fid).Select(x => x.Name).FirstOrDefaultAsync(ct) : null;
+        var facilityIds = c.FacilityIds;
+        var facilityNames = await db.Facilities.AsNoTracking().Where(x => facilityIds.Contains(x.Id)).OrderBy(x => x.Code).Select(x => x.Name).ToListAsync(ct);
         var bidNumber = c.BidDecisionId is { } bid ? await db.BidDecisions.AsNoTracking().Where(b => b.Id == bid).Select(b => b.Number).FirstOrDefaultAsync(ct) : null;
         var templateName = c.TemplateId is { } tid ? await db.DocumentTemplates.AsNoTracking().Where(t => t.Id == tid).Select(t => t.Name).FirstOrDefaultAsync(ct) : null;
         var itemIds = c.Items.Select(i => i.ItemId).ToList();
@@ -171,7 +172,7 @@ public sealed class ContractService(
             .ToList();
 
         return new ContractDto(c.Id, c.Number, c.Name, c.ProcurementType, c.Kind, c.RequiresWarehouseReceipt, c.BidDecisionId, bidNumber, c.SupplierId,
-            supplier.Name, supplier.TaxCode, c.CategoryId, category, c.FacilityId, facility, c.SignedDate, c.EffectiveDate, c.ExpiryDate, c.Duration,
+            supplier.Name, supplier.TaxCode, c.CategoryId, category, c.FacilityIds, facilityNames, c.SignedDate, c.EffectiveDate, c.ExpiryDate, c.Duration,
             c.AmountBeforeVat, c.VatAmount, c.TotalAmount, c.PaymentTerms, c.WarrantyTerms, c.DeliveryTerms, c.GuaranteeNumber, c.GuaranteeBank,
             c.GuaranteeAmount, c.GuaranteeExpiry, c.Note, c.TemplateId, templateName, c.DocumentId, c.Status, c.LastReturnReason, c.EffectiveAt,
             items, appendixDtos, await ActionsAsync(c, ct));
@@ -339,7 +340,7 @@ public sealed class ContractService(
         }
 
         var domain = await db.ItemCategories.Where(c => c.Id == contract.CategoryId).Select(c => c.Domain).FirstAsync(ct);
-        var started = await workflows.StartAsync(new StartWorkflowRequest(contract.DocumentId.Value, null, null, contract.FacilityId, domain.ToString()), ct);
+        var started = await workflows.StartAsync(new StartWorkflowRequest(contract.DocumentId.Value, null, null, contract.SingleFacilityId, domain.ToString()), ct);
         return started.IsSuccess ? Result.Success() : Result.Failure(started.Error!);
     }
 
@@ -561,7 +562,7 @@ public sealed class ContractService(
             return Result.Failure(overBid);
         }
 
-        var started = await workflows.StartAsync(new StartWorkflowRequest(docId, null, null, contract.FacilityId, null), ct);
+        var started = await workflows.StartAsync(new StartWorkflowRequest(docId, null, null, contract.SingleFacilityId, null), ct);
         return started.IsSuccess ? Result.Success() : Result.Failure(started.Error!);
     }
 
@@ -640,7 +641,13 @@ public sealed class ContractService(
             return Result.Failure(Error.Validation("ITEM_CATEGORY_NOT_FOUND"));
         }
 
-        contract.UpdateHeader(r.Number, r.Name, r.Kind, r.RequiresWarehouseReceipt, r.CategoryId, r.FacilityId, r.Note);
+        var facilityIds = (r.FacilityIds ?? []).Distinct().ToList();
+        if (await db.Facilities.CountAsync(f => facilityIds.Contains(f.Id), ct) != facilityIds.Count)
+        {
+            return Result.Failure(Error.Validation("FACILITY_NOT_FOUND"));
+        }
+
+        contract.UpdateHeader(r.Number, r.Name, r.Kind, r.RequiresWarehouseReceipt, r.CategoryId, facilityIds, r.Note);
         contract.UpdateTerms(r.SignedDate, r.EffectiveDate, r.ExpiryDate, r.Duration, r.PaymentTerms, r.WarrantyTerms, r.DeliveryTerms,
             r.GuaranteeNumber, r.GuaranteeBank, r.GuaranteeAmount, r.GuaranteeExpiry);
 
@@ -769,7 +776,7 @@ public sealed class ContractService(
                 item.UpdateDetails(n.Name, n.Unit, n.ActiveIngredient, null, n.Specification, n.Manufacturer, n.Country, null, null, true);
                 item.SetHisKey(n.HisKey);
                 item.AssignToSupplier(contract.SupplierId);
-                item.SetFacility(contract.FacilityId);
+                item.SetFacility(contract.SingleFacilityId);
                 if (persistNewItems)
                 {
                     db.Items.Add(item);

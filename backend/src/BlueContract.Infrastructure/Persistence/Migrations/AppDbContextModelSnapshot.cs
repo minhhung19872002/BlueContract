@@ -769,9 +769,10 @@ namespace BlueContract.Infrastructure.Persistence.Migrations
                         .HasColumnType("date")
                         .HasColumnName("expiry_date");
 
-                    b.Property<Guid?>("FacilityId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("facility_id");
+                    b.PrimitiveCollection<Guid[]>("FacilityIds")
+                        .IsRequired()
+                        .HasColumnType("uuid[]")
+                        .HasColumnName("facility_ids");
 
                     b.Property<decimal?>("GuaranteeAmount")
                         .HasPrecision(18, 2)

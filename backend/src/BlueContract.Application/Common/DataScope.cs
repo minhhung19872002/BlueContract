@@ -40,7 +40,7 @@ public sealed class DataScope(IAppDbContext db, ICurrentUser current)
         if (scope.Facilities.Count > 0)
         {
             var facilities = scope.Facilities;
-            contracts = contracts.Where(c => c.FacilityId == null || facilities.Contains(c.FacilityId.Value));
+            contracts = contracts.Where(c => c.FacilityIds.Count == 0 || c.FacilityIds.Any(f => facilities.Contains(f)));
         }
 
         if (scope.Domains.Count > 0)

@@ -269,7 +269,7 @@ async function prepareContract(
       kind: "LumpSum",
       requiresWarehouseReceipt: true,
       categoryId: categories.find((c) => c.code === "SUA_CHUA")!.id,
-      facilityId: null,
+      facilityIds: [],
       note: null,
       signedDate: today,
       effectiveDate: today,

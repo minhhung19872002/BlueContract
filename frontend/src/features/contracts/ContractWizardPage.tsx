@@ -72,7 +72,7 @@ interface WizardValues {
   name: string;
   kind: ContractKind;
   requiresWarehouseReceipt: boolean;
-  facilityId?: string;
+  facilityIds?: string[];
   note?: string;
   signedDate?: Day;
   effectiveDate?: Day;
@@ -146,7 +146,7 @@ function toRequest(v: WizardValues, lines: Line[]): SaveContractRequest {
     kind: v.kind,
     requiresWarehouseReceipt: v.requiresWarehouseReceipt,
     categoryId: v.categoryId,
-    facilityId: v.facilityId ?? null,
+    facilityIds: v.facilityIds ?? [],
     note: v.note ?? null,
     signedDate: iso(v.signedDate),
     effectiveDate: iso(v.effectiveDate),
@@ -193,7 +193,7 @@ function fromContract(c: ContractDto): { values: Partial<WizardValues>; lines: L
       name: c.name,
       kind: c.kind,
       requiresWarehouseReceipt: c.requiresWarehouseReceipt,
-      facilityId: c.facilityId ?? undefined,
+      facilityIds: c.facilityIds,
       note: c.note ?? undefined,
       signedDate: day(c.signedDate),
       effectiveDate: day(c.effectiveDate),
@@ -644,7 +644,11 @@ function ContractWizard({
       categoryId: current.categoryId ?? bid.data.categoryId,
       name: current.name || bid.data.packageName.replace(/^Gói thầu số \d+:\s*/i, ''),
       duration: current.duration || bid.data.executionPeriod || undefined,
-      facilityId: current.facilityId ?? bid.data.facilityId ?? undefined,
+      facilityIds: current.facilityIds?.length
+        ? current.facilityIds
+        : bid.data.facilityId
+          ? [bid.data.facilityId]
+          : [],
     });
   }, [bid.data, editing, form]);
 
@@ -1036,10 +1040,16 @@ function ContractWizard({
                 </Form.Item>
               </Col>
               <Col xs={24} md={12}>
-                <Form.Item name="facilityId" label="Cơ sở thực hiện">
+                <Form.Item
+                  name="facilityIds"
+                  label="Cơ sở thực hiện"
+                  extra="Để trống = toàn bệnh viện; chọn được nhiều cơ sở."
+                >
                   <Select
+                    mode="multiple"
                     allowClear
                     placeholder="Toàn bệnh viện"
+                    optionFilterProp="label"
                     options={(facilities.data ?? []).map((f) => ({ value: f.id, label: f.name }))}
                   />
                 </Form.Item>

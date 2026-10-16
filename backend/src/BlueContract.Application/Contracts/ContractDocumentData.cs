@@ -24,7 +24,9 @@ public sealed class ContractDocumentData(IAppDbContext db, IClock clock)
         var supplier = db.Suppliers.Local.FirstOrDefault(s => s.Id == contract.SupplierId)
             ?? await db.Suppliers.AsNoTracking().IgnoreQueryFilters().FirstAsync(s => s.Id == contract.SupplierId, ct);
         var category = await db.ItemCategories.AsNoTracking().FirstAsync(c => c.Id == contract.CategoryId, ct);
-        var facility = contract.FacilityId is { } fid ? await db.Facilities.AsNoTracking().Where(f => f.Id == fid).Select(f => f.Name).FirstOrDefaultAsync(ct) : null;
+        var facilityIds = contract.FacilityIds;
+        var facilityNames = await db.Facilities.AsNoTracking().Where(f => facilityIds.Contains(f.Id)).OrderBy(f => f.Code).Select(f => f.Name).ToListAsync(ct);
+        var facility = facilityNames.Count == 0 ? null : string.Join(", ", facilityNames);
         var bid = contract.BidDecisionId is { } bid1 ? await db.BidDecisions.AsNoTracking().FirstOrDefaultAsync(b => b.Id == bid1, ct) : null;
         var itemIds = contract.Items.Select(i => i.ItemId).ToList();
         var items = await db.Items.AsNoTracking().Where(i => itemIds.Contains(i.Id)).ToDictionaryAsync(i => i.Id, ct);

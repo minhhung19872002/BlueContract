@@ -194,7 +194,7 @@ public sealed class ProposalService(
 
         Guid? facilityId = departmentId is { } dep ? await db.Departments.Where(d => d.Id == dep).Select(d => (Guid?)d.FacilityId).FirstOrDefaultAsync(ct) : null;
         var rows = await scope.CallableContracts(domain).AsNoTracking()
-            .Where(c => c.FacilityId == null || facilityId == null || c.FacilityId == facilityId)
+            .Where(c => c.FacilityIds.Count == 0 || facilityId == null || c.FacilityIds.Contains(facilityId.Value))
             .SelectMany(c => c.Items.Select(i => new { Contract = c, Item = i }))
             .Where(x => x.Item.Quantity - x.Item.ReceivedQuantity > 0)
             .Select(x => new

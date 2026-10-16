@@ -150,9 +150,15 @@ public sealed class ReportService(IAppDbContext db, IClock clock, DataScope data
                                 p.Date,
                                 p.Amount,
                                 Domain = db.ItemCategories.Where(x => x.Id == c.CategoryId).Select(x => (ProcurementDomain?)x.Domain).FirstOrDefault(),
-                                Facility = db.Facilities.Where(x => x.Id == c.FacilityId).Select(x => x.Name).FirstOrDefault(),
+                                c.FacilityIds,
                                 Supplier = db.Suppliers.Where(s => s.Id == c.SupplierId).Select(s => s.Name).FirstOrDefault(),
                             }).ToListAsync(ct);
+        var facilityNames = await db.Facilities.AsNoTracking().ToDictionaryAsync(x => x.Id, x => (x.Code, x.Name), ct);
+
+        // A contract of several facilities is reported under the joined names ("Cơ sở 2, Cơ sở 3").
+        string? FacilityText(IReadOnlyList<Guid> ids) => ids.Count == 0
+            ? null
+            : string.Join(", ", ids.Where(facilityNames.ContainsKey).Select(id => facilityNames[id]).OrderBy(x => x.Code).Select(x => x.Name));
 
         string Period(DateOnly d) => f.Period switch
         {
@@ -171,7 +177,7 @@ public sealed class ReportService(IAppDbContext db, IClock clock, DataScope data
 
         return [.. orders.GroupBy(o => (Period: Period(o.Date), Sort: f.Period == PaymentPeriod.Year ? new DateOnly(o.Date.Year, 1, 1)
                     : f.Period == PaymentPeriod.Quarter ? new DateOnly(o.Date.Year, (((o.Date.Month - 1) / 3) * 3) + 1, 1) : new DateOnly(o.Date.Year, o.Date.Month, 1),
-                Group: Group(o.Domain, o.Facility, o.Supplier)))
+                Group: Group(o.Domain, FacilityText(o.FacilityIds), o.Supplier)))
             .OrderBy(g => g.Key.Sort).ThenBy(g => g.Key.Group)
             .Select(g => new PaymentReportRowDto(g.Key.Period, g.Key.Group, g.Count(), g.Sum(o => o.Amount)))];
     }

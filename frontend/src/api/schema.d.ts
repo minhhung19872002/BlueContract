@@ -9661,9 +9661,8 @@ export interface components {
             /** Format: uuid */
             categoryId: string;
             categoryName: string;
-            /** Format: uuid */
-            facilityId: null | string;
-            facilityName: null | string;
+            facilityIds: string[];
+            facilityNames: string[];
             /** Format: date */
             signedDate: null | string;
             /** Format: date */
@@ -11340,8 +11339,7 @@ export interface components {
             requiresWarehouseReceipt: boolean;
             /** Format: uuid */
             categoryId: string;
-            /** Format: uuid */
-            facilityId: null | string;
+            facilityIds: null | string[];
             note: null | string;
             /** Format: date */
             signedDate: null | string;

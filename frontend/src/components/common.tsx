@@ -78,6 +78,7 @@ const FIELD_LABELS: Record<string, string> = {
   Name: 'Tên',
   Type: 'Loại',
   FacilityId: 'Cơ sở',
+  FacilityIds: 'Cơ sở thực hiện',
   HisDepartmentCode: 'Mã HIS',
   IsActive: 'Hoạt động',
   IsDeleted: 'Đã xóa',

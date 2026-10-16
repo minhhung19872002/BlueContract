@@ -12788,8 +12788,8 @@
           "supplierTaxCode",
           "categoryId",
           "categoryName",
-          "facilityId",
-          "facilityName",
+          "facilityIds",
+          "facilityNames",
           "signedDate",
           "effectiveDate",
           "expiryDate",
@@ -12866,18 +12866,18 @@
           "categoryName": {
             "type": "string"
           },
-          "facilityId": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "uuid"
+          "facilityIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
           },
-          "facilityName": {
-            "type": [
-              "null",
-              "string"
-            ]
+          "facilityNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "signedDate": {
             "type": [
@@ -19028,7 +19028,7 @@
           "kind",
           "requiresWarehouseReceipt",
           "categoryId",
-          "facilityId",
+          "facilityIds",
           "note",
           "signedDate",
           "effectiveDate",
@@ -19089,12 +19089,15 @@
             "type": "string",
             "format": "uuid"
           },
-          "facilityId": {
+          "facilityIds": {
             "type": [
               "null",
-              "string"
+              "array"
             ],
-            "format": "uuid"
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
           },
           "note": {
             "type": [
