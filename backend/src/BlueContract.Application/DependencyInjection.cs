@@ -6,6 +6,7 @@ using BlueContract.Application.Catalog;
 using BlueContract.Application.Contracts;
 using BlueContract.Application.Documents;
 using BlueContract.Application.Notifications;
+using BlueContract.Application.Proposals;
 using BlueContract.Application.Signing;
 using BlueContract.Application.Workflows;
 using FluentValidation;
@@ -49,6 +50,16 @@ public static class DependencyInjection
         services.AddScoped<ContractService>();
         services.AddScoped<IWorkflowObserver, ContractWorkflowObserver>();
         services.AddScoped<IWorkflowObserver, AppendixWorkflowObserver>();
+        services.AddScoped<PostCommitWork>();
+        services.AddScoped<DocumentNumbers>();
+        services.AddScoped<ContractTracking>();
+        services.AddScoped<ProposalScope>();
+        services.AddScoped<ProposalDocumentData>();
+        services.AddScoped<ProposalService>();
+        services.AddScoped<ProposalSummaryService>();
+        services.AddScoped<CallOrderService>();
+        services.AddScoped<IWorkflowObserver, ProposalWorkflowObserver>();
+        services.AddScoped<IWorkflowObserver, ProposalSummaryWorkflowObserver>();
         return services;
     }
 }

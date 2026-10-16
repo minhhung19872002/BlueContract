@@ -6,6 +6,9 @@ import {
   DashboardOutlined,
   FileProtectOutlined,
   AppstoreOutlined,
+  FormOutlined,
+  MergeCellsOutlined,
+  PhoneOutlined,
   EditOutlined,
   NodeIndexOutlined,
   SafetyCertificateOutlined,
@@ -42,6 +45,14 @@ export const internalNav: NavItem[] = [
     permissions: [P.ItemView],
   },
   { key: '/hop-dong', label: 'Hợp đồng', icon: <ContainerOutlined />, permissions: [P.ContractView] },
+  { key: '/de-xuat', label: 'Đề xuất', icon: <FormOutlined />, permissions: [P.ProposalView] },
+  {
+    key: '/tong-hop-de-xuat',
+    label: 'Tổng hợp đề xuất',
+    icon: <MergeCellsOutlined />,
+    permissions: [P.ProposalAggregate, P.ProposalApprove],
+  },
+  { key: '/goi-hang', label: 'Gọi hàng', icon: <PhoneOutlined />, permissions: [P.CallOrderView] },
   { key: '/xac-minh-chu-ky', label: 'Xác minh chữ ký', icon: <SafetyCertificateOutlined /> },
   {
     key: '/quan-tri',
@@ -110,6 +121,7 @@ export const supplierNav: NavItem[] = [
     inboxBadge: true,
   },
   { key: '/ncc/hop-dong', label: 'Hợp đồng', icon: <ContainerOutlined />, permissions: [P.ContractView] },
+  { key: '/ncc/goi-hang', label: 'Gọi hàng', icon: <PhoneOutlined />, permissions: [P.CallOrderView] },
   { key: '/ncc/xac-minh-chu-ky', label: 'Xác minh chữ ký', icon: <SafetyCertificateOutlined /> },
   {
     key: '/ncc/cong-ty',

@@ -30,6 +30,12 @@ import { BidDecisionDetailPage } from './features/bids/BidDecisionDetailPage';
 import { ContractsPage } from './features/contracts/ContractsPage';
 import { ContractWizardPage } from './features/contracts/ContractWizardPage';
 import { ContractDetailPage } from './features/contracts/ContractDetailPage';
+import { ProposalsPage } from './features/proposals/ProposalsPage';
+import { ProposalEditorPage } from './features/proposals/ProposalEditorPage';
+import { ProposalDetailPage } from './features/proposals/ProposalDetailPage';
+import { SummariesPage, SummaryCreatePage } from './features/proposals/SummariesPage';
+import { SummaryDetailPage } from './features/proposals/SummaryDetailPage';
+import { CallCreatePage, CallOrderDetailPage, CallOrdersPage } from './features/proposals/CallOrdersPage';
 
 const guard = (permissions: string[], element: React.ReactNode) => (
   <RequirePermission any={permissions}>{element}</RequirePermission>
@@ -78,6 +84,19 @@ export const router = createBrowserRouter([
           { path: '/hop-dong/tao-moi', element: guard([P.ContractCreate], <ContractWizardPage />) },
           { path: '/hop-dong/:id', element: guard([P.ContractView], <ContractDetailPage />) },
           { path: '/hop-dong/:id/sua', element: guard([P.ContractCreate], <ContractWizardPage />) },
+          { path: '/de-xuat', element: guard([P.ProposalView], <ProposalsPage />) },
+          { path: '/de-xuat/tao-moi', element: guard([P.ProposalCreate], <ProposalEditorPage />) },
+          { path: '/de-xuat/:id', element: guard([P.ProposalView], <ProposalDetailPage />) },
+          { path: '/de-xuat/:id/sua', element: guard([P.ProposalCreate], <ProposalEditorPage />) },
+          { path: '/tong-hop-de-xuat', element: guard([P.ProposalView, P.CallOrderView], <SummariesPage />) },
+          { path: '/tong-hop-de-xuat/tao-moi', element: guard([P.ProposalAggregate], <SummaryCreatePage />) },
+          {
+            path: '/tong-hop-de-xuat/:id',
+            element: guard([P.ProposalView, P.CallOrderView], <SummaryDetailPage />),
+          },
+          { path: '/goi-hang', element: guard([P.CallOrderView], <CallOrdersPage />) },
+          { path: '/goi-hang/tao-moi', element: guard([P.CallOrderCreate], <CallCreatePage />) },
+          { path: '/goi-hang/:id', element: guard([P.CallOrderView], <CallOrderDetailPage />) },
           { path: '/xac-minh-chu-ky', element: <VerifySignaturePage /> },
           { path: '/quan-tri/luong-ky', element: guard([P.WorkflowManage], <WorkflowTemplatesPage />) },
         ],
@@ -97,6 +116,8 @@ export const router = createBrowserRouter([
           { path: 'trinh-ky', element: guard([P.SigningInbox], <SigningInboxPage />) },
           { path: 'hop-dong', element: guard([P.ContractView], <ContractsPage />) },
           { path: 'hop-dong/:id', element: guard([P.ContractView], <ContractDetailPage />) },
+          { path: 'goi-hang', element: guard([P.CallOrderView], <CallOrdersPage />) },
+          { path: 'goi-hang/:id', element: guard([P.CallOrderView], <CallOrderDetailPage />) },
           { path: 'xac-minh-chu-ky', element: <VerifySignaturePage /> },
           { path: 'tai-lieu/:id', element: <DocumentPage /> },
         ],

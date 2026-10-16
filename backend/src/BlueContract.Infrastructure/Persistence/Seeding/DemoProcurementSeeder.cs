@@ -1,9 +1,11 @@
 using BlueContract.Application.Bids;
 using BlueContract.Application.Common;
 using BlueContract.Application.Contracts;
+using BlueContract.Application.Proposals;
 using BlueContract.Application.Signing;
 using BlueContract.Application.Workflows;
 using BlueContract.Domain.Contracts;
+using BlueContract.Domain.Identity;
 using BlueContract.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,12 +29,17 @@ internal sealed class DemoProcurementSeeder(IServiceProvider services, IHttpClie
 
     public async Task SeedAsync(CancellationToken ct)
     {
+        bool contractsSeeded, proposalsSeeded;
         using (var scope = services.CreateScope())
         {
-            if (await scope.ServiceProvider.GetRequiredService<AppDbContext>().BidDecisions.AnyAsync(b => b.Number == DrugBid, ct))
-            {
-                return;
-            }
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            contractsSeeded = await db.BidDecisions.AnyAsync(b => b.Number == DrugBid, ct);
+            proposalsSeeded = await db.Proposals.AnyAsync(ct);
+        }
+
+        if (contractsSeeded && proposalsSeeded)
+        {
+            return;
         }
 
         // Signing renders PDFs through Gotenberg: wait for it so the scenario is never left half-done.
@@ -42,6 +49,21 @@ internal sealed class DemoProcurementSeeder(IServiceProvider services, IHttpClie
             return;
         }
 
+        if (!contractsSeeded)
+        {
+            await SeedContractsAsync(ct);
+        }
+
+        if (!proposalsSeeded)
+        {
+            await SeedProposalsAsync(ct);
+        }
+
+        logger.LogInformation("Demo procurement scenarios seeded");
+    }
+
+    private async Task SeedContractsAsync(CancellationToken ct)
+    {
         var drugBid = await AsAsync("muasam", sp => CreateBidAsync(sp, DrugBid, "THUOC", "0101234567",
             "Gói thầu số 01: Cung cấp thuốc generic năm 2026", ct), ct);
         var supplyBid = await AsAsync("muasam", sp => CreateBidAsync(sp, SupplyBid, "VTYT", "0302345678",
@@ -64,7 +86,67 @@ internal sealed class DemoProcurementSeeder(IServiceProvider services, IHttpClie
 
         // HĐ sửa chữa ngoài thầu (bản nháp).
         await AsAsync("muasam", sp => CreateRepairContractAsync(sp, ct), ct);
-        logger.LogInformation("Demo procurement scenarios seeded");
+    }
+
+    /// <summary>
+    /// Đề xuất / tổng hợp / gọi hàng on the effective VTYT contract: one summary waiting for the domain head ("đề xuất
+    /// chờ duyệt") and one approved summary with a call order waiting for the supplier ("gọi hàng chờ xác nhận").
+    /// </summary>
+    private async Task SeedProposalsAsync(CancellationToken ct)
+    {
+        var (department, warehouse, items) = await AsAsync("khoanoi", async sp =>
+        {
+            var db = sp.GetRequiredService<AppDbContext>();
+            var dep = await db.Departments.Where(d => d.Code == "KNOI").Select(d => d.Id).FirstAsync(ct);
+            var wh = await db.Warehouses.Where(w => w.Code == "KHO_VTYT").Select(w => w.Id).FirstAsync(ct);
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var candidates = Value(await sp.GetRequiredService<ProposalService>().CandidatesAsync(ProcurementDomain.MedicalSupply, wh,
+                today.AddDays(-30), today, dep, ct));
+            return (dep, wh, candidates.Items.Take(5).ToList());
+        }, ct);
+        if (items.Count < 5)
+        {
+            return; // no effective call-off contract in the domain
+        }
+
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        async Task<Guid> ProposeAsync(IEnumerable<ProposalCandidateDto> lines) =>
+            await AsAsync("khoanoi", async sp =>
+            {
+                var proposals = sp.GetRequiredService<ProposalService>();
+                var id = Value(await proposals.CreateAsync(new SaveProposalRequest(department, warehouse, ProcurementDomain.MedicalSupply,
+                    today.AddDays(-30), today, "Đề xuất bổ sung cơ số vật tư tháng này",
+                    [.. lines.Select(l => new ProposalLineRequest(l.ContractItemId, Math.Max(1, decimal.Round(l.ContractRemaining * 0.05m, 0)), null))]), ct));
+                await Ok(proposals.SubmitAsync(id, ct));
+                var documentId = await sp.GetRequiredService<AppDbContext>().Proposals.Where(p => p.Id == id).Select(p => p.DocumentId!.Value).FirstAsync(ct);
+                await SignAsync(sp, documentId, ct);
+                return id;
+            }, ct);
+
+        var pending = await ProposeAsync(items.Take(3));
+        var forCall = await ProposeAsync(items.Skip(3));
+
+        async Task<(Guid Id, Guid DocumentId)> SummarizeAsync(Guid proposalId, string period) =>
+            await AsAsync("tonghopvt", async sp =>
+            {
+                var summaries = sp.GetRequiredService<ProposalSummaryService>();
+                var id = Value(await summaries.CreateAsync(new SaveSummaryRequest(ProcurementDomain.MedicalSupply, null, period, null, [proposalId]), ct));
+                await Ok(summaries.SubmitAsync(id, ct));
+                var documentId = await sp.GetRequiredService<AppDbContext>().ProposalSummaries.Where(s => s.Id == id).Select(s => s.DocumentId!.Value).FirstAsync(ct);
+                await SignAsync(sp, documentId, ct);
+                return (id, documentId);
+            }, ct);
+
+        await SummarizeAsync(pending, $"Đợt 2 tháng {today:MM/yyyy}");
+        var approved = await SummarizeAsync(forCall, $"Đợt 1 tháng {today:MM/yyyy}");
+        await AsAsync("totruongvattu", sp => ApproveAsync(sp, approved.DocumentId, "Đồng ý số lượng đề xuất", ct), ct);
+        await AsAsync("giamdoc", sp => SignAsync(sp, approved.DocumentId, ct), ct);
+        await AsAsync("tonghopvt", async sp =>
+        {
+            var summary = Value(await sp.GetRequiredService<ProposalSummaryService>().GetAsync(approved.Id, ct));
+            Value(await sp.GetRequiredService<CallOrderService>().CreateAsync(new CreateCallsRequest(summary.Id, warehouse, today.AddDays(5), "Mai Văn Tú",
+                "Giao hàng giờ hành chính, liên hệ thủ kho trước khi giao", [.. summary.Lines.Select(l => new CallLineRequest(l.Id, l.ApprovedQuantity))]), ct));
+        }, ct);
     }
 
     private async Task<bool> GotenbergReadyAsync(CancellationToken ct)

@@ -75,6 +75,9 @@ public static class DocumentPermissions
         (DocumentType.Contract or DocumentType.Appendix, EditorMode.Edit) => [Permissions.ContractCreate, Permissions.ContractAccountantReview],
         (DocumentType.Acceptance or DocumentType.Valuation or DocumentType.PaymentRequest or DocumentType.Liquidation, _) => [Permissions.PaymentManage],
         (DocumentType.WarehouseReceipt, _) => [Permissions.ReceiptManage],
+        (DocumentType.Proposal, _) => [Permissions.ProposalCreate],
+        (DocumentType.ProposalSummary, _) => [Permissions.ProposalAggregate],
+        (DocumentType.CallOrder, _) => [Permissions.CallOrderCreate],
         _ => [Permissions.TemplateManage],
     };
 }

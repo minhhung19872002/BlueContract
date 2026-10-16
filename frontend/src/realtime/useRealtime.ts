@@ -2,7 +2,6 @@ import { HubConnectionBuilder, HubConnectionState, LogLevel, type HubConnection 
 import { useQueryClient } from '@tanstack/react-query';
 import { App } from 'antd';
 import { useEffect, useRef } from 'react';
-import { WORKFLOW_KEYS } from '../api/signing';
 import { authStore } from '../auth/authStore';
 
 export interface RealtimeMessage {
@@ -39,7 +38,7 @@ export function useRealtime(enabled: boolean, onOpen: (link: string | null) => v
       .build();
 
     connection.on('notification', (m: RealtimeMessage) => {
-      WORKFLOW_KEYS.forEach((queryKey) => void qc.invalidateQueries({ queryKey: [...queryKey] }));
+      void qc.invalidateQueries();
       notification.info({
         message: m.title,
         description: m.body ?? undefined,
@@ -50,7 +49,7 @@ export function useRealtime(enabled: boolean, onOpen: (link: string | null) => v
       });
     });
     connection.onreconnected(() => {
-      WORKFLOW_KEYS.forEach((queryKey) => void qc.invalidateQueries({ queryKey: [...queryKey] }));
+      void qc.invalidateQueries();
     });
 
     let stopped = false;

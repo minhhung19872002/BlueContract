@@ -129,3 +129,19 @@ Mỗi mục là một ADR ngắn: **Bối cảnh → Quyết định → Hệ qu
 
 ## ADR-034 — E2E Playwright
 - **Quyết định:** Thư mục `e2e/` (Playwright 1.49, Chromium) chạy trên stack docker compose. Mỗi vai trò dùng một browser context riêng. Thao tác nghiệp vụ đi qua UI; chỉ dùng API để tải tệp DOCX về (mô phỏng NCC sửa bằng Word). CI có workflow riêng `E2E` (chạy thủ công và hằng đêm), khởi động stack không gồm ONLYOFFICE để giảm thời gian.
+
+## ADR-035 — Phiếu đề xuất theo mảng, nhiều hợp đồng
+- **Quyết định:** Mỗi phiếu đề xuất thuộc một khoa, một mảng (Thuốc / VTYT / Hóa chất…) và một kho (để lấy X–N–T). Các dòng có thể lấy từ nhiều hợp đồng gọi hàng (`UnitPriceCallOff`) còn hiệu lực trong mảng; mỗi dòng gắn với một `ContractItem`. "SL còn lại" lấy theo ADR-029 tại thời điểm lập phiếu. Khi lưu, server tự tính lại danh sách ứng viên (số lượng còn lại, X–N–T); client chỉ gửi số lượng.
+
+## ADR-036 — Tổ trưởng sửa SL duyệt và việc ký lại
+- **Bối cảnh:** Người tổng hợp ký trước tổ trưởng. Mọi tài liệu đã có chữ ký là bất biến (ADR về DocumentVersion).
+- **Quyết định:** Khi tổ trưởng sửa SL duyệt, hệ thống sinh phiên bản mới và luồng ký khởi động lại, nên người tổng hợp phải ký lại (đúng spec: "có thể trả về người tổng hợp ký lại"). Bệnh viện nào không muốn ký lại thì vào "Cấu hình luồng ký", đưa bước tổ trưởng lên trước bước người tổng hợp ký. Đây là cách "theo cấu hình" của spec, không cần thêm cờ riêng.
+
+## ADR-037 — Cột theo dõi thực hiện hợp đồng tính lại sau commit
+- **Quyết định:** `ContractTracking` tính lại các cột "đã đề xuất / đã duyệt / đã gọi" từ dữ liệu nguồn (phiếu đã gửi, tổng hợp đã duyệt, đơn gọi chưa hủy/từ chối, theo SL NCC xác nhận). Observer của workflow chạy *trước* SaveChanges, nên việc tính lại được đưa vào `PostCommitWork`: interceptor thực hiện ngay sau commit trong một DI scope mới (DbContext mới, đọc dữ liệu đã commit). Các cột đã nhập kho / nghiệm thu / thanh toán do Phase 6–7 cập nhật theo cùng cơ chế.
+
+## ADR-038 — Đơn gọi hàng
+- **Quyết định:** Đơn gọi hàng không đi luồng ký số (spec chỉ yêu cầu NCC xác nhận). Mỗi đơn có PDF tạo từ mẫu `DON_GOI_HANG`. Đơn được tự tách theo NCC; một tổng hợp có thể gọi nhiều lần. Phần NCC không xác nhận (giao thiếu, từ chối, hủy đơn) được trả lại vào "còn được gọi" của tổng hợp. Email và thông báo NCC dẫn link sâu tới Cổng NCC.
+
+## ADR-039 — Giới hạn đăng nhập và E2E
+- **Quyết định:** Mặc định vẫn là 10 lần đăng nhập/phút/IP (spec §11), cấu hình qua `AUTH_LOGIN_RATE_LIMIT`. Bộ E2E đăng nhập nhiều tài khoản từ cùng một IP nên stack chạy E2E (CI và máy dev) đặt mức 1000.

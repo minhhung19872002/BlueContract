@@ -57,6 +57,28 @@ public sealed class NotificationOutbox(IRealtimeNotifier realtime, IBackgroundJo
     }
 }
 
+/// <summary>
+/// Work that must run once the current unit of work has committed, in a fresh DI scope (its own DbContext sees the
+/// committed data). Executed by the persistence layer right after SaveChanges succeeds.
+/// </summary>
+public sealed class PostCommitWork
+{
+    private readonly List<Func<IServiceProvider, CancellationToken, Task>> _work = [];
+
+    public bool IsEmpty => _work.Count == 0;
+
+    public void Enqueue(Func<IServiceProvider, CancellationToken, Task> work) => _work.Add(work);
+
+    public IReadOnlyList<Func<IServiceProvider, CancellationToken, Task>> TakeAll()
+    {
+        var all = _work.ToList();
+        _work.Clear();
+        return all;
+    }
+
+    public void Clear() => _work.Clear();
+}
+
 public sealed record NotificationDto(Guid Id, string Type, string Title, string? Body, string? Link, DateTimeOffset CreatedAt, bool IsRead);
 
 public sealed record NotificationListDto(IReadOnlyList<NotificationDto> Items, int UnreadCount);
@@ -152,4 +174,8 @@ public static class NotificationTypes
     public const string WorkflowOverdue = "workflow.overdue";
     public const string WorkflowComment = "workflow.comment";
     public const string ContractEffective = "contract.effective";
+    public const string ProposalSubmitted = "proposal.submitted";
+    public const string SummaryApproved = "summary.approved";
+    public const string CallOrderSent = "callorder.sent";
+    public const string CallOrderConfirmed = "callorder.confirmed";
 }

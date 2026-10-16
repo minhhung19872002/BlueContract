@@ -15,6 +15,7 @@ jobs:
       - name: Start stack (without the online editor, not needed by the E2E flows)
         run: |
           cp .env.example .env
+          echo "AUTH_LOGIN_RATE_LIMIT=1000" >> .env
           docker compose up -d --build postgres storage gotenberg mailpit api web
       - name: Wait for the API
         run: |

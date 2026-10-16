@@ -5487,6 +5487,1093 @@
         }
       }
     },
+    "/api/proposals": {
+      "get": {
+        "tags": [
+          "Proposals"
+        ],
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SortBy",
+            "in": "query",
+            "description": "Property name to sort by (whitelisted per endpoint).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SortDesc",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "ForExport",
+            "in": "query",
+            "description": "Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows).",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "SafePage",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "SafePageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Domain",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/ProcurementDomain"
+            }
+          },
+          {
+            "name": "Status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/ProposalStatus"
+            }
+          },
+          {
+            "name": "DepartmentId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResultOfProposalListItemDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Proposals"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveProposalRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveProposalRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveProposalRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/proposals/{id}": {
+      "get": {
+        "tags": [
+          "Proposals"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProposalDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Proposals"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveProposalRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveProposalRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveProposalRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    },
+    "/api/proposals/candidates": {
+      "get": {
+        "tags": [
+          "Proposals"
+        ],
+        "summary": "Mặt hàng có thể đề xuất (HĐ hiệu lực của mảng) kèm X–N–T từ HIS.",
+        "parameters": [
+          {
+            "name": "domain",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/ProcurementDomain"
+            }
+          },
+          {
+            "name": "warehouseId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "departmentId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProposalCandidatesDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/proposals/{id}/submit": {
+      "post": {
+        "tags": [
+          "Proposals"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    },
+    "/api/proposals/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Proposals"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    },
+    "/api/proposal-summaries": {
+      "get": {
+        "tags": [
+          "ProposalSummaries"
+        ],
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SortBy",
+            "in": "query",
+            "description": "Property name to sort by (whitelisted per endpoint).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SortDesc",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "ForExport",
+            "in": "query",
+            "description": "Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows).",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "SafePage",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "SafePageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Domain",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/ProcurementDomain"
+            }
+          },
+          {
+            "name": "Status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/ProposalSummaryStatus"
+            }
+          },
+          {
+            "name": "Callable",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResultOfSummaryListItemDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "ProposalSummaries"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveSummaryRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveSummaryRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveSummaryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/proposal-summaries/{id}": {
+      "get": {
+        "tags": [
+          "ProposalSummaries"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SummaryDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "ProposalSummaries"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveSummaryRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveSummaryRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveSummaryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    },
+    "/api/proposal-summaries/{id}/export": {
+      "get": {
+        "tags": [
+          "ProposalSummaries"
+        ],
+        "summary": "Xuất Excel bảng tổng hợp (SL đề xuất, X–N–T, SL duyệt, đã gọi, còn gọi).",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    },
+    "/api/proposal-summaries/candidates": {
+      "get": {
+        "tags": [
+          "ProposalSummaries"
+        ],
+        "summary": "Phiếu đề xuất đã gửi, chưa tổng hợp.",
+        "parameters": [
+          {
+            "name": "domain",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/ProcurementDomain"
+            }
+          },
+          {
+            "name": "facilityId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProposalListItemDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/proposal-summaries/{id}/submit": {
+      "post": {
+        "tags": [
+          "ProposalSummaries"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    },
+    "/api/proposal-summaries/{id}/approved-quantities": {
+      "put": {
+        "tags": [
+          "ProposalSummaries"
+        ],
+        "summary": "Tổ trưởng sửa SL duyệt.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ApprovedQuantityRequest"
+                }
+              }
+            },
+            "text/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ApprovedQuantityRequest"
+                }
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ApprovedQuantityRequest"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    },
+    "/api/proposal-summaries/{id}/cancel": {
+      "post": {
+        "tags": [
+          "ProposalSummaries"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    },
+    "/api/call-orders": {
+      "get": {
+        "tags": [
+          "CallOrders"
+        ],
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SortBy",
+            "in": "query",
+            "description": "Property name to sort by (whitelisted per endpoint).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SortDesc",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "ForExport",
+            "in": "query",
+            "description": "Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows).",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "SafePage",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "SafePageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/CallOrderStatus"
+            }
+          },
+          {
+            "name": "SupplierId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "SummaryId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Overdue",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResultOfCallOrderListItemDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "CallOrders"
+        ],
+        "summary": "Tạo lần gọi hàng từ tổng hợp đã duyệt (tự tách theo NCC).",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCallsRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCallsRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCallsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/call-orders/export": {
+      "get": {
+        "tags": [
+          "CallOrders"
+        ],
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SortBy",
+            "in": "query",
+            "description": "Property name to sort by (whitelisted per endpoint).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SortDesc",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "ForExport",
+            "in": "query",
+            "description": "Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows).",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "SafePage",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "SafePageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/CallOrderStatus"
+            }
+          },
+          {
+            "name": "SupplierId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "SummaryId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Overdue",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    },
+    "/api/call-orders/{id}": {
+      "get": {
+        "tags": [
+          "CallOrders"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallOrderDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/call-orders/{id}/confirm": {
+      "post": {
+        "tags": [
+          "CallOrders"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmCallRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmCallRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmCallRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    },
+    "/api/call-orders/{id}/cancel": {
+      "post": {
+        "tags": [
+          "CallOrders"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    },
     "/api/system/info": {
       "get": {
         "tags": [
@@ -6526,6 +7613,23 @@
           "Extension"
         ]
       },
+      "ApprovedQuantityRequest": {
+        "required": [
+          "lineId",
+          "approvedQuantity"
+        ],
+        "type": "object",
+        "properties": {
+          "lineId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "approvedQuantity": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
       "ApproveStepRequest": {
         "required": [
           "comment",
@@ -7215,6 +8319,290 @@
           }
         }
       },
+      "CallLineRequest": {
+        "required": [
+          "summaryLineId",
+          "quantity"
+        ],
+        "type": "object",
+        "properties": {
+          "summaryLineId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "CallOrderDto": {
+        "required": [
+          "id",
+          "number",
+          "summaryId",
+          "summaryNumber",
+          "supplierId",
+          "supplierName",
+          "warehouseId",
+          "warehouseName",
+          "callDate",
+          "deliveryDeadline",
+          "contactName",
+          "note",
+          "status",
+          "documentId",
+          "confirmedAt",
+          "confirmedByName",
+          "supplierNote",
+          "isOverdue",
+          "totalAmount",
+          "lines",
+          "canConfirm",
+          "canCancel"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "summaryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "summaryNumber": {
+            "type": "string"
+          },
+          "supplierId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "supplierName": {
+            "type": "string"
+          },
+          "warehouseId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "warehouseName": {
+            "type": "string"
+          },
+          "callDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "deliveryDeadline": {
+            "type": "string",
+            "format": "date"
+          },
+          "contactName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "note": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/CallOrderStatus"
+          },
+          "documentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "confirmedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "confirmedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "supplierNote": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isOverdue": {
+            "type": "boolean"
+          },
+          "totalAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CallOrderLineDto"
+            }
+          },
+          "canConfirm": {
+            "type": "boolean"
+          },
+          "canCancel": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CallOrderLineDto": {
+        "required": [
+          "id",
+          "contractNumber",
+          "itemCode",
+          "itemName",
+          "unit",
+          "unitPrice",
+          "quantity",
+          "confirmedQuantity",
+          "shortageReason",
+          "deliveredQuantity",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "contractNumber": {
+            "type": "string"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "confirmedQuantity": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "shortageReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "deliveredQuantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "CallOrderListItemDto": {
+        "required": [
+          "id",
+          "number",
+          "supplierId",
+          "supplierName",
+          "summaryNumber",
+          "warehouseName",
+          "callDate",
+          "deliveryDeadline",
+          "status",
+          "totalAmount",
+          "lineCount",
+          "isOverdue",
+          "confirmedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "supplierId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "supplierName": {
+            "type": "string"
+          },
+          "summaryNumber": {
+            "type": "string"
+          },
+          "warehouseName": {
+            "type": "string"
+          },
+          "callDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "deliveryDeadline": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CallOrderStatus"
+          },
+          "totalAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "lineCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isOverdue": {
+            "type": "boolean"
+          },
+          "confirmedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "CallOrderStatus": {
+        "enum": [
+          "Sent",
+          "SupplierConfirmed",
+          "PartiallyConfirmed",
+          "Rejected",
+          "Delivered",
+          "Cancelled"
+        ]
+      },
       "CancelContractRequest": {
         "required": [
           "reason"
@@ -7263,6 +8651,51 @@
         "properties": {
           "signatureValue": {
             "type": "string"
+          }
+        }
+      },
+      "ConfirmCallRequest": {
+        "required": [
+          "lines",
+          "note"
+        ],
+        "type": "object",
+        "properties": {
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConfirmLineRequest"
+            }
+          },
+          "note": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "ConfirmLineRequest": {
+        "required": [
+          "lineId",
+          "confirmedQuantity",
+          "shortageReason"
+        ],
+        "type": "object",
+        "properties": {
+          "lineId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "confirmedQuantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "shortageReason": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -7909,6 +9342,49 @@
           "Returned"
         ],
         "description": "Contract lifecycle (spec §5.3). Signing states mirror the active step of the contract workflow."
+      },
+      "CreateCallsRequest": {
+        "required": [
+          "summaryId",
+          "warehouseId",
+          "deliveryDeadline",
+          "contactName",
+          "note",
+          "lines"
+        ],
+        "type": "object",
+        "properties": {
+          "summaryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "warehouseId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "deliveryDeadline": {
+            "type": "string",
+            "format": "date"
+          },
+          "contactName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "note": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CallLineRequest"
+            }
+          }
+        }
       },
       "CreateDelegationRequest": {
         "required": [
@@ -9566,6 +11042,35 @@
           }
         }
       },
+      "PagedResultOfCallOrderListItemDto": {
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CallOrderListItemDto"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "PagedResultOfContractListItemDto": {
         "required": [
           "items",
@@ -9695,6 +11200,64 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ItemDto"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PagedResultOfProposalListItemDto": {
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProposalListItemDto"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PagedResultOfSummaryListItemDto": {
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SummaryListItemDto"
             }
           },
           "total": {
@@ -9930,6 +11493,414 @@
         "enum": [
           "Bidding",
           "NonBidding"
+        ]
+      },
+      "ProposalCandidateDto": {
+        "required": [
+          "contractId",
+          "contractNumber",
+          "supplierName",
+          "contractItemId",
+          "itemId",
+          "itemCode",
+          "itemName",
+          "unit",
+          "hisKey",
+          "unitPrice",
+          "contractQuantity",
+          "contractRemaining",
+          "openingStock",
+          "received",
+          "issued",
+          "currentStock"
+        ],
+        "type": "object",
+        "properties": {
+          "contractId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "contractNumber": {
+            "type": "string"
+          },
+          "supplierName": {
+            "type": "string"
+          },
+          "contractItemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "hisKey": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "contractQuantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "contractRemaining": {
+            "type": "number",
+            "format": "double"
+          },
+          "openingStock": {
+            "type": "number",
+            "format": "double"
+          },
+          "received": {
+            "type": "number",
+            "format": "double"
+          },
+          "issued": {
+            "type": "number",
+            "format": "double"
+          },
+          "currentStock": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "description": "A contract item that can be proposed, with its HIS stock movement for the period."
+      },
+      "ProposalCandidatesDto": {
+        "required": [
+          "items",
+          "hisAvailable",
+          "hisName"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProposalCandidateDto"
+            }
+          },
+          "hisAvailable": {
+            "type": "boolean"
+          },
+          "hisName": {
+            "type": "string"
+          }
+        }
+      },
+      "ProposalDto": {
+        "required": [
+          "id",
+          "number",
+          "departmentId",
+          "departmentName",
+          "warehouseId",
+          "warehouseName",
+          "domain",
+          "periodFrom",
+          "periodTo",
+          "periodText",
+          "note",
+          "status",
+          "createdByName",
+          "documentId",
+          "summaryId",
+          "lines",
+          "canEdit",
+          "canSubmit",
+          "canCancel"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "departmentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "departmentName": {
+            "type": "string"
+          },
+          "warehouseId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "warehouseName": {
+            "type": "string"
+          },
+          "domain": {
+            "$ref": "#/components/schemas/ProcurementDomain"
+          },
+          "periodFrom": {
+            "type": "string",
+            "format": "date"
+          },
+          "periodTo": {
+            "type": "string",
+            "format": "date"
+          },
+          "periodText": {
+            "type": "string"
+          },
+          "note": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/ProposalStatus"
+          },
+          "createdByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "documentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "summaryId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProposalLineDto"
+            }
+          },
+          "canEdit": {
+            "type": "boolean"
+          },
+          "canSubmit": {
+            "type": "boolean"
+          },
+          "canCancel": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ProposalLineDto": {
+        "required": [
+          "id",
+          "contractId",
+          "contractNumber",
+          "contractItemId",
+          "itemCode",
+          "itemName",
+          "unit",
+          "hisKey",
+          "openingStock",
+          "received",
+          "issued",
+          "currentStock",
+          "contractRemaining",
+          "proposedQuantity",
+          "note"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "contractId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "contractNumber": {
+            "type": "string"
+          },
+          "contractItemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "hisKey": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "openingStock": {
+            "type": "number",
+            "format": "double"
+          },
+          "received": {
+            "type": "number",
+            "format": "double"
+          },
+          "issued": {
+            "type": "number",
+            "format": "double"
+          },
+          "currentStock": {
+            "type": "number",
+            "format": "double"
+          },
+          "contractRemaining": {
+            "type": "number",
+            "format": "double"
+          },
+          "proposedQuantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "note": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "ProposalLineRequest": {
+        "required": [
+          "contractItemId",
+          "proposedQuantity",
+          "note"
+        ],
+        "type": "object",
+        "properties": {
+          "contractItemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "proposedQuantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "note": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "ProposalListItemDto": {
+        "required": [
+          "id",
+          "number",
+          "departmentName",
+          "domain",
+          "periodText",
+          "status",
+          "lineCount",
+          "totalQuantity",
+          "createdByName",
+          "createdAt",
+          "submittedAt",
+          "summaryNumber"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "departmentName": {
+            "type": "string"
+          },
+          "domain": {
+            "$ref": "#/components/schemas/ProcurementDomain"
+          },
+          "periodText": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ProposalStatus"
+          },
+          "lineCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalQuantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "createdByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "submittedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "summaryNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "ProposalStatus": {
+        "enum": [
+          "Draft",
+          "Signing",
+          "Submitted",
+          "Aggregated",
+          "Returned",
+          "Cancelled"
+        ]
+      },
+      "ProposalSummaryStatus": {
+        "enum": [
+          "Draft",
+          "AggregatorSigning",
+          "DomainHeadReview",
+          "DirectorSigning",
+          "Approved",
+          "Returned",
+          "Cancelled"
         ]
       },
       "ResetPasswordResponse": {
@@ -10546,6 +12517,51 @@
           }
         }
       },
+      "SaveProposalRequest": {
+        "required": [
+          "departmentId",
+          "warehouseId",
+          "domain",
+          "periodFrom",
+          "periodTo",
+          "note",
+          "lines"
+        ],
+        "type": "object",
+        "properties": {
+          "departmentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "warehouseId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "domain": {
+            "$ref": "#/components/schemas/ProcurementDomain"
+          },
+          "periodFrom": {
+            "type": "string",
+            "format": "date"
+          },
+          "periodTo": {
+            "type": "string",
+            "format": "date"
+          },
+          "note": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProposalLineRequest"
+            }
+          }
+        }
+      },
       "SaveRoleRequest": {
         "required": [
           "code",
@@ -10565,6 +12581,44 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "SaveSummaryRequest": {
+        "required": [
+          "domain",
+          "facilityId",
+          "periodText",
+          "note",
+          "proposalIds"
+        ],
+        "type": "object",
+        "properties": {
+          "domain": {
+            "$ref": "#/components/schemas/ProcurementDomain"
+          },
+          "facilityId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "periodText": {
+            "type": "string"
+          },
+          "note": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "proposalIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         }
       },
@@ -11075,6 +13129,301 @@
           "Done",
           "Skipped"
         ]
+      },
+      "SummaryDto": {
+        "required": [
+          "id",
+          "number",
+          "domain",
+          "facilityId",
+          "periodText",
+          "aggregatorName",
+          "note",
+          "status",
+          "documentId",
+          "approvedAt",
+          "proposals",
+          "lines",
+          "canEdit",
+          "canSubmit",
+          "canCancel",
+          "canEditApproved",
+          "canCall"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "domain": {
+            "$ref": "#/components/schemas/ProcurementDomain"
+          },
+          "facilityId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "periodText": {
+            "type": "string"
+          },
+          "aggregatorName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "note": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/ProposalSummaryStatus"
+          },
+          "documentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "approvedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "proposals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SummaryProposalDto"
+            }
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SummaryLineDto"
+            }
+          },
+          "canEdit": {
+            "type": "boolean"
+          },
+          "canSubmit": {
+            "type": "boolean"
+          },
+          "canCancel": {
+            "type": "boolean"
+          },
+          "canEditApproved": {
+            "type": "boolean"
+          },
+          "canCall": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SummaryLineDto": {
+        "required": [
+          "id",
+          "contractId",
+          "contractNumber",
+          "contractItemId",
+          "supplierId",
+          "supplierName",
+          "itemCode",
+          "itemName",
+          "unit",
+          "unitPrice",
+          "proposedQuantity",
+          "openingStock",
+          "received",
+          "issued",
+          "currentStock",
+          "contractRemaining",
+          "approvedQuantity",
+          "calledQuantity",
+          "remainingToCall",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "contractId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "contractNumber": {
+            "type": "string"
+          },
+          "contractItemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "supplierId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "supplierName": {
+            "type": "string"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "proposedQuantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "openingStock": {
+            "type": "number",
+            "format": "double"
+          },
+          "received": {
+            "type": "number",
+            "format": "double"
+          },
+          "issued": {
+            "type": "number",
+            "format": "double"
+          },
+          "currentStock": {
+            "type": "number",
+            "format": "double"
+          },
+          "contractRemaining": {
+            "type": "number",
+            "format": "double"
+          },
+          "approvedQuantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "calledQuantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "remainingToCall": {
+            "type": "number",
+            "format": "double"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "SummaryListItemDto": {
+        "required": [
+          "id",
+          "number",
+          "domain",
+          "periodText",
+          "status",
+          "aggregatorName",
+          "proposalCount",
+          "lineCount",
+          "totalAmount",
+          "remainingToCallAmount",
+          "createdAt",
+          "approvedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "domain": {
+            "$ref": "#/components/schemas/ProcurementDomain"
+          },
+          "periodText": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ProposalSummaryStatus"
+          },
+          "aggregatorName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "proposalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lineCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "remainingToCallAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "approvedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "SummaryProposalDto": {
+        "required": [
+          "id",
+          "number",
+          "departmentName",
+          "lineCount"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "departmentName": {
+            "type": "string"
+          },
+          "lineCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
       },
       "SupplierAccountRequest": {
         "required": [
@@ -12641,6 +14990,15 @@
     },
     {
       "name": "Contracts"
+    },
+    {
+      "name": "Proposals"
+    },
+    {
+      "name": "ProposalSummaries"
+    },
+    {
+      "name": "CallOrders"
     },
     {
       "name": "System"

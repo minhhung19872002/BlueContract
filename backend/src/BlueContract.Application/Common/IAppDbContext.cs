@@ -5,6 +5,7 @@ using BlueContract.Domain.Contracts;
 using BlueContract.Domain.Documents;
 using BlueContract.Domain.Identity;
 using BlueContract.Domain.Organizations;
+using BlueContract.Domain.Proposals;
 using BlueContract.Domain.Settings;
 using BlueContract.Domain.Workflows;
 using Microsoft.EntityFrameworkCore;
@@ -81,6 +82,14 @@ public interface IAppDbContext
     DbSet<Contract> Contracts { get; }
 
     DbSet<ContractAppendix> ContractAppendices { get; }
+
+    DbSet<NumberSequence> NumberSequences { get; }
+
+    DbSet<Proposal> Proposals { get; }
+
+    DbSet<ProposalSummary> ProposalSummaries { get; }
+
+    DbSet<CallOrder> CallOrders { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

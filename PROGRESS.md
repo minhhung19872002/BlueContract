@@ -78,11 +78,18 @@ pm run lint/test/build pass (23 test) · Trình duyệt (Docker): thủ kho ký 
 
 **Kiểm chứng:** `dotnet test` 254/254 (115 Domain, 25 Application, 114 Integration — gồm luồng HĐ đầy đủ qua API có vòng NCC↔Kế toán + 4 chữ ký hợp lệ + phụ lục áp dụng, HĐ ngoài thầu tạo NCC + tài khoản, import Excel có lỗi/hết lỗi, dữ liệu demo đủ trạng thái, DocxRevisions, HIS mock/REST, email job) · `npm run lint/test/build` pass · **E2E #1 Playwright pass (29 s)** · trình duyệt: danh sách/chi tiết QĐ, wizard xem trước PDF 4 trang, tạo HĐ, panel rà soát của NCC1.
 
-## Phase 5 — Đề xuất – Tổng hợp – Gọi hàng
-- [ ] Proposal (X–N–T từ HIS, rule ≤ còn lại HĐ)
-- [ ] ProposalSummary (tổ trưởng sửa SL duyệt), ký duyệt
-- [ ] CallOrder (≤ SL duyệt, tách theo NCC), Cổng NCC xác nhận, email deep link
-- [ ] E2E #2
+## Phase 5 — Đề xuất – Tổng hợp – Gọi hàng ✅ (16/10/2026)
+- [x] Phiếu đề xuất (số tự sinh DX-yyyy-nnnn): khoa chọn mảng + kho + kỳ → lưới mặt hàng của các HĐ gọi hàng còn hiệu lực trong mảng với **X–N–T từ HIS** (`GetStockMovement`), SL còn lại HĐ, ô nhập SL đề xuất tô đỏ khi vượt; rule ≤ còn lại kiểm tra cả client và server; server tự lấy lại số liệu (không tin client); phạm vi khoa theo data scope; ký số người lập (WF_PROPOSAL) → gửi
+- [x] Tổng hợp đề xuất (TH-…): chọn phiếu đã gửi theo mảng → gộp theo mặt hàng HĐ, X–N–T cộng theo các kho (HIS) → PDF → người tổng hợp ký → **tổ trưởng sửa SL duyệt** (≤ còn lại HĐ; sửa thì tạo phiên bản mới, người tổng hợp ký lại) → Giám đốc ký → Đã duyệt; xuất Excel; hủy thì trả các phiếu đề xuất về chờ tổng hợp
+- [x] Gọi hàng (GH-…): từ tổng hợp đã duyệt, SL gọi ≤ SL duyệt còn lại, **tự tách đơn theo NCC**, kho nhận, hạn giao, PDF đơn gọi hàng; email + thông báo NCC (link sâu `/ncc/goi-hang/{id}`); NCC xác nhận từng dòng (≤ SL gọi, thiếu phải có lý do) → Đã xác nhận / Xác nhận một phần / Từ chối, phần không giao trả lại SL được gọi; bệnh viện nhận thông báo; theo dõi đơn quá hạn chưa xác nhận; hủy đơn chưa xác nhận
+- [x] Cột theo dõi HĐ cập nhật tự động: đã đề xuất / đã duyệt / đã gọi (tính từ nguồn, chạy sau commit trong scope riêng)
+- [x] Cổng NCC: menu Gọi hàng (danh sách + xác nhận); cô lập NCC cho đơn gọi hàng và tài liệu
+- [x] Dữ liệu demo: 2 phiếu đề xuất của Khoa Nội, 1 tổng hợp chờ tổ trưởng duyệt, 1 tổng hợp đã duyệt có đơn gọi hàng chờ NCC2 xác nhận
+- [x] E2E #2 (Playwright): đề xuất → tổng hợp → tổ trưởng duyệt → GĐ ký → gọi hàng → NCC xác nhận thiếu có lý do → bệnh viện thấy trạng thái
+
+**Sửa lỗi phát hiện trong phase:** quyền chỉnh sửa tài liệu loại Đề xuất / Tổng hợp / Gọi hàng; trạng thái nghiệp vụ không tự làm mới sau khi ký (frontend làm mới mọi query đang hiển thị sau thao tác luồng ký và khi có push realtime); giới hạn đăng nhập theo IP cấu hình được (`AUTH_LOGIN_RATE_LIMIT`) để chạy E2E.
+
+**Kiểm chứng:** `dotnet test` 264/264 (Domain 123, Application 25, Integration 116 — gồm luồng đề xuất → NCC xác nhận qua API với mọi rule số lượng, cô lập NCC, cột theo dõi HĐ, dữ liệu demo) · `npm run lint/test/build` pass · **E2E #1 + #2 Playwright pass (50 s)**.
 
 ## Phase 6 — Nhập kho
 - [ ] API inbound HIS (HMAC, chống replay, whitelist IP, rate limit, idempotent) + IntegrationLog + gửi lại

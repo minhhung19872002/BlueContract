@@ -31,15 +31,14 @@ const SIGNING = '/api/signing';
 const WF_TEMPLATES = '/api/workflow-templates';
 const NOTIFICATIONS = '/api/notifications';
 
-/** Every query whose data changes when a workflow moves; invalidated together after any action or push. */
-export const WORKFLOW_KEYS = [[WORKFLOWS], [SIGNING], [NOTIFICATIONS], ['/api/documents']] as const;
-
+/**
+ * A workflow action changes the document and the business record that owns it (contract, proposal, summary...):
+ * refresh every active query rather than keeping a list of modules in sync.
+ */
 export function useInvalidateWorkflow() {
   const qc = useQueryClient();
-  return () =>
-    Promise.all(WORKFLOW_KEYS.map((queryKey) => qc.invalidateQueries({ queryKey: [...queryKey] })));
+  return () => qc.invalidateQueries();
 }
-
 // ---------------- Workflow on a document ----------------
 
 export function useDocumentWorkflow(documentId: string | undefined) {

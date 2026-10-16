@@ -4484,6 +4484,836 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/proposals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    Page?: number;
+                    PageSize?: number;
+                    Search?: string;
+                    /** @description Property name to sort by (whitelisted per endpoint). */
+                    SortBy?: string;
+                    SortDesc?: boolean;
+                    /** @description Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows). */
+                    ForExport?: boolean;
+                    SafePage?: number;
+                    SafePageSize?: number;
+                    Domain?: components["schemas"]["ProcurementDomain"];
+                    Status?: components["schemas"]["ProposalStatus"];
+                    DepartmentId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PagedResultOfProposalListItemDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SaveProposalRequest"];
+                    "text/json": components["schemas"]["SaveProposalRequest"];
+                    "application/*+json": components["schemas"]["SaveProposalRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": string;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/proposals/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProposalDto"];
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SaveProposalRequest"];
+                    "text/json": components["schemas"]["SaveProposalRequest"];
+                    "application/*+json": components["schemas"]["SaveProposalRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/proposals/candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Mặt hàng có thể đề xuất (HĐ hiệu lực của mảng) kèm X–N–T từ HIS. */
+        get: {
+            parameters: {
+                query?: {
+                    domain?: components["schemas"]["ProcurementDomain"];
+                    warehouseId?: string;
+                    from?: string;
+                    to?: string;
+                    departmentId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProposalCandidatesDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/proposals/{id}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/proposals/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/proposal-summaries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    Page?: number;
+                    PageSize?: number;
+                    Search?: string;
+                    /** @description Property name to sort by (whitelisted per endpoint). */
+                    SortBy?: string;
+                    SortDesc?: boolean;
+                    /** @description Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows). */
+                    ForExport?: boolean;
+                    SafePage?: number;
+                    SafePageSize?: number;
+                    Domain?: components["schemas"]["ProcurementDomain"];
+                    Status?: components["schemas"]["ProposalSummaryStatus"];
+                    Callable?: boolean;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PagedResultOfSummaryListItemDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SaveSummaryRequest"];
+                    "text/json": components["schemas"]["SaveSummaryRequest"];
+                    "application/*+json": components["schemas"]["SaveSummaryRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": string;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/proposal-summaries/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SummaryDto"];
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SaveSummaryRequest"];
+                    "text/json": components["schemas"]["SaveSummaryRequest"];
+                    "application/*+json": components["schemas"]["SaveSummaryRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/proposal-summaries/{id}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Xuất Excel bảng tổng hợp (SL đề xuất, X–N–T, SL duyệt, đã gọi, còn gọi). */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/proposal-summaries/candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Phiếu đề xuất đã gửi, chưa tổng hợp. */
+        get: {
+            parameters: {
+                query?: {
+                    domain?: components["schemas"]["ProcurementDomain"];
+                    facilityId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProposalListItemDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/proposal-summaries/{id}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/proposal-summaries/{id}/approved-quantities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Tổ trưởng sửa SL duyệt. */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ApprovedQuantityRequest"][];
+                    "text/json": components["schemas"]["ApprovedQuantityRequest"][];
+                    "application/*+json": components["schemas"]["ApprovedQuantityRequest"][];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/proposal-summaries/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/call-orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    Page?: number;
+                    PageSize?: number;
+                    Search?: string;
+                    /** @description Property name to sort by (whitelisted per endpoint). */
+                    SortBy?: string;
+                    SortDesc?: boolean;
+                    /** @description Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows). */
+                    ForExport?: boolean;
+                    SafePage?: number;
+                    SafePageSize?: number;
+                    Status?: components["schemas"]["CallOrderStatus"];
+                    SupplierId?: string;
+                    SummaryId?: string;
+                    Overdue?: boolean;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PagedResultOfCallOrderListItemDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Tạo lần gọi hàng từ tổng hợp đã duyệt (tự tách theo NCC). */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateCallsRequest"];
+                    "text/json": components["schemas"]["CreateCallsRequest"];
+                    "application/*+json": components["schemas"]["CreateCallsRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": string[];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/call-orders/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    Page?: number;
+                    PageSize?: number;
+                    Search?: string;
+                    /** @description Property name to sort by (whitelisted per endpoint). */
+                    SortBy?: string;
+                    SortDesc?: boolean;
+                    /** @description Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows). */
+                    ForExport?: boolean;
+                    SafePage?: number;
+                    SafePageSize?: number;
+                    Status?: components["schemas"]["CallOrderStatus"];
+                    SupplierId?: string;
+                    SummaryId?: string;
+                    Overdue?: boolean;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/call-orders/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CallOrderDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/call-orders/{id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ConfirmCallRequest"];
+                    "text/json": components["schemas"]["ConfirmCallRequest"];
+                    "application/*+json": components["schemas"]["ConfirmCallRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/call-orders/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/system/info": {
         parameters: {
             query?: never;
@@ -5427,6 +6257,12 @@ export interface components {
         AppendixStatus: "Draft" | "InWorkflow" | "Effective" | "Cancelled";
         /** @enum {unknown} */
         AppendixType: "AddQuantity" | "PriceReduction" | "InfoChange" | "Extension";
+        ApprovedQuantityRequest: {
+            /** Format: uuid */
+            lineId: string;
+            /** Format: double */
+            approvedQuantity: number;
+        };
         ApproveStepRequest: {
             comment: null | string;
             skipNextOptional: boolean;
@@ -5598,6 +6434,88 @@ export interface components {
             /** Format: double */
             winningValue: number;
         };
+        CallLineRequest: {
+            /** Format: uuid */
+            summaryLineId: string;
+            /** Format: double */
+            quantity: number;
+        };
+        CallOrderDto: {
+            /** Format: uuid */
+            id: string;
+            number: string;
+            /** Format: uuid */
+            summaryId: string;
+            summaryNumber: string;
+            /** Format: uuid */
+            supplierId: string;
+            supplierName: string;
+            /** Format: uuid */
+            warehouseId: string;
+            warehouseName: string;
+            /** Format: date */
+            callDate: string;
+            /** Format: date */
+            deliveryDeadline: string;
+            contactName: null | string;
+            note: null | string;
+            status: components["schemas"]["CallOrderStatus"];
+            /** Format: uuid */
+            documentId: null | string;
+            /** Format: date-time */
+            confirmedAt: null | string;
+            confirmedByName: null | string;
+            supplierNote: null | string;
+            isOverdue: boolean;
+            /** Format: double */
+            totalAmount: number;
+            lines: components["schemas"]["CallOrderLineDto"][];
+            canConfirm: boolean;
+            canCancel: boolean;
+        };
+        CallOrderLineDto: {
+            /** Format: uuid */
+            id: string;
+            contractNumber: string;
+            itemCode: string;
+            itemName: string;
+            unit: string;
+            /** Format: double */
+            unitPrice: number;
+            /** Format: double */
+            quantity: number;
+            /** Format: double */
+            confirmedQuantity: null | number;
+            shortageReason: null | string;
+            /** Format: double */
+            deliveredQuantity: number;
+            /** Format: double */
+            amount: number;
+        };
+        CallOrderListItemDto: {
+            /** Format: uuid */
+            id: string;
+            number: string;
+            /** Format: uuid */
+            supplierId: string;
+            supplierName: string;
+            summaryNumber: string;
+            warehouseName: string;
+            /** Format: date */
+            callDate: string;
+            /** Format: date */
+            deliveryDeadline: string;
+            status: components["schemas"]["CallOrderStatus"];
+            /** Format: double */
+            totalAmount: number;
+            /** Format: int32 */
+            lineCount: number;
+            isOverdue: boolean;
+            /** Format: date-time */
+            confirmedAt: null | string;
+        };
+        /** @enum {unknown} */
+        CallOrderStatus: "Sent" | "SupplierConfirmed" | "PartiallyConfirmed" | "Rejected" | "Delivered" | "Cancelled";
         CancelContractRequest: {
             reason: null | string;
         };
@@ -5610,6 +6528,17 @@ export interface components {
         };
         CompleteSignRequest: {
             signatureValue: string;
+        };
+        ConfirmCallRequest: {
+            lines: components["schemas"]["ConfirmLineRequest"][];
+            note: null | string;
+        };
+        ConfirmLineRequest: {
+            /** Format: uuid */
+            lineId: string;
+            /** Format: double */
+            confirmedQuantity: number;
+            shortageReason: null | string;
         };
         /** @description What the caller may do on the contract right now (drives the buttons of the detail screen). */
         ContractActionsDto: {
@@ -5785,6 +6714,17 @@ export interface components {
          * @enum {unknown}
          */
         ContractStatus: "Draft" | "InReview" | "SupplierReview" | "AccountantReview" | "SupplierSigning" | "AccountantInitialing" | "DirectorSigning" | "Stamping" | "Effective" | "Liquidated" | "Cancelled" | "Returned";
+        CreateCallsRequest: {
+            /** Format: uuid */
+            summaryId: string;
+            /** Format: uuid */
+            warehouseId: string;
+            /** Format: date */
+            deliveryDeadline: string;
+            contactName: null | string;
+            note: null | string;
+            lines: components["schemas"]["CallLineRequest"][];
+        };
         CreateDelegationRequest: {
             /** Format: uuid */
             delegatorUserId: string;
@@ -6199,6 +7139,15 @@ export interface components {
             /** Format: int32 */
             pageSize: number;
         };
+        PagedResultOfCallOrderListItemDto: {
+            items: components["schemas"]["CallOrderListItemDto"][];
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+        };
         PagedResultOfContractListItemDto: {
             items: components["schemas"]["ContractListItemDto"][];
             /** Format: int32 */
@@ -6237,6 +7186,24 @@ export interface components {
         };
         PagedResultOfItemDto: {
             items: components["schemas"]["ItemDto"][];
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+        };
+        PagedResultOfProposalListItemDto: {
+            items: components["schemas"]["ProposalListItemDto"][];
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+        };
+        PagedResultOfSummaryListItemDto: {
+            items: components["schemas"]["SummaryListItemDto"][];
             /** Format: int32 */
             total: number;
             /** Format: int32 */
@@ -6306,6 +7273,124 @@ export interface components {
         ProcurementDomain: "Drug" | "MedicalSupply" | "Chemical" | "Equipment" | "Administration";
         /** @enum {unknown} */
         ProcurementType: "Bidding" | "NonBidding";
+        /** @description A contract item that can be proposed, with its HIS stock movement for the period. */
+        ProposalCandidateDto: {
+            /** Format: uuid */
+            contractId: string;
+            contractNumber: string;
+            supplierName: string;
+            /** Format: uuid */
+            contractItemId: string;
+            /** Format: uuid */
+            itemId: string;
+            itemCode: string;
+            itemName: string;
+            unit: string;
+            hisKey: null | string;
+            /** Format: double */
+            unitPrice: number;
+            /** Format: double */
+            contractQuantity: number;
+            /** Format: double */
+            contractRemaining: number;
+            /** Format: double */
+            openingStock: number;
+            /** Format: double */
+            received: number;
+            /** Format: double */
+            issued: number;
+            /** Format: double */
+            currentStock: number;
+        };
+        ProposalCandidatesDto: {
+            items: components["schemas"]["ProposalCandidateDto"][];
+            hisAvailable: boolean;
+            hisName: string;
+        };
+        ProposalDto: {
+            /** Format: uuid */
+            id: string;
+            number: string;
+            /** Format: uuid */
+            departmentId: string;
+            departmentName: string;
+            /** Format: uuid */
+            warehouseId: string;
+            warehouseName: string;
+            domain: components["schemas"]["ProcurementDomain"];
+            /** Format: date */
+            periodFrom: string;
+            /** Format: date */
+            periodTo: string;
+            periodText: string;
+            note: null | string;
+            status: components["schemas"]["ProposalStatus"];
+            createdByName: null | string;
+            /** Format: uuid */
+            documentId: null | string;
+            /** Format: uuid */
+            summaryId: null | string;
+            lines: components["schemas"]["ProposalLineDto"][];
+            canEdit: boolean;
+            canSubmit: boolean;
+            canCancel: boolean;
+        };
+        ProposalLineDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            contractId: string;
+            contractNumber: string;
+            /** Format: uuid */
+            contractItemId: string;
+            itemCode: string;
+            itemName: string;
+            unit: string;
+            hisKey: null | string;
+            /** Format: double */
+            openingStock: number;
+            /** Format: double */
+            received: number;
+            /** Format: double */
+            issued: number;
+            /** Format: double */
+            currentStock: number;
+            /** Format: double */
+            contractRemaining: number;
+            /** Format: double */
+            proposedQuantity: number;
+            note: null | string;
+        };
+        ProposalLineRequest: {
+            /** Format: uuid */
+            contractItemId: string;
+            /** Format: double */
+            proposedQuantity: number;
+            note: null | string;
+        };
+        ProposalListItemDto: {
+            /** Format: uuid */
+            id: string;
+            number: string;
+            departmentName: string;
+            domain: components["schemas"]["ProcurementDomain"];
+            periodText: string;
+            status: components["schemas"]["ProposalStatus"];
+            /** Format: int32 */
+            lineCount: number;
+            /** Format: double */
+            totalQuantity: number;
+            createdByName: null | string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            submittedAt: null | string;
+            summaryNumber: null | string;
+        };
+        /** @enum {unknown} */
+        ProposalStatus: "Draft" | "Signing" | "Submitted" | "Aggregated" | "Returned" | "Cancelled";
+        /** @enum {unknown} */
+        ProposalSummaryStatus: "Draft" | "AggregatorSigning" | "DomainHeadReview" | "DirectorSigning" | "Approved" | "Returned" | "Cancelled";
         ResetPasswordResponse: {
             temporaryPassword: string;
             emailSent: boolean;
@@ -6454,10 +7539,31 @@ export interface components {
             /** @default true */
             isActive: boolean;
         };
+        SaveProposalRequest: {
+            /** Format: uuid */
+            departmentId: string;
+            /** Format: uuid */
+            warehouseId: string;
+            domain: components["schemas"]["ProcurementDomain"];
+            /** Format: date */
+            periodFrom: string;
+            /** Format: date */
+            periodTo: string;
+            note: null | string;
+            lines: components["schemas"]["ProposalLineRequest"][];
+        };
         SaveRoleRequest: {
             code: string;
             name: string;
             description: null | string;
+        };
+        SaveSummaryRequest: {
+            domain: components["schemas"]["ProcurementDomain"];
+            /** Format: uuid */
+            facilityId: null | string;
+            periodText: string;
+            note: null | string;
+            proposalIds: string[];
         };
         SaveSupplierRequest: {
             taxCode: string;
@@ -6579,6 +7685,95 @@ export interface components {
         };
         /** @enum {unknown} */
         StepStatus: "Pending" | "Active" | "Done" | "Skipped";
+        SummaryDto: {
+            /** Format: uuid */
+            id: string;
+            number: string;
+            domain: components["schemas"]["ProcurementDomain"];
+            /** Format: uuid */
+            facilityId: null | string;
+            periodText: string;
+            aggregatorName: null | string;
+            note: null | string;
+            status: components["schemas"]["ProposalSummaryStatus"];
+            /** Format: uuid */
+            documentId: null | string;
+            /** Format: date-time */
+            approvedAt: null | string;
+            proposals: components["schemas"]["SummaryProposalDto"][];
+            lines: components["schemas"]["SummaryLineDto"][];
+            canEdit: boolean;
+            canSubmit: boolean;
+            canCancel: boolean;
+            canEditApproved: boolean;
+            canCall: boolean;
+        };
+        SummaryLineDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            contractId: string;
+            contractNumber: string;
+            /** Format: uuid */
+            contractItemId: string;
+            /** Format: uuid */
+            supplierId: string;
+            supplierName: string;
+            itemCode: string;
+            itemName: string;
+            unit: string;
+            /** Format: double */
+            unitPrice: number;
+            /** Format: double */
+            proposedQuantity: number;
+            /** Format: double */
+            openingStock: number;
+            /** Format: double */
+            received: number;
+            /** Format: double */
+            issued: number;
+            /** Format: double */
+            currentStock: number;
+            /** Format: double */
+            contractRemaining: number;
+            /** Format: double */
+            approvedQuantity: number;
+            /** Format: double */
+            calledQuantity: number;
+            /** Format: double */
+            remainingToCall: number;
+            /** Format: double */
+            amount: number;
+        };
+        SummaryListItemDto: {
+            /** Format: uuid */
+            id: string;
+            number: string;
+            domain: components["schemas"]["ProcurementDomain"];
+            periodText: string;
+            status: components["schemas"]["ProposalSummaryStatus"];
+            aggregatorName: null | string;
+            /** Format: int32 */
+            proposalCount: number;
+            /** Format: int32 */
+            lineCount: number;
+            /** Format: double */
+            totalAmount: number;
+            /** Format: double */
+            remainingToCallAmount: number;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            approvedAt: null | string;
+        };
+        SummaryProposalDto: {
+            /** Format: uuid */
+            id: string;
+            number: string;
+            departmentName: string;
+            /** Format: int32 */
+            lineCount: number;
+        };
         SupplierAccountRequest: {
             userName: string;
             fullName: string;

@@ -7,6 +7,7 @@ using BlueContract.Domain.Contracts;
 using BlueContract.Domain.Documents;
 using BlueContract.Domain.Identity;
 using BlueContract.Domain.Organizations;
+using BlueContract.Domain.Proposals;
 using BlueContract.Domain.Settings;
 using BlueContract.Domain.Workflows;
 using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
@@ -100,6 +101,14 @@ public sealed class AppDbContext : DbContext, IAppDbContext, IDataProtectionKeyC
     public DbSet<Contract> Contracts => Set<Contract>();
 
     public DbSet<ContractAppendix> ContractAppendices => Set<ContractAppendix>();
+
+    public DbSet<NumberSequence> NumberSequences => Set<NumberSequence>();
+
+    public DbSet<Proposal> Proposals => Set<Proposal>();
+
+    public DbSet<ProposalSummary> ProposalSummaries => Set<ProposalSummary>();
+
+    public DbSet<CallOrder> CallOrders => Set<CallOrder>();
 
     public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
 

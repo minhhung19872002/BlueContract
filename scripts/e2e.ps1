@@ -1,6 +1,7 @@
 <#
 .SYNOPSIS
   Chạy kiểm thử E2E (Playwright) trên stack docker compose đang chạy (scripts/dev-up.ps1 trước).
+  Stack cần AUTH_LOGIN_RATE_LIMIT=1000 trong .env (E2E đăng nhập nhiều tài khoản từ cùng một IP).
 .PARAMETER BaseUrl
   Địa chỉ web (mặc định http://127.0.0.1:47080).
 #>

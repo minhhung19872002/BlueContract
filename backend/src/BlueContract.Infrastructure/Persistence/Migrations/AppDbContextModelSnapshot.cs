@@ -555,6 +555,33 @@ namespace BlueContract.Infrastructure.Persistence.Migrations
                     b.ToTable("department_history", (string)null);
                 });
 
+            modelBuilder.Entity("BlueContract.Domain.Common.NumberSequence", b =>
+                {
+                    b.Property<string>("Prefix")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("prefix");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("integer")
+                        .HasColumnName("year");
+
+                    b.Property<int>("Last")
+                        .HasColumnType("integer")
+                        .HasColumnName("last");
+
+                    b.Property<uint>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Prefix", "Year")
+                        .HasName("pk_number_sequences");
+
+                    b.ToTable("number_sequences", (string)null);
+                });
+
             modelBuilder.Entity("BlueContract.Domain.Common.SupplierHistory", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2343,6 +2370,651 @@ namespace BlueContract.Infrastructure.Persistence.Migrations
                     b.ToTable("warehouses", (string)null);
                 });
 
+            modelBuilder.Entity("BlueContract.Domain.Proposals.CallOrder", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateOnly>("CallDate")
+                        .HasColumnType("date")
+                        .HasColumnName("call_date");
+
+                    b.Property<DateTimeOffset?>("ConfirmedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("confirmed_at");
+
+                    b.Property<Guid?>("ConfirmedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("confirmed_by");
+
+                    b.Property<string>("ConfirmedByName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("confirmed_by_name");
+
+                    b.Property<string>("ContactName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("contact_name");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<DateOnly>("DeliveryDeadline")
+                        .HasColumnType("date")
+                        .HasColumnName("delivery_deadline");
+
+                    b.Property<Guid?>("DocumentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("document_id");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("note");
+
+                    b.Property<string>("Number")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("number");
+
+                    b.Property<uint>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("status");
+
+                    b.Property<Guid>("SummaryId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("summary_id");
+
+                    b.Property<Guid>("SupplierId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("supplier_id");
+
+                    b.Property<string>("SupplierNote")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("supplier_note");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.Property<Guid>("WarehouseId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("warehouse_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_call_orders");
+
+                    b.HasIndex("Number")
+                        .IsUnique()
+                        .HasDatabaseName("ix_call_orders_number");
+
+                    b.HasIndex("SummaryId")
+                        .HasDatabaseName("ix_call_orders_summary_id");
+
+                    b.HasIndex("Status", "DeliveryDeadline")
+                        .HasDatabaseName("ix_call_orders_status_delivery_deadline");
+
+                    b.HasIndex("SupplierId", "Status")
+                        .HasDatabaseName("ix_call_orders_supplier_id_status");
+
+                    b.ToTable("call_orders", (string)null);
+                });
+
+            modelBuilder.Entity("BlueContract.Domain.Proposals.CallOrderLine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CallOrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("call_order_id");
+
+                    b.Property<decimal?>("ConfirmedQuantity")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)")
+                        .HasColumnName("confirmed_quantity");
+
+                    b.Property<Guid>("ContractId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_id");
+
+                    b.Property<Guid>("ContractItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_item_id");
+
+                    b.Property<string>("ContractNumber")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("contract_number");
+
+                    b.Property<decimal>("DeliveredQuantity")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)")
+                        .HasColumnName("delivered_quantity");
+
+                    b.Property<string>("ItemCode")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("item_code");
+
+                    b.Property<string>("ItemName")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("item_name");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)")
+                        .HasColumnName("quantity");
+
+                    b.Property<string>("ShortageReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("shortage_reason");
+
+                    b.Property<Guid>("SummaryLineId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("summary_line_id");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("unit");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("unit_price");
+
+                    b.HasKey("Id")
+                        .HasName("pk_call_order_lines");
+
+                    b.HasIndex("CallOrderId")
+                        .HasDatabaseName("ix_call_order_lines_call_order_id");
+
+                    b.HasIndex("ContractItemId")
+                        .HasDatabaseName("ix_call_order_lines_contract_item_id");
+
+                    b.HasIndex("SummaryLineId")
+                        .HasDatabaseName("ix_call_order_lines_summary_line_id");
+
+                    b.ToTable("call_order_lines", (string)null);
+                });
+
+            modelBuilder.Entity("BlueContract.Domain.Proposals.Proposal", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("CreatedByName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("created_by_name");
+
+                    b.Property<Guid>("DepartmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("department_id");
+
+                    b.Property<Guid?>("DocumentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("document_id");
+
+                    b.Property<string>("Domain")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("domain");
+
+                    b.Property<Guid?>("FacilityId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("facility_id");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("note");
+
+                    b.Property<string>("Number")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("number");
+
+                    b.Property<DateOnly>("PeriodFrom")
+                        .HasColumnType("date")
+                        .HasColumnName("period_from");
+
+                    b.Property<string>("PeriodText")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("period_text");
+
+                    b.Property<DateOnly>("PeriodTo")
+                        .HasColumnType("date")
+                        .HasColumnName("period_to");
+
+                    b.Property<uint>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset?>("SubmittedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("submitted_at");
+
+                    b.Property<Guid?>("SummaryId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("summary_id");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.Property<Guid>("WarehouseId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("warehouse_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_proposals");
+
+                    b.HasIndex("DocumentId")
+                        .HasDatabaseName("ix_proposals_document_id");
+
+                    b.HasIndex("Number")
+                        .IsUnique()
+                        .HasDatabaseName("ix_proposals_number");
+
+                    b.HasIndex("SummaryId")
+                        .HasDatabaseName("ix_proposals_summary_id");
+
+                    b.HasIndex("DepartmentId", "Status")
+                        .HasDatabaseName("ix_proposals_department_id_status");
+
+                    b.HasIndex("Domain", "Status")
+                        .HasDatabaseName("ix_proposals_domain_status");
+
+                    b.ToTable("proposals", (string)null);
+                });
+
+            modelBuilder.Entity("BlueContract.Domain.Proposals.ProposalLine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ContractId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_id");
+
+                    b.Property<Guid>("ContractItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_item_id");
+
+                    b.Property<string>("ContractNumber")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("contract_number");
+
+                    b.Property<decimal>("ContractRemaining")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)")
+                        .HasColumnName("contract_remaining");
+
+                    b.Property<decimal>("CurrentStock")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)")
+                        .HasColumnName("current_stock");
+
+                    b.Property<string>("HisKey")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("his_key");
+
+                    b.Property<decimal>("Issued")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)")
+                        .HasColumnName("issued");
+
+                    b.Property<string>("ItemCode")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("item_code");
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("item_id");
+
+                    b.Property<string>("ItemName")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("item_name");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("note");
+
+                    b.Property<decimal>("OpeningStock")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)")
+                        .HasColumnName("opening_stock");
+
+                    b.Property<Guid>("ProposalId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("proposal_id");
+
+                    b.Property<decimal>("ProposedQuantity")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)")
+                        .HasColumnName("proposed_quantity");
+
+                    b.Property<decimal>("Received")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)")
+                        .HasColumnName("received");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("unit");
+
+                    b.HasKey("Id")
+                        .HasName("pk_proposal_lines");
+
+                    b.HasIndex("ContractItemId")
+                        .HasDatabaseName("ix_proposal_lines_contract_item_id");
+
+                    b.HasIndex("ProposalId")
+                        .HasDatabaseName("ix_proposal_lines_proposal_id");
+
+                    b.ToTable("proposal_lines", (string)null);
+                });
+
+            modelBuilder.Entity("BlueContract.Domain.Proposals.ProposalSummary", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AggregatorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("aggregator_id");
+
+                    b.Property<string>("AggregatorName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("aggregator_name");
+
+                    b.Property<DateTimeOffset?>("ApprovedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("approved_at");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<Guid?>("DocumentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("document_id");
+
+                    b.Property<string>("Domain")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("domain");
+
+                    b.Property<Guid?>("FacilityId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("facility_id");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("note");
+
+                    b.Property<string>("Number")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("number");
+
+                    b.Property<string>("PeriodText")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("period_text");
+
+                    b.Property<uint>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("Id")
+                        .HasName("pk_proposal_summaries");
+
+                    b.HasIndex("DocumentId")
+                        .HasDatabaseName("ix_proposal_summaries_document_id");
+
+                    b.HasIndex("Number")
+                        .IsUnique()
+                        .HasDatabaseName("ix_proposal_summaries_number");
+
+                    b.HasIndex("Domain", "Status")
+                        .HasDatabaseName("ix_proposal_summaries_domain_status");
+
+                    b.ToTable("proposal_summaries", (string)null);
+                });
+
+            modelBuilder.Entity("BlueContract.Domain.Proposals.ProposalSummaryLine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("ApprovedQuantity")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)")
+                        .HasColumnName("approved_quantity");
+
+                    b.Property<decimal>("CalledQuantity")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)")
+                        .HasColumnName("called_quantity");
+
+                    b.Property<Guid>("ContractId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_id");
+
+                    b.Property<Guid>("ContractItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_item_id");
+
+                    b.Property<string>("ContractNumber")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("contract_number");
+
+                    b.Property<decimal>("ContractRemaining")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)")
+                        .HasColumnName("contract_remaining");
+
+                    b.Property<decimal>("CurrentStock")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)")
+                        .HasColumnName("current_stock");
+
+                    b.Property<decimal>("Issued")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)")
+                        .HasColumnName("issued");
+
+                    b.Property<string>("ItemCode")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("item_code");
+
+                    b.Property<string>("ItemName")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("item_name");
+
+                    b.Property<decimal>("OpeningStock")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)")
+                        .HasColumnName("opening_stock");
+
+                    b.Property<decimal>("ProposedQuantity")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)")
+                        .HasColumnName("proposed_quantity");
+
+                    b.Property<decimal>("Received")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)")
+                        .HasColumnName("received");
+
+                    b.Property<Guid>("SummaryId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("summary_id");
+
+                    b.Property<Guid>("SupplierId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("supplier_id");
+
+                    b.Property<string>("SupplierName")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("supplier_name");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("unit");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("unit_price");
+
+                    b.HasKey("Id")
+                        .HasName("pk_proposal_summary_lines");
+
+                    b.HasIndex("ContractItemId")
+                        .HasDatabaseName("ix_proposal_summary_lines_contract_item_id");
+
+                    b.HasIndex("SummaryId")
+                        .HasDatabaseName("ix_proposal_summary_lines_summary_id");
+
+                    b.ToTable("proposal_summary_lines", (string)null);
+                });
+
+            modelBuilder.Entity("BlueContract.Domain.Proposals.ProposalSummarySource", b =>
+                {
+                    b.Property<Guid>("SummaryId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("summary_id");
+
+                    b.Property<Guid>("ProposalId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("proposal_id");
+
+                    b.HasKey("SummaryId", "ProposalId")
+                        .HasName("pk_proposal_summary_sources");
+
+                    b.HasIndex("ProposalId")
+                        .HasDatabaseName("ix_proposal_summary_sources_proposal_id");
+
+                    b.ToTable("proposal_summary_sources", (string)null);
+                });
+
             modelBuilder.Entity("BlueContract.Domain.Settings.SystemSetting", b =>
                 {
                     b.Property<Guid>("Id")
@@ -3370,6 +4042,46 @@ namespace BlueContract.Infrastructure.Persistence.Migrations
                     b.Navigation("Facility");
                 });
 
+            modelBuilder.Entity("BlueContract.Domain.Proposals.CallOrderLine", b =>
+                {
+                    b.HasOne("BlueContract.Domain.Proposals.CallOrder", null)
+                        .WithMany("Lines")
+                        .HasForeignKey("CallOrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_call_order_lines_call_orders_call_order_id");
+                });
+
+            modelBuilder.Entity("BlueContract.Domain.Proposals.ProposalLine", b =>
+                {
+                    b.HasOne("BlueContract.Domain.Proposals.Proposal", null)
+                        .WithMany("Lines")
+                        .HasForeignKey("ProposalId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_proposal_lines_proposals_proposal_id");
+                });
+
+            modelBuilder.Entity("BlueContract.Domain.Proposals.ProposalSummaryLine", b =>
+                {
+                    b.HasOne("BlueContract.Domain.Proposals.ProposalSummary", null)
+                        .WithMany("Lines")
+                        .HasForeignKey("SummaryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_proposal_summary_lines_proposal_summaries_summary_id");
+                });
+
+            modelBuilder.Entity("BlueContract.Domain.Proposals.ProposalSummarySource", b =>
+                {
+                    b.HasOne("BlueContract.Domain.Proposals.ProposalSummary", null)
+                        .WithMany("Sources")
+                        .HasForeignKey("SummaryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_proposal_summary_sources_proposal_summaries_summary_id");
+                });
+
             modelBuilder.Entity("BlueContract.Domain.Workflows.WorkflowEvent", b =>
                 {
                     b.HasOne("BlueContract.Domain.Workflows.WorkflowInstance", null)
@@ -3437,6 +4149,23 @@ namespace BlueContract.Infrastructure.Persistence.Migrations
                     b.Navigation("DataScopes");
 
                     b.Navigation("Roles");
+                });
+
+            modelBuilder.Entity("BlueContract.Domain.Proposals.CallOrder", b =>
+                {
+                    b.Navigation("Lines");
+                });
+
+            modelBuilder.Entity("BlueContract.Domain.Proposals.Proposal", b =>
+                {
+                    b.Navigation("Lines");
+                });
+
+            modelBuilder.Entity("BlueContract.Domain.Proposals.ProposalSummary", b =>
+                {
+                    b.Navigation("Lines");
+
+                    b.Navigation("Sources");
                 });
 
             modelBuilder.Entity("BlueContract.Domain.Workflows.WorkflowInstance", b =>
