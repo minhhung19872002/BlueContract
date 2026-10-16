@@ -150,6 +150,7 @@ export function PaymentsPage() {
             label: 'Nghiệm thu',
             children: (
               <DataTable<AcceptanceListItemDto>
+                exportAs={{ title: 'Biên bản nghiệm thu', url: ACCEPTANCES, params }}
                 data={acceptances.data}
                 loading={acceptances.isFetching}
                 state={state}
@@ -199,6 +200,7 @@ export function PaymentsPage() {
             label: 'Xác định giá trị (08a)',
             children: (
               <DataTable<ValuationListItemDto>
+                exportAs={{ title: 'Xác định giá trị và đề nghị thanh toán', url: VALUATIONS, params }}
                 data={valuations.data}
                 loading={valuations.isFetching}
                 state={state}
@@ -262,6 +264,7 @@ export function PaymentsPage() {
             label: 'Thanh lý',
             children: (
               <DataTable<LiquidationListItemDto>
+                exportAs={{ title: 'Biên bản thanh lý', url: LIQUIDATIONS, params }}
                 data={liquidations.data}
                 loading={liquidations.isFetching}
                 state={state}

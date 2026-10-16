@@ -53,6 +53,7 @@ import { AppendixDialog } from './AppendixDialog';
 import { ContractCalls, ContractHistory } from './ContractTabs';
 import { contractInfoLabel, formatContractInfo } from '../../utils/contractInfo';
 import { AccountantReviewPanel, SupplierReviewPanel } from './ContractReviewPanels';
+import { ExportableTable } from '../../components/TableExportButton';
 
 const pct = (part: number, whole: number) => (whole > 0 ? Math.round((part * 1000) / whole) / 10 : 0);
 
@@ -316,7 +317,8 @@ export function ContractDetailPage() {
               label: `Hàng hóa & theo dõi thực hiện (${c.items.length})`,
               children: (
                 <>
-                  <Table<ContractItemDto>
+                  <ExportableTable<ContractItemDto>
+                    exportTitle="Hàng hóa và theo dõi thực hiện hợp đồng"
                     rowKey="id"
                     size="small"
                     pagination={false}
@@ -431,7 +433,8 @@ export function ContractDetailPage() {
               key: 'appendices',
               label: `Phụ lục (${c.appendices.length})`,
               children: (
-                <Table<ContractAppendixDto>
+                <ExportableTable<ContractAppendixDto>
+                  exportTitle="Phụ lục hợp đồng"
                   rowKey="id"
                   size="middle"
                   pagination={false}

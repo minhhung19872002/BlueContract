@@ -4141,6 +4141,42 @@
         }
       }
     },
+    "/api/export/table": {
+      "post": {
+        "tags": [
+          "Export"
+        ],
+        "summary": "Workbook of the given columns and rows; reads no data (the export shows only what the user sees).",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TableExportRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TableExportRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/TableExportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    },
     "/api/acceptances": {
       "get": {
         "tags": [
@@ -21734,6 +21770,66 @@
           }
         }
       },
+      "TableExportColumn": {
+        "required": [
+          "header",
+          "format",
+          "width"
+        ],
+        "type": "object",
+        "properties": {
+          "header": {
+            "type": "string"
+          },
+          "format": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "width": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        },
+        "description": "One column of an exported table: header, cell format (text|number|money|date|datetime) and width."
+      },
+      "TableExportRequest": {
+        "required": [
+          "title",
+          "fileName",
+          "columns",
+          "rows"
+        ],
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "fileName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "columns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TableExportColumn"
+            }
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "type": "array"
+            }
+          }
+        },
+        "description": "A table as the web app shows it: rows of cells (strings, numbers, null; dates as dd/MM/yyyy [HH:mm])."
+      },
       "TemplateCollection": {
         "required": [
           "name",
@@ -23479,6 +23575,9 @@
     },
     {
       "name": "Documents"
+    },
+    {
+      "name": "Export"
     },
     {
       "name": "Acceptances"

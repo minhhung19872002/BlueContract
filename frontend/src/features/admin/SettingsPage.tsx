@@ -1,9 +1,10 @@
-import { App, Button, Card, Input, InputNumber, Space, Switch, Table, Typography } from 'antd';
+import { App, Button, Card, Input, InputNumber, Space, Switch, Typography } from 'antd';
 import { SaveOutlined } from '@ant-design/icons';
 import { useState } from 'react';
 import { resources, useAction, useGet, type SystemSettingDto } from '../../api/admin';
 import { PageHeader, useApiError } from '../../components/common';
 import { formatQuantity, omitKey } from '../../utils/format';
+import { ExportableTable } from '../../components/TableExportButton';
 
 /** Tham số hệ thống: every threshold in spec §11 is editable here. */
 export function SettingsPage() {
@@ -54,7 +55,8 @@ export function SettingsPage() {
     <>
       <PageHeader title="Tham số hệ thống" subtitle="Các ngưỡng nghiệp vụ dùng chung" />
       <Card>
-        <Table<SystemSettingDto>
+        <ExportableTable<SystemSettingDto>
+          exportTitle="Tham số hệ thống"
           rowKey="key"
           loading={list.isLoading}
           dataSource={list.data ?? []}

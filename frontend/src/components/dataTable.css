@@ -493,3 +493,10 @@ h1.ant-typography.page-header__title {
 .history-diff__new {
   font-weight: 500;
 }
+
+/* "Xuất Excel" above a detail table (ExportableTable). */
+.table-export-bar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 0 8px;
+}

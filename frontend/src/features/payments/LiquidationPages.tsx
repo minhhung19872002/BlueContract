@@ -50,6 +50,7 @@ import { formatDate, formatDateTime, formatMoney } from '../../utils/format';
 import { WorkflowCard } from '../signing/WorkflowPanel';
 import { DocumentPdf } from '../proposals/ProposalDetailPage';
 import { EffectiveContractSelect } from './AcceptancePages';
+import { ExportableTable } from '../../components/TableExportButton';
 
 const valuationColumns = [
   { title: 'Biên bản 08a', dataIndex: 'number' },
@@ -334,7 +335,8 @@ export function LiquidationDetailPage() {
                   key: 'valuations',
                   label: `Các lần thanh toán (${l.valuations.length})`,
                   children: (
-                    <Table<LiquidationValuationDto>
+                    <ExportableTable<LiquidationValuationDto>
+                      exportTitle="Bảng đối chiếu thanh toán"
                       rowKey="valuationId"
                       size="small"
                       pagination={false}
@@ -416,7 +418,8 @@ function Settlements({ liquidation: l }: { liquidation: LiquidationDto }) {
           Đánh dấu đã thanh toán
         </Button>
       )}
-      <Table<LiquidationSettlementDto>
+      <ExportableTable<LiquidationSettlementDto>
+        exportTitle="Khoản đã chốt thanh toán"
         rowKey="id"
         size="small"
         pagination={false}

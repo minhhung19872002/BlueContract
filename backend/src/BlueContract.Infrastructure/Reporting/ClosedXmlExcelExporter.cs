@@ -59,6 +59,10 @@ internal sealed class ClosedXmlExcelExporter : IExcelExporter
                 cell.Value = TimeZoneInfo.ConvertTime(dto, VietnamZone).DateTime;
                 cell.Style.DateFormat.Format = format == ExcelColumnFormat.DateTime ? "dd/MM/yyyy HH:mm" : "dd/MM/yyyy";
                 return;
+            case DateTime dt:
+                cell.Value = dt;
+                cell.Style.DateFormat.Format = format == ExcelColumnFormat.DateTime ? "dd/MM/yyyy HH:mm" : "dd/MM/yyyy";
+                return;
             case DateOnly d:
                 cell.Value = d.ToDateTime(TimeOnly.MinValue);
                 cell.Style.DateFormat.Format = "dd/MM/yyyy";

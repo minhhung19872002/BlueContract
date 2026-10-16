@@ -42,7 +42,8 @@ export function ReviewPage() {
       { replace: true },
     );
 
-  const inbox = useInbox({ tab, page, pageSize, search, actionType: 'Review' });
+  const inboxQuery = { tab, page, pageSize, search, actionType: 'Review' } as const;
+  const inbox = useInbox(inboxQuery);
   const state: TableState = { page, pageSize, search, filters: {} };
   const close = () => set({ document: undefined }, false);
   const review = openDocument && <DocumentReview documentId={openDocument} onDone={close} />;
@@ -54,6 +55,7 @@ export function ReviewPage() {
         subtitle="Hợp đồng, phụ lục và biên bản chờ Tổ rà soát kiểm tra — so sánh các phiên bản trước khi đồng ý hoặc trả lại"
       />
       <DataTable<InboxItemDto>
+        exportAs={{ title: 'Rà soát', url: '/api/signing/inbox', params: inboxQuery }}
         data={inbox.data}
         loading={inbox.isFetching}
         error={inbox.isError}

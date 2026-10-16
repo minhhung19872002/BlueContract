@@ -53,6 +53,7 @@ import { formatDate, formatDateTime, formatMoney, formatQuantity } from '../../u
 import { WorkflowCard } from '../signing/WorkflowPanel';
 import { DocumentPdf } from '../proposals/ProposalDetailPage';
 import { EffectiveContractSelect } from './AcceptancePages';
+import { ExportableTable } from '../../components/TableExportButton';
 
 interface Header {
   contractId?: string;
@@ -319,7 +320,8 @@ export function ValuationDetailPage() {
                   key: 'items',
                   label: 'Khối lượng hoàn thành',
                   children: (
-                    <Table<ValuationItemDto>
+                    <ExportableTable<ValuationItemDto>
+                      exportTitle="Chi tiết giá trị khối lượng hoàn thành"
                       rowKey="contractItemId"
                       size="small"
                       pagination={false}

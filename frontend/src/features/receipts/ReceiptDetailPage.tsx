@@ -49,6 +49,7 @@ import { MoneyInput } from '../../components/inputs';
 import { formatDate, formatDateTime, formatMoney, formatQuantity } from '../../utils/format';
 import { WorkflowCard } from '../signing/WorkflowPanel';
 import { DocumentPdf } from '../proposals/ProposalDetailPage';
+import { ExportableTable } from '../../components/TableExportButton';
 
 const TITLE: Record<string, string> = { Receipt: 'Phiếu nhập kho', Return: 'Phiếu hoàn trả' };
 
@@ -228,7 +229,8 @@ export function ReceiptDetailPage() {
                   key: 'lines',
                   label: `Chi tiết hàng (${r.lines.length})`,
                   children: (
-                    <Table<ReceiptLineDto>
+                    <ExportableTable<ReceiptLineDto>
+                      exportTitle="Mặt hàng phiếu nhập kho"
                       rowKey="id"
                       size="small"
                       pagination={false}

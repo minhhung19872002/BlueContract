@@ -50,6 +50,7 @@ import { formatDate, formatMoney, formatQuantity } from '../../utils/format';
 import { BidForm } from './BidForm';
 import { fromBid, toBidRequest, type BidFormValues } from './bidFormValues';
 import { ImportItemsDialog } from './ImportItemsDialog';
+import { ExportableTable } from '../../components/TableExportButton';
 
 /** Chi tiết quyết định thầu: thông tin, NCC trúng thầu, danh mục hàng (HIS / Excel / nhập tay), các hợp đồng đã tạo. */
 export function BidDecisionDetailPage() {
@@ -384,7 +385,8 @@ export function BidDecisionDetailPage() {
                       </Button>
                     </Form>
                   )}
-                  <Table<BidSupplierDto>
+                  <ExportableTable<BidSupplierDto>
+                    exportTitle="Nhà cung cấp trúng thầu"
                     rowKey="supplierId"
                     size="middle"
                     pagination={false}
@@ -435,7 +437,8 @@ export function BidDecisionDetailPage() {
                       </>
                     )}
                   </Space>
-                  <Table<BidItemDto>
+                  <ExportableTable<BidItemDto>
+                    exportTitle="Danh mục hàng hóa trúng thầu"
                     rowKey="itemId"
                     size="small"
                     loading={items.isFetching}

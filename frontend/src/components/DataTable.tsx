@@ -15,6 +15,7 @@ import {
 import { useEffect, useState, type Key, type ReactNode } from 'react';
 import type { Paged } from '../api/admin';
 import type { TableState } from '../hooks/useUrlState';
+import { TableExportButton } from './TableExportButton';
 import './dataTable.css';
 
 export interface TableTab {
@@ -60,6 +61,12 @@ interface Props<T> {
   onClearFilters?: () => void;
   /** Buttons on the right of the filter bar (export...). */
   actions?: ReactNode;
+  /**
+   * "Xuất Excel" of the list as shown: every page of `url` with the same query as the list (`params`: filters,
+   * search, sort), labels as displayed.
+   * For lists without their own export endpoint.
+   */
+  exportAs?: { title: string; fileName?: string; url: string; params?: object };
   /** Tabs with counters above the table. */
   tabs?: TableTab[];
   activeTab?: string;
@@ -95,6 +102,7 @@ export function DataTable<T extends object>({
   activeFilters,
   onClearFilters,
   actions,
+  exportAs,
   tabs,
   activeTab,
   onTabChange,
@@ -205,6 +213,15 @@ export function DataTable<T extends object>({
             )}
             <div className="data-table__spacer" />
             {actions}
+            {exportAs && (
+              <TableExportButton
+                title={exportAs.title}
+                fileName={exportAs.fileName}
+                columns={columns}
+                url={exportAs.url}
+                params={exportAs.params}
+              />
+            )}
             <Segmented
               size="small"
               aria-label="Mật độ"

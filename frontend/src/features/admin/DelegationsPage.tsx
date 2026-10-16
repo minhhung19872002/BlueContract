@@ -9,7 +9,6 @@ import {
   Popconfirm,
   Select,
   Switch,
-  Table,
   Typography,
 } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
@@ -21,6 +20,7 @@ import { PageHeader, useApiError } from '../../components/common';
 import { useAuth } from '../../auth/useAuth';
 import { P } from '../../auth/permissions';
 import { formatDateTime } from '../../utils/format';
+import { ExportableTable } from '../../components/TableExportButton';
 
 function delegationState(d: DelegationDto) {
   if (d.revokedAt) return 'revoked';
@@ -76,7 +76,8 @@ export function DelegationsPage() {
           <Switch checked={onlyEffective} onChange={setOnlyEffective} />{' '}
           <Typography.Text>Chỉ hiện ủy quyền đang hiệu lực</Typography.Text>
         </div>
-        <Table<DelegationDto>
+        <ExportableTable<DelegationDto>
+          exportTitle="Ủy quyền ký"
           rowKey="id"
           size="middle"
           loading={list.isLoading}

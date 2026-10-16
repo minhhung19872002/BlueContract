@@ -1,4 +1,4 @@
-import { Empty, Spin, Table, Typography } from 'antd';
+import { Empty, Spin, Typography } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { useGet, usePagedList } from '../../api/admin';
 import {
@@ -12,6 +12,7 @@ import { StatusTag } from '../../components/StatusTag';
 import { Panel } from '../../components/layout';
 import { describeAuditDetails } from '../../utils/auditDetails';
 import { formatDate, formatDateTime, formatMoney, formatQuantity } from '../../utils/format';
+import { ExportableTable } from '../../components/TableExportButton';
 
 type ContractHistoryEntryDto = components['schemas']['ContractHistoryEntryDto'];
 
@@ -21,7 +22,8 @@ function ContractProposals({ contractId }: { contractId: string }) {
   const proposals = usePagedList<ProposalListItemDto>(PROPOSALS, { contractId, pageSize: 200 });
   return (
     <Panel title={`Phiếu đề xuất (${proposals.data?.total ?? 0})`} flush>
-      <Table<ProposalListItemDto>
+      <ExportableTable<ProposalListItemDto>
+        exportTitle="Phiếu đề xuất của hợp đồng"
         rowKey="id"
         size="small"
         loading={proposals.isFetching}
@@ -76,7 +78,8 @@ export function ContractCalls({
     <div className="contract-tab-stack">
       {showProposals && <ContractProposals contractId={contractId} />}
       <Panel title={`Đơn gọi hàng (${calls.data?.total ?? 0})`} flush>
-        <Table<CallOrderListItemDto>
+        <ExportableTable<CallOrderListItemDto>
+          exportTitle="Đơn gọi hàng của hợp đồng"
           rowKey="id"
           size="small"
           loading={calls.isFetching}
@@ -159,7 +162,8 @@ export function ContractHistory({ contractId }: { contractId: string }) {
   const rows = history.data ?? [];
   if (rows.length === 0) return <Empty description="Chưa có lịch sử" />;
   return (
-    <Table<ContractHistoryEntryDto>
+    <ExportableTable<ContractHistoryEntryDto>
+      exportTitle="Lịch sử hợp đồng"
       rowKey={(r, i) => `${r.at}-${i}`}
       size="small"
       dataSource={rows}

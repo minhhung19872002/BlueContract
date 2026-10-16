@@ -374,7 +374,7 @@ export function SigningInboxPage() {
       { replace: true },
     );
 
-  const inbox = useInbox({
+  const inboxQuery = {
     tab,
     page,
     pageSize,
@@ -383,7 +383,8 @@ export function SigningInboxPage() {
     supplierId,
     from: from ? dayjs.tz(from, APP_TIME_ZONE).startOf('day').toISOString() : undefined,
     to: to ? dayjs.tz(to, APP_TIME_ZONE).add(1, 'day').startOf('day').toISOString() : undefined,
-  });
+  };
+  const inbox = useInbox(inboxQuery);
   const count = useInboxCount(true);
   const suppliers = useLookup('suppliers', undefined, !isSupplier);
   const providers = useSigningProviders();
@@ -573,6 +574,7 @@ export function SigningInboxPage() {
 
       {mode === 'table' ? (
         <DataTable<InboxItemDto>
+          exportAs={{ title: 'Trình ký', url: '/api/signing/inbox', params: inboxQuery }}
           data={inbox.data}
           loading={inbox.isFetching}
           error={inbox.isError}

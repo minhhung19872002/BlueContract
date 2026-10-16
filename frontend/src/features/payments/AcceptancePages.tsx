@@ -42,6 +42,7 @@ import { DocHeader, StickyActionBar } from '../../components/layout';
 import { formatDate, formatDateTime, formatMoney, formatQuantity } from '../../utils/format';
 import { WorkflowCard } from '../signing/WorkflowPanel';
 import { DocumentPdf } from '../proposals/ProposalDetailPage';
+import { ExportableTable } from '../../components/TableExportButton';
 
 /** Hợp đồng có hiệu lực để chọn khi lập biên bản. */
 export function EffectiveContractSelect({
@@ -372,7 +373,8 @@ export function AcceptanceDetailPage() {
                   key: 'receipts',
                   label: `Phiếu nhập kho (${a.receipts.length})`,
                   children: (
-                    <Table<AcceptanceReceiptDto>
+                    <ExportableTable<AcceptanceReceiptDto>
+                      exportTitle="Phiếu nhập kho trong biên bản nghiệm thu"
                       rowKey="receiptId"
                       size="small"
                       pagination={false}
@@ -389,7 +391,8 @@ export function AcceptanceDetailPage() {
                   key: 'items',
                   label: `Tổng hợp hàng hóa (${a.items.length})`,
                   children: (
-                    <Table<AcceptanceItemDto>
+                    <ExportableTable<AcceptanceItemDto>
+                      exportTitle="Mặt hàng nghiệm thu"
                       rowKey="contractItemId"
                       size="small"
                       pagination={false}

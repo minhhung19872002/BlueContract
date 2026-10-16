@@ -55,6 +55,7 @@ export function IntegrityPage() {
         }
       />
       <DataTable<RunItem>
+        exportAs={{ title: 'Kiểm tra toàn vẹn', url: INTEGRITY, params: apiParams }}
         data={runs.data}
         loading={runs.isFetching}
         state={state}

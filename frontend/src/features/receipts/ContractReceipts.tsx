@@ -1,9 +1,10 @@
-import { Table, Typography } from 'antd';
+import { Typography } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { usePagedList } from '../../api/admin';
 import { RECEIPTS, type ReceiptListItemDto } from '../../api/receipts';
 import { StatusTag } from '../../components/StatusTag';
 import { formatDate, formatMoney } from '../../utils/format';
+import { ExportableTable } from '../../components/TableExportButton';
 
 /** Tab "Nhập kho" của hợp đồng (spec §9.1-5): các phiếu nhập/hoàn trả của hợp đồng và trạng thái ký. */
 export function ContractReceipts({ contractId, base }: { contractId: string; base: string }) {
@@ -14,7 +15,8 @@ export function ContractReceipts({ contractId, base }: { contractId: string; bas
     .filter((r) => r.status !== 'Cancelled' && r.validationStatus !== 'Invalid')
     .reduce((s, r) => s + (r.type === 'Return' ? -r.totalAmount : r.totalAmount), 0);
   return (
-    <Table<ReceiptListItemDto>
+    <ExportableTable<ReceiptListItemDto>
+      exportTitle="Phiếu nhập kho của hợp đồng"
       rowKey="id"
       size="small"
       loading={list.isFetching}

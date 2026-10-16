@@ -33,6 +33,7 @@ import { QuantityInput } from '../../components/inputs';
 import { formatDateTime, formatMoney, formatQuantity } from '../../utils/format';
 import { WorkflowCard } from '../signing/WorkflowPanel';
 import { DocumentPdf } from './ProposalDetailPage';
+import { ExportableTable } from '../../components/TableExportButton';
 
 /** Chi tiết tổng hợp: bảng tổng hợp, cột SL duyệt (tổ trưởng sửa), gửi ký, xuất Excel, gọi hàng. */
 export function SummaryDetailPage() {
@@ -167,7 +168,8 @@ export function SummaryDetailPage() {
                   key: 'lines',
                   label: `Bảng tổng hợp (${s.lines.length})`,
                   children: (
-                    <Table<SummaryLineDto>
+                    <ExportableTable<SummaryLineDto>
+                      exportTitle="Mặt hàng tổng hợp đề xuất"
                       rowKey="id"
                       size="small"
                       pagination={false}

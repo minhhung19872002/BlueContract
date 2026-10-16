@@ -34,6 +34,7 @@ export function ProposalsPage() {
         }
       />
       <DataTable<ProposalListItemDto>
+        exportAs={{ title: 'Phiếu đề xuất', url: PROPOSALS, params: apiParams }}
         data={list.data}
         loading={list.isFetching}
         state={state}

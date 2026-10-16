@@ -42,6 +42,7 @@ import { PdfViewer } from '../../components/PdfViewer';
 import { StatusTag, statusLabel, statusOptions } from '../../components/StatusTag';
 import { PageHeader, useApiError } from '../../components/common';
 import { formatDateTime } from '../../utils/format';
+import { ExportableTable } from '../../components/TableExportButton';
 
 function ValidationResult({ result }: { result: TemplateValidationResult }) {
   if (result.isValid) {
@@ -485,7 +486,8 @@ export function TemplatesPage() {
             onChange={setKind}
           />
         </Space>
-        <Table<TemplateListItemDto>
+        <ExportableTable<TemplateListItemDto>
+          exportTitle="Mẫu biểu"
           rowKey="id"
           size="middle"
           loading={list.isLoading}

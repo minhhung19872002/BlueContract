@@ -124,6 +124,8 @@ public static class ErrorMessages
         ["ACCOUNT_CERTIFICATE_EXPIRED"] = "Chứng thư số đã hết hạn hoặc chưa đến ngày hiệu lực.",
         ["ACCOUNT_CERTIFICATE_TAX_CODE_MISMATCH"] = "Chứng thư số mang mã số thuế khác với mã số thuế của công ty.",
         ["SIGNING_CERTIFICATE_NOT_REGISTERED"] = "Chứng thư số trên thiết bị ký không phải chứng thư đã đăng ký với tài khoản. Hãy dùng đúng thiết bị hoặc đăng ký lại chứng thư tại trang Tài khoản.",
+        ["EXPORT_COLUMNS_INVALID"] = "Bảng xuất Excel phải có từ 1 đến 60 cột.",
+        ["EXPORT_TOO_MANY_ROWS"] = "Bảng có quá nhiều dòng để xuất (tối đa 10.000). Hãy lọc bớt rồi xuất lại.",
         ["MAIL_HOST_REQUIRED"] = "Máy chủ SMTP không được để trống.",
         ["MAIL_PORT_INVALID"] = "Cổng SMTP phải từ 1 đến 65535.",
         ["MAIL_FROM_NAME_REQUIRED"] = "Tên người gửi không được để trống.",

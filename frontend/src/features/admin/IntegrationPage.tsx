@@ -259,6 +259,7 @@ export function IntegrationPage() {
         </div>
       )}
       <DataTable<IntegrationLogListItemDto>
+        exportAs={{ title: 'Nhật ký tích hợp HIS', url: `${INTEGRATION}/logs`, params: apiParams }}
         data={logs.data}
         loading={logs.isFetching}
         state={state}

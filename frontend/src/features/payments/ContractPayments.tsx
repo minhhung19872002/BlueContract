@@ -1,4 +1,4 @@
-import { Button, Space, Table, Typography } from 'antd';
+import { Button, Space, Typography } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { usePagedList } from '../../api/admin';
 import {
@@ -11,6 +11,7 @@ import {
 } from '../../api/payments';
 import { StatusTag } from '../../components/StatusTag';
 import { formatMoney } from '../../utils/format';
+import { ExportableTable } from '../../components/TableExportButton';
 
 /** Tab "Thanh toán" của hợp đồng (spec §9.1-5): nghiệm thu, 08a + UNC, thanh lý. */
 export function ContractPayments({
@@ -33,7 +34,8 @@ export function ContractPayments({
     <Space direction="vertical" style={{ width: '100%' }} size="large">
       <div>
         <Typography.Title level={5}>Biên bản nghiệm thu</Typography.Title>
-        <Table<AcceptanceListItemDto>
+        <ExportableTable<AcceptanceListItemDto>
+          exportTitle="Biên bản nghiệm thu của hợp đồng"
           rowKey="id"
           size="small"
           pagination={false}
@@ -60,7 +62,8 @@ export function ContractPayments({
       </div>
       <div>
         <Typography.Title level={5}>Xác định giá trị (08a) & thanh toán</Typography.Title>
-        <Table<ValuationListItemDto>
+        <ExportableTable<ValuationListItemDto>
+          exportTitle="Thanh toán của hợp đồng"
           rowKey="id"
           size="small"
           pagination={false}
@@ -119,7 +122,8 @@ export function ContractPayments({
             </Button>
           )}
         </Space>
-        <Table<LiquidationListItemDto>
+        <ExportableTable<LiquidationListItemDto>
+          exportTitle="Thanh lý của hợp đồng"
           rowKey="id"
           size="small"
           pagination={false}

@@ -50,6 +50,7 @@ export function SummariesPage() {
         }
       />
       <DataTable<SummaryListItemDto>
+        exportAs={{ title: 'Phiếu tổng hợp đề xuất', url: SUMMARIES, params: apiParams }}
         data={list.data}
         loading={list.isFetching}
         state={state}

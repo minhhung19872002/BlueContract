@@ -30,6 +30,7 @@ export function WarehousesPage() {
     <>
       <PageHeader title="Kho" subtitle="Kho nhận hàng, ánh xạ với mã kho trên HIS" />
       <DataTable<WarehouseDto>
+        exportAs={{ title: 'Kho', url: resources.warehouses, params: apiParams }}
         data={list.data}
         loading={list.isFetching}
         state={state}

@@ -29,6 +29,7 @@ export function FacilitiesPage() {
     <>
       <PageHeader title="Cơ sở" subtitle="Các cơ sở khám chữa bệnh của bệnh viện" />
       <DataTable<FacilityDto>
+        exportAs={{ title: 'Cơ sở', url: resources.facilities, params: apiParams }}
         data={list.data}
         loading={list.isFetching}
         state={state}

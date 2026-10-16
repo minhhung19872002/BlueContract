@@ -1,4 +1,9 @@
-import axios, { AxiosError, type AxiosRequestConfig, type InternalAxiosRequestConfig } from 'axios';
+import axios, {
+  AxiosError,
+  type AxiosRequestConfig,
+  type AxiosResponse,
+  type InternalAxiosRequestConfig,
+} from 'axios';
 import { authStore } from '../auth/authStore';
 import type { components } from './schema';
 
@@ -106,7 +111,11 @@ export async function downloadFile(
   fallbackName: string,
   config?: AxiosRequestConfig,
 ): Promise<void> {
-  const response = await apiClient.get<Blob>(url, { ...config, responseType: 'blob' });
+  downloadBlob(await apiClient.get<Blob>(url, { ...config, responseType: 'blob' }), fallbackName);
+}
+
+/** Saves a blob response under the name of its Content-Disposition header (or the fallback). */
+export function downloadBlob(response: AxiosResponse<Blob>, fallbackName: string) {
   const disposition = String(response.headers['content-disposition'] ?? '');
   const match = /filename\*=UTF-8''([^;]+)|filename="?([^";]+)"?/i.exec(disposition);
   const name = match ? decodeURIComponent(match[1] ?? match[2] ?? fallbackName) : fallbackName;

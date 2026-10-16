@@ -10,7 +10,6 @@ import {
   Modal,
   Row,
   Select,
-  Table,
   Tag,
   Tooltip,
 } from 'antd';
@@ -30,6 +29,7 @@ import { StatusTag, statusOptions } from '../../components/StatusTag';
 import { PageHeader, useApiError } from '../../components/common';
 import { formatDate, formatDateTime } from '../../utils/format';
 import { USER_NAME_RULE } from '../../utils/validation';
+import { ExportableTable } from '../../components/TableExportButton';
 
 /** Cổng NCC — Tài khoản công ty: company info + staff accounts (managed by SUPPLIER_ADMIN). */
 export function CompanyPage() {
@@ -99,7 +99,8 @@ export function CompanyPage() {
               )
             }
           >
-            <Table<SupplierStaffDto>
+            <ExportableTable<SupplierStaffDto>
+              exportTitle="Nhân viên nhà cung cấp"
               rowKey="id"
               size="middle"
               loading={staff.isLoading}

@@ -1,4 +1,4 @@
-import { App, Button, Input, InputNumber, Select, Space, Switch, Table, Tag, Tooltip } from 'antd';
+import { App, Button, Input, InputNumber, Select, Space, Switch, Tag, Tooltip } from 'antd';
 import { EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { ArrowUp, ChevronRight, GripVertical, Info, Plus, Save, Trash2 } from 'lucide-react';
 import {
@@ -32,6 +32,7 @@ import { StatusTag, statusLabel, statusOptions } from '../../components/StatusTa
 import { PageHeader, useApiError } from '../../components/common';
 import { Banner, DocHeader, Panel } from '../../components/layout';
 import './workflowBuilder.css';
+import { ExportableTable } from '../../components/TableExportButton';
 
 const CREATOR = '__creator';
 
@@ -523,7 +524,8 @@ export function WorkflowTemplatesPage() {
         }
       />
       <Panel title={`Luồng ký (${templates.data?.length ?? 0})`} flush>
-        <Table<WorkflowTemplateDto>
+        <ExportableTable<WorkflowTemplateDto>
+          exportTitle="Luồng ký"
           rowKey="id"
           size="middle"
           loading={templates.isLoading}

@@ -1,4 +1,4 @@
-import { App, Button, Card, Col, Descriptions, Empty, Popconfirm, Row, Table, Tabs } from 'antd';
+import { App, Button, Card, Col, Descriptions, Empty, Popconfirm, Row, Tabs } from 'antd';
 import { EditOutlined, SendOutlined, StopOutlined } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { fetchDocumentFile, useDocument } from '../../api/documents';
@@ -16,6 +16,7 @@ import { useApiError } from '../../components/common';
 import { DocHeader } from '../../components/layout';
 import { formatQuantity } from '../../utils/format';
 import { WorkflowCard } from '../signing/WorkflowPanel';
+import { ExportableTable } from '../../components/TableExportButton';
 
 /** Current PDF of a business document (shared by proposal, summary and call order pages). */
 export function DocumentPdf({ documentId }: { documentId: string }) {
@@ -109,7 +110,8 @@ export function ProposalDetailPage() {
                   key: 'lines',
                   label: `Mặt hàng (${p.lines.length})`,
                   children: (
-                    <Table<ProposalLineDto>
+                    <ExportableTable<ProposalLineDto>
+                      exportTitle="Mặt hàng đề xuất"
                       rowKey="id"
                       size="small"
                       pagination={false}
