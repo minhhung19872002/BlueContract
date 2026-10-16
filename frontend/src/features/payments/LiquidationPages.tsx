@@ -44,6 +44,7 @@ import { useDocumentWorkflow } from '../../api/signing';
 import { useAuth } from '../../auth/useAuth';
 import { statusLabel, StatusTag } from '../../components/StatusTag';
 import { PageHeader, useApiError } from '../../components/common';
+import { DocHeader } from '../../components/layout';
 import { MoneyInput } from '../../components/inputs';
 import { formatDate, formatDateTime, formatMoney } from '../../utils/format';
 import { WorkflowCard } from '../signing/WorkflowPanel';
@@ -237,11 +238,17 @@ export function LiquidationDetailPage() {
 
   return (
     <>
-      <PageHeader
-        title={`Biên bản thanh lý ${l.number}`}
-        subtitle={<StatusTag domain="paymentRecordStatus" value={l.status} />}
-        extra={
-          <Space wrap>
+      <DocHeader
+        back={{ to: -1, label: 'Quay lại' }}
+        plain
+        code={
+          <>
+            Biên bản thanh lý <span className="mono">{l.number}</span>
+          </>
+        }
+        tags={<StatusTag domain="paymentRecordStatus" value={l.status} />}
+        actions={
+          <>
             {l.canEdit && (
               <Button
                 loading={refresh.isPending}
@@ -274,7 +281,7 @@ export function LiquidationDetailPage() {
                 </Button>
               </Popconfirm>
             )}
-          </Space>
+          </>
         }
       />
       {l.status === 'Completed' && (

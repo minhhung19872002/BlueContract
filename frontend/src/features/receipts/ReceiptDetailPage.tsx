@@ -43,7 +43,8 @@ import {
 import { useDocumentWorkflow } from '../../api/signing';
 import { useAuth } from '../../auth/useAuth';
 import { StatusTag } from '../../components/StatusTag';
-import { PageHeader, useApiError } from '../../components/common';
+import { useApiError } from '../../components/common';
+import { DocHeader } from '../../components/layout';
 import { MoneyInput } from '../../components/inputs';
 import { formatDate, formatDateTime, formatMoney, formatQuantity } from '../../utils/format';
 import { WorkflowCard } from '../signing/WorkflowPanel';
@@ -74,9 +75,15 @@ export function ReceiptDetailPage() {
 
   return (
     <>
-      <PageHeader
-        title={`${title} ${r.number}`}
-        subtitle={
+      <DocHeader
+        back={{ to: -1, label: 'Quay lại' }}
+        plain
+        code={
+          <>
+            {title} <span className="mono">{r.number}</span>
+          </>
+        }
+        tags={
           <Space size={4} wrap>
             <StatusTag domain="receiptType" value={r.type} />
             <StatusTag domain="receiptSource" value={r.source} />
@@ -85,8 +92,8 @@ export function ReceiptDetailPage() {
             {r.isIncludedInAcceptance && <Tag color="green">Đã đưa vào nghiệm thu</Tag>}
           </Space>
         }
-        extra={
-          <Space wrap>
+        actions={
+          <>
             {r.canEdit && (
               <Button icon={<EditOutlined />} onClick={() => navigate(`/nhap-kho/${r.id}/sua`)}>
                 Sửa phiếu
@@ -140,7 +147,7 @@ export function ReceiptDetailPage() {
                 </Button>
               </Popconfirm>
             )}
-          </Space>
+          </>
         }
       />
 

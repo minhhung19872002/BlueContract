@@ -4,7 +4,6 @@ import {
   Button,
   Card,
   Col,
-  Descriptions,
   Form,
   Input,
   Modal,
@@ -44,7 +43,8 @@ import { useAuth } from '../../auth/useAuth';
 import { P } from '../../auth/permissions';
 import { PdfViewer } from '../../components/PdfViewer';
 import { StatusTag } from '../../components/StatusTag';
-import { PageHeader, useApiError } from '../../components/common';
+import { useApiError } from '../../components/common';
+import { DocHeader, DocKpis, InfoGrid, Panel } from '../../components/layout';
 import { MoneyInput, QuantityInput, SupplierSelect } from '../../components/inputs';
 import { formatDate, formatMoney, formatQuantity } from '../../utils/format';
 import { BidForm } from './BidForm';
@@ -187,12 +187,34 @@ export function BidDecisionDetailPage() {
 
   return (
     <>
-      <PageHeader
-        title={b ? `Quyết định ${b.number}` : 'Quyết định thầu'}
-        subtitle={b ? <StatusTag domain="bidStatus" value={b.status} /> : undefined}
-        extra={
+      <DocHeader
+        back={{ to: '/quyet-dinh-thau', label: 'Quyết định thầu' }}
+        plain
+        code={
+          b ? (
+            <>
+              Quyết định <span className="mono">{b.number}</span>
+            </>
+          ) : (
+            'Quyết định thầu'
+          )
+        }
+        tags={b ? <StatusTag domain="bidStatus" value={b.status} /> : undefined}
+        title={b?.packageName}
+        sub={
+          b
+            ? [
+                `Ký ngày ${formatDate(b.signedDate)}`,
+                b.categoryName,
+                b.validUntil && `Hiệu lực đến ${formatDate(b.validUntil)}`,
+              ]
+                .filter(Boolean)
+                .join(' · ')
+            : undefined
+        }
+        actions={
           b && (
-            <Space wrap>
+            <>
               {b.attachmentName && (
                 <Button icon={<FilePdfOutlined />} onClick={() => setViewPdf(true)}>
                   Xem quyết định
@@ -251,29 +273,62 @@ export function BidDecisionDetailPage() {
                   <Button icon={<StopOutlined />}>Đóng</Button>
                 </Popconfirm>
               )}
-            </Space>
+            </>
           )
         }
       />
 
-      <Card loading={bid.isLoading} style={{ marginBottom: 16 }}>
-        {b && (
-          <Descriptions size="small" column={{ xs: 1, md: 3 }}>
-            <Descriptions.Item label="Ngày ký">{formatDate(b.signedDate)}</Descriptions.Item>
-            <Descriptions.Item label="Hạng mục">{b.categoryName}</Descriptions.Item>
-            <Descriptions.Item label="Hiệu lực đến">{formatDate(b.validUntil) || '—'}</Descriptions.Item>
-            <Descriptions.Item label="Gói thầu" span={3}>
-              {b.packageName}
-            </Descriptions.Item>
-            <Descriptions.Item label="Trích yếu" span={3}>
-              {b.summary}
-            </Descriptions.Item>
-            <Descriptions.Item label="Hình thức LCNT">{b.selectionMethod ?? '—'}</Descriptions.Item>
-            <Descriptions.Item label="Nguồn vốn">{b.fundingSource ?? '—'}</Descriptions.Item>
-            <Descriptions.Item label="Thời gian thực hiện">{b.executionPeriod ?? '—'}</Descriptions.Item>
-          </Descriptions>
-        )}
-      </Card>
+      {!b ? (
+        <Card loading={bid.isLoading} style={{ marginBottom: 16 }} />
+      ) : (
+        <>
+          <DocKpis
+            items={[
+              { label: 'NCC trúng thầu', value: b.suppliers.length },
+              {
+                label: 'Giá trị trúng thầu',
+                value: formatMoney(b.suppliers.reduce((sum, x) => sum + x.winningValue, 0)),
+              },
+              {
+                label: 'Mặt hàng trong danh mục',
+                value: formatQuantity(b.suppliers.reduce((sum, x) => sum + x.itemCount, 0)),
+              },
+              (() => {
+                const won = b.suppliers.reduce((sum, x) => sum + x.winningValue, 0);
+                const contracted = b.suppliers.reduce((sum, x) => sum + x.contractedValue, 0);
+                return {
+                  label: `Đã ký hợp đồng (${b.contracts.length} HĐ)`,
+                  value: formatMoney(contracted),
+                  percent: won > 0 ? (contracted / won) * 100 : 0,
+                  tone: 'success' as const,
+                  hint: won > 0 ? `${Math.round((contracted / won) * 100)}% giá trị trúng thầu` : undefined,
+                };
+              })(),
+            ]}
+          />
+          <Panel title="Thông tin quyết định" className="panel--spaced">
+            <InfoGrid
+              items={[
+                { label: 'Trích yếu', value: b.summary, span: 'full' },
+                { label: 'Hình thức LCNT', value: b.selectionMethod },
+                { label: 'Nguồn vốn', value: b.fundingSource },
+                { label: 'Thời gian thực hiện', value: b.executionPeriod },
+                { label: 'Tên trên HIS', value: b.hisName },
+                {
+                  label: 'Tệp quyết định',
+                  value: b.attachmentName ? (
+                    <Button type="link" size="small" style={{ padding: 0 }} onClick={() => setViewPdf(true)}>
+                      {b.attachmentName}
+                    </Button>
+                  ) : (
+                    'Chưa đính kèm'
+                  ),
+                },
+              ]}
+            />
+          </Panel>
+        </>
+      )}
 
       {b?.status === 'Draft' && (
         <Alert

@@ -273,3 +273,23 @@ body {
   outline: 2px solid var(--bp-primary-solid) !important;
   outline-offset: 2px;
 }
+
+/* Descriptions without borders follow the design "dl" grid: caption label above the value, no colon. */
+.ant-descriptions:not(.ant-descriptions-bordered) .ant-descriptions-item-container {
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ant-descriptions:not(.ant-descriptions-bordered) .ant-descriptions-item-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--bp-caption);
+}
+
+.ant-descriptions:not(.ant-descriptions-bordered) .ant-descriptions-item-label::after {
+  display: none;
+}
+
+.ant-descriptions:not(.ant-descriptions-bordered) .ant-descriptions-item-content {
+  color: var(--bp-text);
+}

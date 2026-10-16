@@ -41,6 +41,7 @@ import { P } from '../../auth/permissions';
 import { DataTable } from '../../components/DataTable';
 import { StatusTag, statusOptions } from '../../components/StatusTag';
 import { ExportExcelButton, PageHeader, useApiError } from '../../components/common';
+import { DocHeader } from '../../components/layout';
 import { QuantityInput, SupplierSelect } from '../../components/inputs';
 import { useTableUrlState } from '../../hooks/useUrlState';
 import { formatDate, formatDateTime, formatMoney, formatQuantity } from '../../utils/format';
@@ -250,10 +251,16 @@ export function CallCreatePage() {
 
   return (
     <>
-      <PageHeader
-        title={`Gọi hàng — ${s.number}`}
-        subtitle={`${domainLabel(s.domain)} · ${s.periodText}`}
-        extra={
+      <DocHeader
+        back={{ to: -1, label: 'Quay lại' }}
+        plain
+        code={
+          <>
+            Gọi hàng — <span className="mono">{s.number}</span>
+          </>
+        }
+        sub={`${domainLabel(s.domain)} · ${s.periodText}`}
+        actions={
           <Button
             type="primary"
             icon={<PhoneOutlined />}
@@ -410,15 +417,21 @@ export function CallOrderDetailPage() {
 
   return (
     <>
-      <PageHeader
-        title={`Đơn gọi hàng ${o.number}`}
-        subtitle={
+      <DocHeader
+        back={{ to: -1, label: 'Quay lại' }}
+        plain
+        code={
+          <>
+            Đơn gọi hàng <span className="mono">{o.number}</span>
+          </>
+        }
+        tags={
           <Space>
             <StatusTag domain="callOrderStatus" value={o.status} />
             {o.isOverdue && <Typography.Text type="danger">Quá hạn giao chưa xác nhận</Typography.Text>}
           </Space>
         }
-        extra={
+        actions={
           o.canCancel && (
             <Popconfirm
               title="Hủy đơn gọi hàng?"

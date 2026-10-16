@@ -1,9 +1,7 @@
 import {
-  Alert,
   App,
   Button,
   Card,
-  Descriptions,
   Empty,
   Form,
   Input,
@@ -44,7 +42,9 @@ import { P } from '../../auth/permissions';
 import { DocEditor } from '../../components/DocEditor';
 import { PdfViewer } from '../../components/PdfViewer';
 import { StatusTag } from '../../components/StatusTag';
-import { PageHeader, useApiError } from '../../components/common';
+import { useApiError } from '../../components/common';
+import { Banner, DocHeader, DocKpis, InfoGrid, type DocKpi } from '../../components/layout';
+import dayjs from '../../i18n/dayjs';
 import { formatDate, formatDateTime, formatMoney, formatQuantity } from '../../utils/format';
 import { WorkflowCard, WorkflowHistory } from '../signing/WorkflowPanel';
 import { ContractReceipts } from '../receipts/ContractReceipts';
@@ -135,20 +135,55 @@ export function ContractDetailPage() {
     }),
     { value: 0, received: 0, paid: 0 },
   );
+  const daysLeft = c.expiryDate ? dayjs(c.expiryDate).diff(dayjs().startOf('day'), 'day') : null;
+  const kpis: DocKpi[] = [
+    { label: 'Tổng giá trị', value: formatMoney(c.totalAmount), hint: `${c.items.length} mặt hàng` },
+    {
+      label: 'Đã nhập kho',
+      value: formatMoney(totals.received),
+      percent: pct(totals.received, totals.value),
+      tone: 'teal',
+      hint: `${pct(totals.received, totals.value)}% giá trị hợp đồng`,
+    },
+    {
+      label: 'Đã thanh toán',
+      value: formatMoney(totals.paid),
+      percent: pct(totals.paid, totals.value),
+      tone: 'success',
+      hint: `${pct(totals.paid, totals.value)}% giá trị hợp đồng`,
+    },
+    {
+      label: 'Hiệu lực đến',
+      value: formatDate(c.expiryDate) || '—',
+      hint: daysLeft === null ? 'Chưa xác định' : daysLeft < 0 ? 'Đã hết hạn' : `Còn ${daysLeft} ngày`,
+      tone: daysLeft !== null && daysLeft < 30 ? 'danger' : undefined,
+    },
+  ];
 
   return (
     <>
-      <PageHeader
-        title={`Hợp đồng ${c.number}`}
-        subtitle={
-          <Space wrap>
+      <DocHeader
+        back={{ to: `${base}/hop-dong`, label: 'Hợp đồng' }}
+        plain
+        code={
+          <>
+            Hợp đồng <span className="mono">{c.number}</span>
+          </>
+        }
+        tags={
+          <>
             <StatusTag domain="contractStatus" value={c.status} />
             <StatusTag domain="procurementType" value={c.procurementType} />
-            <span>{c.name}</span>
-          </Space>
+          </>
         }
-        extra={
-          <Space wrap>
+        title={c.name}
+        sub={[
+          `${c.supplierName} (MST ${c.supplierTaxCode})`,
+          c.categoryName,
+          c.bidDecisionNumber ? `QĐ ${c.bidDecisionNumber}` : 'Ngoài thầu',
+        ].join(' · ')}
+        actions={
+          <>
             {a.canEdit && (
               <Button icon={<EditOutlined />} onClick={() => navigate(`/hop-dong/${c.id}/sua`)}>
                 Sửa
@@ -183,18 +218,17 @@ export function ContractDetailPage() {
                 Hủy hợp đồng
               </Button>
             )}
-          </Space>
+          </>
         }
       />
+      <DocKpis items={kpis} />
 
       {c.status === 'Returned' && c.lastReturnReason && (
-        <Alert
-          type="error"
-          showIcon
-          style={{ marginBottom: 16 }}
-          message="Hợp đồng bị trả lại"
-          description={c.lastReturnReason}
-        />
+        <div style={{ marginBottom: 16 }}>
+          <Banner tone="danger" title="Hợp đồng bị trả lại">
+            {c.lastReturnReason}
+          </Banner>
+        </div>
       )}
       {a.supplierReviewStepId && (
         <SupplierReviewPanel contract={c} onOpenEditor={() => openEditor('Review')} />
@@ -212,61 +246,64 @@ export function ContractDetailPage() {
               key: 'info',
               label: 'Thông tin',
               children: (
-                <Descriptions bordered size="small" column={{ xs: 1, md: 2 }}>
-                  <Descriptions.Item label="Nhà cung cấp">
-                    {c.supplierName} (MST {c.supplierTaxCode})
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Quyết định thầu">
-                    {c.bidDecisionNumber && !isSupplier ? (
-                      <a onClick={() => navigate(`/quyet-dinh-thau/${c.bidDecisionId}`)}>
-                        {c.bidDecisionNumber}
-                      </a>
-                    ) : (
-                      (c.bidDecisionNumber ?? 'Ngoài thầu')
-                    )}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Hạng mục">{c.categoryName}</Descriptions.Item>
-                  <Descriptions.Item label="Loại hợp đồng">
-                    <StatusTag domain="contractKind" value={c.kind} />{' '}
-                    {c.requiresWarehouseReceipt ? '' : '(không nhập kho)'}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Cơ sở">{c.facilityName ?? 'Toàn bệnh viện'}</Descriptions.Item>
-                  <Descriptions.Item label="Thời gian thực hiện">{c.duration ?? '—'}</Descriptions.Item>
-                  <Descriptions.Item label="Ngày ký">{formatDate(c.signedDate) || '—'}</Descriptions.Item>
-                  <Descriptions.Item label="Hiệu lực">
-                    {formatDate(c.effectiveDate) || '—'} – {formatDate(c.expiryDate) || '—'}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Giá trị trước thuế">
-                    {formatMoney(c.amountBeforeVat)}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Thuế GTGT">{formatMoney(c.vatAmount)}</Descriptions.Item>
-                  <Descriptions.Item label="Tổng giá trị" span={2}>
-                    <Typography.Text strong>{formatMoney(c.totalAmount)}</Typography.Text>
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Thanh toán" span={2}>
-                    {c.paymentTerms ?? '—'}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Giao hàng" span={2}>
-                    {c.deliveryTerms ?? '—'}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Bảo hành" span={2}>
-                    {c.warrantyTerms ?? '—'}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Bảo lãnh thực hiện" span={2}>
-                    {c.guaranteeNumber || c.guaranteeAmount
-                      ? `${c.guaranteeNumber ?? ''} ${c.guaranteeBank ? `— ${c.guaranteeBank}` : ''} ${c.guaranteeAmount ? `— ${formatMoney(c.guaranteeAmount)}` : ''} ${c.guaranteeExpiry ? `— đến ${formatDate(c.guaranteeExpiry)}` : ''}`
-                      : '—'}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Mẫu hợp đồng">{c.templateName ?? '—'}</Descriptions.Item>
-                  <Descriptions.Item label="Có hiệu lực lúc">
-                    {formatDateTime(c.effectiveAt) || '—'}
-                  </Descriptions.Item>
-                  {c.note && (
-                    <Descriptions.Item label="Ghi chú" span={2}>
-                      {c.note}
-                    </Descriptions.Item>
-                  )}
-                </Descriptions>
+                <InfoGrid
+                  minColumn={240}
+                  items={[
+                    { label: 'Nhà cung cấp', value: `${c.supplierName} (MST ${c.supplierTaxCode})` },
+                    {
+                      label: 'Quyết định thầu',
+                      value:
+                        c.bidDecisionNumber && !isSupplier ? (
+                          <a onClick={() => navigate(`/quyet-dinh-thau/${c.bidDecisionId}`)} className="mono">
+                            {c.bidDecisionNumber}
+                          </a>
+                        ) : (
+                          (c.bidDecisionNumber ?? 'Ngoài thầu')
+                        ),
+                    },
+                    { label: 'Hạng mục', value: c.categoryName },
+                    {
+                      label: 'Loại hợp đồng',
+                      value: (
+                        <>
+                          <StatusTag domain="contractKind" value={c.kind} />
+                          {!c.requiresWarehouseReceipt && ' (không nhập kho)'}
+                        </>
+                      ),
+                    },
+                    { label: 'Cơ sở', value: c.facilityName ?? 'Toàn bệnh viện' },
+                    { label: 'Thời gian thực hiện', value: c.duration },
+                    { label: 'Ngày ký', value: formatDate(c.signedDate) },
+                    {
+                      label: 'Hiệu lực',
+                      value: `${formatDate(c.effectiveDate) || '—'} – ${formatDate(c.expiryDate) || '—'}`,
+                    },
+                    { label: 'Có hiệu lực lúc', value: formatDateTime(c.effectiveAt) },
+                    { label: 'Giá trị trước thuế', value: formatMoney(c.amountBeforeVat) },
+                    { label: 'Thuế GTGT', value: formatMoney(c.vatAmount) },
+                    { label: 'Tổng giá trị', value: <strong>{formatMoney(c.totalAmount)}</strong> },
+                    { label: 'Thanh toán', value: c.paymentTerms, span: 'full' },
+                    { label: 'Giao hàng', value: c.deliveryTerms, span: 'full' },
+                    { label: 'Bảo hành', value: c.warrantyTerms, span: 'full' },
+                    {
+                      label: 'Bảo lãnh thực hiện',
+                      span: 'full',
+                      value:
+                        c.guaranteeNumber || c.guaranteeAmount
+                          ? [
+                              c.guaranteeNumber,
+                              c.guaranteeBank,
+                              c.guaranteeAmount ? formatMoney(c.guaranteeAmount) : null,
+                              c.guaranteeExpiry ? `đến ${formatDate(c.guaranteeExpiry)}` : null,
+                            ]
+                              .filter(Boolean)
+                              .join(' — ')
+                          : null,
+                    },
+                    { label: 'Mẫu hợp đồng', value: c.templateName },
+                    ...(c.note ? [{ label: 'Ghi chú', value: c.note, span: 'full' as const }] : []),
+                  ]}
+                />
               ),
             },
             {
@@ -274,16 +311,6 @@ export function ContractDetailPage() {
               label: `Hàng hóa & theo dõi thực hiện (${c.items.length})`,
               children: (
                 <>
-                  <Space size="large" wrap style={{ marginBottom: 12 }}>
-                    <span>
-                      Đã nhập kho:{' '}
-                      <Progress type="circle" size={44} percent={pct(totals.received, totals.value)} />
-                    </span>
-                    <span>
-                      Đã thanh toán:{' '}
-                      <Progress type="circle" size={44} percent={pct(totals.paid, totals.value)} />
-                    </span>
-                  </Space>
                   <Table<ContractItemDto>
                     rowKey="id"
                     size="small"

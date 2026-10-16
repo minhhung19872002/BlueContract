@@ -1,4 +1,4 @@
-import { App, Button, Card, Col, Descriptions, Empty, Popconfirm, Row, Space, Table, Tabs } from 'antd';
+import { App, Button, Card, Col, Descriptions, Empty, Popconfirm, Row, Table, Tabs } from 'antd';
 import { EditOutlined, SendOutlined, StopOutlined } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { fetchDocumentFile, useDocument } from '../../api/documents';
@@ -12,7 +12,8 @@ import {
 import { useDocumentWorkflow } from '../../api/signing';
 import { PdfViewer } from '../../components/PdfViewer';
 import { StatusTag } from '../../components/StatusTag';
-import { PageHeader, useApiError } from '../../components/common';
+import { useApiError } from '../../components/common';
+import { DocHeader } from '../../components/layout';
 import { formatQuantity } from '../../utils/format';
 import { WorkflowCard } from '../signing/WorkflowPanel';
 
@@ -46,11 +47,17 @@ export function ProposalDetailPage() {
 
   return (
     <>
-      <PageHeader
-        title={`Phiếu đề xuất ${p.number}`}
-        subtitle={<StatusTag domain="proposalStatus" value={p.status} />}
-        extra={
-          <Space wrap>
+      <DocHeader
+        back={{ to: -1, label: 'Quay lại' }}
+        plain
+        code={
+          <>
+            Phiếu đề xuất <span className="mono">{p.number}</span>
+          </>
+        }
+        tags={<StatusTag domain="proposalStatus" value={p.status} />}
+        actions={
+          <>
             {p.canEdit && (
               <Button icon={<EditOutlined />} onClick={() => navigate(`/de-xuat/${p.id}/sua`)}>
                 Sửa
@@ -80,7 +87,7 @@ export function ProposalDetailPage() {
                 </Button>
               </Popconfirm>
             )}
-          </Space>
+          </>
         }
       />
       <Row gutter={[16, 16]}>

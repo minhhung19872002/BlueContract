@@ -372,3 +372,8 @@ h1.doc-header__code--plain {
 .doc-header__actions .ant-space-compact-block {
   width: auto;
 }
+
+/* Panel stacked in a page flow (not inside a grid with its own gap). */
+.panel--spaced {
+  margin-bottom: 16px;
+}

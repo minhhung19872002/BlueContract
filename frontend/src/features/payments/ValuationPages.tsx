@@ -46,6 +46,7 @@ import { useDocumentWorkflow } from '../../api/signing';
 import { useAuth } from '../../auth/useAuth';
 import { StatusTag } from '../../components/StatusTag';
 import { PageHeader, useApiError } from '../../components/common';
+import { DocHeader } from '../../components/layout';
 import { MoneyInput } from '../../components/inputs';
 import { formatDate, formatDateTime, formatMoney, formatQuantity } from '../../utils/format';
 import { WorkflowCard } from '../signing/WorkflowPanel';
@@ -187,9 +188,15 @@ export function ValuationDetailPage() {
 
   return (
     <>
-      <PageHeader
-        title={`Biên bản xác định giá trị ${v.number}`}
-        subtitle={
+      <DocHeader
+        back={{ to: -1, label: 'Quay lại' }}
+        plain
+        code={
+          <>
+            Biên bản xác định giá trị <span className="mono">{v.number}</span>
+          </>
+        }
+        tags={
           <Space size={4} wrap>
             <StatusTag domain="paymentRecordStatus" value={v.status} />
             {v.status === 'Completed' && <StatusTag domain="paymentStatus" value={v.paymentStatus} />}
@@ -200,8 +207,8 @@ export function ValuationDetailPage() {
             </Typography.Text>
           </Space>
         }
-        extra={
-          <Space wrap>
+        actions={
+          <>
             {v.canSubmit && (
               <Button
                 type="primary"
@@ -227,7 +234,7 @@ export function ValuationDetailPage() {
                 </Button>
               </Popconfirm>
             )}
-          </Space>
+          </>
         }
       />
       {v.status === 'Returned' && v.lastReturnReason && (

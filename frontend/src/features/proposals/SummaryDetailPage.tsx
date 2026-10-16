@@ -27,7 +27,8 @@ import {
 } from '../../api/proposals';
 import { useDocumentWorkflow } from '../../api/signing';
 import { StatusTag } from '../../components/StatusTag';
-import { PageHeader, useApiError } from '../../components/common';
+import { useApiError } from '../../components/common';
+import { DocHeader } from '../../components/layout';
 import { QuantityInput } from '../../components/inputs';
 import { formatDateTime, formatMoney, formatQuantity } from '../../utils/format';
 import { WorkflowCard } from '../signing/WorkflowPanel';
@@ -57,11 +58,17 @@ export function SummaryDetailPage() {
 
   return (
     <>
-      <PageHeader
-        title={`Phiếu tổng hợp ${s.number}`}
-        subtitle={<StatusTag domain="summaryStatus" value={s.status} />}
-        extra={
-          <Space wrap>
+      <DocHeader
+        back={{ to: -1, label: 'Quay lại' }}
+        plain
+        code={
+          <>
+            Phiếu tổng hợp <span className="mono">{s.number}</span>
+          </>
+        }
+        tags={<StatusTag domain="summaryStatus" value={s.status} />}
+        actions={
+          <>
             <Button
               icon={<DownloadOutlined />}
               onClick={() =>
@@ -106,7 +113,7 @@ export function SummaryDetailPage() {
                 </Button>
               </Popconfirm>
             )}
-          </Space>
+          </>
         }
       />
       <Row gutter={[16, 16]}>
