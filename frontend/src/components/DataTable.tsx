@@ -49,7 +49,7 @@ interface Props<T> {
   columns: TableProps<T>['columns'];
   state: TableState;
   onChange: (patch: Partial<TableState>, resetPage?: boolean) => void;
-  rowKey?: keyof T & string;
+  rowKey?: (keyof T & string) | ((row: T) => string);
   searchPlaceholder?: string;
   /** Filter controls shown next to the search box. */
   filters?: ReactNode;
@@ -66,6 +66,8 @@ interface Props<T> {
   onTabChange?: (key: string) => void;
   /** Row selection: renders the bulk-action bar "Đã chọn N bản ghi" while rows are selected. */
   bulkActions?: (selectedKeys: Key[], clear: () => void) => ReactNode;
+  /** Rows that cannot be selected for the bulk actions (checkbox disabled). */
+  rowSelectable?: (row: T) => boolean;
   expandable?: TableProps<T>['expandable'];
   onRowClick?: (row: T) => void;
   emptyTitle?: string;
@@ -97,6 +99,7 @@ export function DataTable<T extends object>({
   activeTab,
   onTabChange,
   bulkActions,
+  rowSelectable,
   expandable,
   onRowClick,
   emptyTitle = 'Chưa có dữ liệu',
@@ -277,7 +280,15 @@ export function DataTable<T extends object>({
             sticky={{ offsetHeader: 56 }}
             rowSelection={
               bulkActions
-                ? { selectedRowKeys: selected, onChange: setSelected, columnWidth: 44, fixed: true }
+                ? {
+                    selectedRowKeys: selected,
+                    onChange: setSelected,
+                    columnWidth: 44,
+                    fixed: true,
+                    getCheckboxProps: rowSelectable
+                      ? (row) => ({ disabled: !rowSelectable(row) })
+                      : undefined,
+                  }
                 : undefined
             }
             onRow={

@@ -1,12 +1,11 @@
 import { Alert, App, Button, Input, Modal, Segmented, Typography, Upload } from 'antd';
-import { Check, CircleCheck, Cloud, Info, PenLine, Smartphone, Usb } from 'lucide-react';
+import { Check, CircleCheck, Info, PenLine, Smartphone, Usb } from 'lucide-react';
 import { useRef, useState } from 'react';
 import {
   beginSign,
   completeSigningRequest,
   useInvalidateWorkflow,
   useSigningProviders,
-  type SigningProviderDto,
   type SigningRequestDto,
 } from '../../api/signing';
 import { toApiProblem } from '../../api/http';
@@ -17,6 +16,7 @@ import {
   tokenPluginConfigured,
 } from './tokenPlugin';
 import { waitForRemoteSignature } from './signingFlow';
+import { providerIcon, savedProviderCode } from './providers';
 import './signModal.css';
 
 interface Props {
@@ -40,15 +40,6 @@ interface TokenState {
 
 const PHASES = ['Đang kết nối', 'Đang ký', 'Đã gắn chữ ký vào PDF'];
 
-const providerIcon = (p?: SigningProviderDto) =>
-  p?.mode === 'RemoteAsync' ? (
-    <Smartphone size={15} strokeWidth={1.75} aria-hidden />
-  ) : p?.mode === 'ClientSide' ? (
-    <Usb size={15} strokeWidth={1.75} aria-hidden />
-  ) : (
-    <Cloud size={15} strokeWidth={1.75} aria-hidden />
-  );
-
 /** Readable error for the USB-token plugin: "Failed to fetch" means the local plugin is not running. */
 function tokenError(e: unknown) {
   const raw = e instanceof Error ? e.message : '';
@@ -68,7 +59,7 @@ export function SignButton({ stepId, label = 'Ký số', comment, documentCode, 
   const { message } = App.useApp();
   const [open, setOpen] = useState(false);
   const [phase, setPhase] = useState<Phase>(0);
-  const [providerCode, setProviderCode] = useState<string>();
+  const [providerCode, setProviderCode] = useState(savedProviderCode);
   const [remoteMessage, setRemoteMessage] = useState<string | null>(null);
   const [token, setToken] = useState<TokenState | null>(null);
   const remoteWait = useRef({ cancelled: false });
