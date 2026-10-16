@@ -1,22 +1,11 @@
-import {
-  App,
-  Button,
-  Card,
-  Checkbox,
-  Form,
-  Input,
-  Modal,
-  Space,
-  Table,
-  Tag,
-  Tooltip,
-  Typography,
-} from 'antd';
-import { PlusOutlined, SaveOutlined, UndoOutlined } from '@ant-design/icons';
-import { useMemo, useState } from 'react';
+import { App, Button, Checkbox, Form, Input, Modal, Spin, Tooltip } from 'antd';
+import { PlusOutlined, UndoOutlined } from '@ant-design/icons';
+import { ChevronDown, ChevronRight, Search } from 'lucide-react';
+import { Fragment, useMemo, useState } from 'react';
 import { resources, useAction, useGet, useSave, type PermissionMatrixDto } from '../../api/admin';
 import { PageHeader, useApiError } from '../../components/common';
 import { omitKey } from '../../utils/format';
+import './roles.css';
 
 /** Ma trận phân quyền Role × Permission with per-role save. */
 export function RolesPage() {
@@ -32,6 +21,8 @@ export function RolesPage() {
   );
   const createRole = useSave<object>(resources.roles);
   const [creating, setCreating] = useState(false);
+  const [search, setSearch] = useState('');
+  const [closed, setClosed] = useState<Record<string, boolean>>({});
   const [form] = Form.useForm();
   const { message } = App.useApp();
   const onError = useApiError();
@@ -53,120 +44,155 @@ export function RolesPage() {
       return { ...prev, [roleId]: next };
     });
 
-  const rows = useMemo(() => {
-    const perms = matrix.data?.permissions ?? [];
-    const groups = [...new Set(perms.map((p) => p.group))];
-    return groups.map((g) => ({
-      key: g,
+  const groups = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const perms = (matrix.data?.permissions ?? []).filter(
+      (p) => !q || p.name.toLowerCase().includes(q) || p.code.toLowerCase().includes(q),
+    );
+    return [...new Set(perms.map((p) => p.group))].map((g) => ({
       name: g,
-      isGroup: true,
-      children: perms
-        .filter((p) => p.group === g)
-        .map((p) => ({ key: p.code, name: p.name, code: p.code, isGroup: false })),
+      perms: perms.filter((p) => p.group === g),
     }));
-  }, [matrix.data]);
+  }, [matrix.data, search]);
 
-  type Row = { key: string; name: string; code?: string; isGroup: boolean };
+  const save = async (roleId: string, name: string) => {
+    try {
+      await savePermissions.mutateAsync({ id: roleId, permissions: [...current(roleId)] });
+      setDraft((prev) => omitKey(prev, roleId));
+      message.success(`Đã lưu quyền cho ${name}`);
+    } catch (e) {
+      onError(e);
+    }
+  };
 
   return (
     <>
       <PageHeader
         title="Vai trò & phân quyền"
-        subtitle="Đánh dấu quyền cho từng vai trò rồi bấm Lưu ở cột tương ứng. Người dùng nhận quyền mới ngay ở lần gọi tiếp theo."
+        subtitle="Ma trận quyền theo phân hệ — mỗi cột lưu riêng khi có thay đổi; người dùng nhận quyền mới ngay ở lần gọi tiếp theo"
         extra={
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => {
-              form.resetFields();
-              setCreating(true);
-            }}
-          >
-            Thêm vai trò
-          </Button>
+          <>
+            <Input
+              allowClear
+              className="roles__search"
+              prefix={<Search size={16} aria-hidden />}
+              placeholder="Tìm quyền"
+              aria-label="Tìm quyền"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => {
+                form.resetFields();
+                setCreating(true);
+              }}
+            >
+              Thêm vai trò
+            </Button>
+          </>
         }
       />
-      <Card styles={{ body: { padding: 0 } }}>
-        <Table<Row>
-          // Remount once permissions load so every group starts expanded.
-          key={rows.length}
-          size="small"
-          loading={matrix.isLoading}
-          pagination={false}
-          sticky
-          scroll={{ x: 'max-content' }}
-          dataSource={rows}
-          expandable={{ defaultExpandAllRows: true }}
-          columns={[
-            {
-              title: 'Quyền',
-              dataIndex: 'name',
-              fixed: 'left',
-              width: 320,
-              render: (v: string, r) =>
-                r.isGroup ? (
-                  <Typography.Text strong>{v}</Typography.Text>
-                ) : (
-                  <Tooltip title={r.code}>
-                    <span>{v}</span>
-                  </Tooltip>
-                ),
-            },
-            ...roles.map((role) => ({
-              key: role.id,
-              width: 120,
-              align: 'center' as const,
-              title: (
-                <Space direction="vertical" size={2} style={{ alignItems: 'center' }}>
-                  <Tooltip title={role.description}>
-                    <Typography.Text strong style={{ whiteSpace: 'nowrap' }}>
-                      {role.name}
-                    </Typography.Text>
-                  </Tooltip>
-                  <Tag style={{ marginInlineEnd: 0 }}>{role.code}</Tag>
-                  <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                    {role.userCount} người
-                  </Typography.Text>
-                  {dirty(role.id) && (
-                    <Space size={4}>
-                      <Button
-                        size="small"
-                        type="primary"
-                        icon={<SaveOutlined />}
-                        loading={savePermissions.isPending}
-                        onClick={async () => {
-                          try {
-                            await savePermissions.mutateAsync({
-                              id: role.id,
-                              permissions: [...current(role.id)],
-                            });
-                            setDraft((prev) => omitKey(prev, role.id));
-                            message.success(`Đã lưu quyền cho ${role.name}`);
-                          } catch (e) {
-                            onError(e);
-                          }
-                        }}
-                      />
-                      <Button
-                        size="small"
-                        icon={<UndoOutlined />}
-                        onClick={() => setDraft((prev) => omitKey(prev, role.id))}
-                      />
-                    </Space>
-                  )}
-                </Space>
-              ),
-              render: (_: unknown, r: Row) =>
-                r.isGroup ? null : (
-                  <Checkbox
-                    checked={current(role.id).has(r.code!)}
-                    onChange={(e) => toggle(role.id, r.code!, e.target.checked)}
-                  />
-                ),
-            })),
-          ]}
-        />
-      </Card>
+      <section className="roles">
+        {matrix.isLoading ? (
+          <Spin style={{ margin: 48 }} />
+        ) : (
+          <div className="roles__scroll">
+            <table className="roles__table">
+              <thead>
+                <tr>
+                  <th className="roles__corner">Quyền</th>
+                  {roles.map((role) => (
+                    <th
+                      key={role.id}
+                      className={`roles__role${dirty(role.id) ? ' is-dirty' : ''}`}
+                      title={role.description ?? undefined}
+                    >
+                      <div className="roles__role-name">{role.name}</div>
+                      <div className="roles__role-code mono">{role.code}</div>
+                      <div className="roles__role-users">{role.userCount} người</div>
+                      {dirty(role.id) && (
+                        <div className="roles__role-actions">
+                          <Button
+                            size="small"
+                            type="primary"
+                            loading={savePermissions.isPending && savePermissions.variables?.id === role.id}
+                            onClick={() => void save(role.id, role.name)}
+                          >
+                            Lưu
+                          </Button>
+                          <Tooltip title="Hoàn tác">
+                            <Button
+                              size="small"
+                              icon={<UndoOutlined />}
+                              aria-label={`Hoàn tác ${role.name}`}
+                              onClick={() => setDraft((prev) => omitKey(prev, role.id))}
+                            />
+                          </Tooltip>
+                        </div>
+                      )}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {groups.length === 0 && (
+                  <tr>
+                    <td className="roles__empty" colSpan={roles.length + 1}>
+                      Không có quyền phù hợp
+                    </td>
+                  </tr>
+                )}
+                {groups.map((g) => {
+                  const open = !closed[g.name] || !!search.trim();
+                  return (
+                    <Fragment key={g.name}>
+                      <tr className="roles__group">
+                        <td>
+                          <button
+                            type="button"
+                            className="roles__group-toggle"
+                            aria-expanded={open}
+                            onClick={() => setClosed((c) => ({ ...c, [g.name]: open }))}
+                          >
+                            {open ? (
+                              <ChevronDown size={15} aria-hidden />
+                            ) : (
+                              <ChevronRight size={15} aria-hidden />
+                            )}
+                            {g.name}
+                            <span className="roles__group-count">{g.perms.length} quyền</span>
+                          </button>
+                        </td>
+                        <td colSpan={roles.length} />
+                      </tr>
+                      {open &&
+                        g.perms.map((p) => (
+                          <tr key={p.code} className="roles__perm">
+                            <td>
+                              <div className="roles__perm-name">{p.name}</div>
+                              <div className="roles__perm-code mono">{p.code}</div>
+                            </td>
+                            {roles.map((role) => (
+                              <td key={role.id} className={dirty(role.id) ? 'is-dirty' : undefined}>
+                                <Checkbox
+                                  aria-label={`${role.name} — ${p.name}`}
+                                  checked={current(role.id).has(p.code)}
+                                  onChange={(e) => toggle(role.id, p.code, e.target.checked)}
+                                />
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                    </Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
       <Modal
         title="Thêm vai trò"
         open={creating}

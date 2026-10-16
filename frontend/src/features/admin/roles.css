@@ -1,0 +1,155 @@
+/* Vai trò & phân quyền — design/Vai tro.dc.html. */
+.roles__search {
+  width: 280px;
+  max-width: 100%;
+}
+
+.roles {
+  background: var(--bp-card);
+  border: 1px solid var(--bp-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.roles__scroll {
+  overflow: auto;
+  max-height: calc(100vh - 220px);
+}
+
+.roles__table {
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13px;
+}
+
+.roles__table th,
+.roles__table td {
+  border-bottom: 1px solid var(--bp-border);
+  border-right: 1px solid var(--bp-border);
+}
+
+.roles__corner {
+  position: sticky;
+  top: 0;
+  left: 0;
+  z-index: 4;
+  min-width: 280px;
+  padding: 10px 16px;
+  background: var(--bp-th, var(--bp-hover));
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--bp-caption);
+}
+
+.roles__role {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  min-width: 132px;
+  padding: 10px;
+  background: var(--bp-th, var(--bp-hover));
+  text-align: center;
+  vertical-align: top;
+}
+
+.roles__role.is-dirty {
+  background: var(--bp-primary-bg);
+}
+
+.roles__role-name {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--bp-text);
+  white-space: nowrap;
+}
+
+.roles__role-code {
+  font-size: 10.5px;
+  font-weight: 400;
+  color: var(--bp-caption);
+  white-space: nowrap;
+}
+
+.roles__role-users {
+  font-size: 11.5px;
+  font-weight: 400;
+  color: var(--bp-text-2);
+  margin-top: 2px;
+}
+
+.roles__role-actions {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.roles__group td {
+  background: var(--bp-hover);
+}
+
+.roles__group td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  padding: 0;
+}
+
+.roles__group-toggle {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 0;
+  background: transparent;
+  color: var(--bp-text);
+  font: inherit;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.roles__group-count {
+  font-weight: 500;
+  font-size: 12px;
+  color: var(--bp-caption);
+}
+
+.roles__perm td {
+  padding: 8px;
+  text-align: center;
+  background: var(--bp-card);
+}
+
+.roles__perm td.is-dirty {
+  background: color-mix(in srgb, var(--bp-primary-bg) 50%, var(--bp-card));
+}
+
+.roles__perm:hover td {
+  background: var(--bp-hover);
+}
+
+.roles__perm td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  padding: 8px 16px 8px 36px;
+  text-align: left;
+}
+
+.roles__perm-name {
+  font-weight: 500;
+}
+
+.roles__perm-code {
+  font-size: 11px;
+  color: var(--bp-caption);
+}
+
+.roles__empty {
+  padding: 24px;
+  text-align: center;
+  color: var(--bp-caption);
+}

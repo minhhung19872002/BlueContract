@@ -1,0 +1,63 @@
+/* 404 / 403 / 500 — design/He thong.dc.html. */
+.error-state {
+  min-height: 520px;
+  margin: 16px;
+  background: var(--bp-card);
+  border: 1px solid var(--bp-border);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 10px;
+  padding: 48px 24px;
+  color: var(--bp-text);
+}
+
+.app-content .error-state {
+  margin: 0;
+}
+
+.error-state__code {
+  font-size: 64px;
+  line-height: 1;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+}
+
+.error-state__icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+h1.error-state__title {
+  margin: 6px 0 0;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.error-state__body {
+  margin: 0;
+  color: var(--bp-text-2);
+  max-width: 460px;
+  text-wrap: pretty;
+}
+
+.error-state__ref {
+  font-size: 12.5px;
+  color: var(--bp-caption);
+  overflow-wrap: anywhere;
+}
+
+.error-state__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+}

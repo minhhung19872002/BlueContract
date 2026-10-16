@@ -1,9 +1,10 @@
-import { Result, Spin } from 'antd';
+import { Spin } from 'antd';
 import { useEffect, type ReactNode } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { refreshAccessToken } from '../api/http';
 import { authStore } from './authStore';
 import { useAuth } from './useAuth';
+import { ForbiddenPage } from '../pages/ErrorPages';
 
 /** On first load, try a silent refresh with the httpOnly cookie to restore the session. */
 export function SessionBootstrap({ children }: { children: ReactNode }) {
@@ -44,9 +45,7 @@ export function RequireAuth() {
 export function RequirePermission({ any, children }: { any: string[]; children: ReactNode }) {
   const { can } = useAuth();
   if (!can(...any)) {
-    return (
-      <Result status="403" title="Không có quyền truy cập" subTitle="Bạn không có quyền xem trang này." />
-    );
+    return <ForbiddenPage />;
   }
   return <>{children}</>;
 }
