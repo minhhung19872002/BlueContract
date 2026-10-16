@@ -1,6 +1,18 @@
-import { App, Button, Card, Descriptions, Drawer, Select, Space, Tag, Typography } from 'antd';
+import { App, Button, Card, Descriptions, Drawer, Select, Space, Typography } from 'antd';
+import {
+  BookOpen,
+  CalendarClock,
+  Copy,
+  FlaskConical,
+  Gauge,
+  Hospital,
+  KeyRound,
+  Network,
+  Plug,
+  type LucideIcon,
+} from 'lucide-react';
 import { CloudDownloadOutlined, RedoOutlined } from '@ant-design/icons';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePagedList } from '../../api/admin';
 import {
@@ -12,10 +24,11 @@ import {
   type IntegrationLogListItemDto,
 } from '../../api/receipts';
 import { DataTable } from '../../components/DataTable';
-import { StatusTag, statusOptions } from '../../components/StatusTag';
+import { StatusTag, statusOptions, type Tone } from '../../components/StatusTag';
 import { PageHeader, useApiError } from '../../components/common';
 import { useTableUrlState } from '../../hooks/useUrlState';
 import { formatDateTime } from '../../utils/format';
+import './integration.css';
 
 const FILTERS = ['direction', 'status', 'operation'] as const;
 
@@ -26,6 +39,82 @@ const OPERATIONS: Record<string, string> = {
   GetProposalSummaries: 'HIS lấy tổng hợp đề xuất',
   GetItems: 'HIS lấy danh mục hàng hóa',
 };
+
+interface HisRow {
+  k: string;
+  v: ReactNode;
+  mono?: boolean;
+  copy?: boolean;
+}
+
+/** Configuration card of design/Tich hop HIS.dc.html: icon, title, optional badge, key/value rows. */
+function HisCard({
+  icon: Icon,
+  tone,
+  title,
+  badge,
+  rows,
+}: {
+  icon: LucideIcon;
+  tone: Tone;
+  title: string;
+  badge?: { label: string; tone: Tone };
+  rows: HisRow[];
+}) {
+  const { message } = App.useApp();
+  return (
+    <section className="his-card">
+      <div className="his-card__head">
+        <span
+          className="his-card__icon"
+          style={{ background: `var(--bp-${tone}-bg)`, color: `var(--bp-${tone}-fg)` }}
+          aria-hidden
+        >
+          <Icon size={16} strokeWidth={1.75} />
+        </span>
+        <span className="his-card__title">{title}</span>
+        {badge && (
+          <span
+            className="his-card__badge"
+            style={{
+              borderColor: `var(--bp-${badge.tone}-bd)`,
+              background: `var(--bp-${badge.tone}-bg)`,
+              color: `var(--bp-${badge.tone}-fg)`,
+            }}
+          >
+            {badge.label}
+          </span>
+        )}
+      </div>
+      {rows.map((r) => (
+        <div key={r.k} className="his-card__row">
+          <span className="his-card__key">{r.k}</span>
+          <span
+            className={r.mono ? 'his-card__value mono' : 'his-card__value'}
+            title={typeof r.v === 'string' ? r.v : undefined}
+          >
+            {r.v}
+          </span>
+          {r.copy && typeof r.v === 'string' && (
+            <button
+              type="button"
+              className="his-card__copy"
+              aria-label={`Sao chép ${r.k}`}
+              onClick={() =>
+                navigator.clipboard
+                  ?.writeText(r.v as string)
+                  .then(() => message.success('Đã sao chép'))
+                  .catch(() => message.info(r.v as string))
+              }
+            >
+              <Copy size={13} aria-hidden />
+            </button>
+          )}
+        </div>
+      ))}
+    </section>
+  );
+}
 
 const pretty = (text?: string | null) => {
   if (!text) return '—';
@@ -73,40 +162,102 @@ export function IntegrationPage() {
           </Button>
         }
       />
-      <Card style={{ marginBottom: 16 }} loading={config.isLoading}>
-        {c && (
-          <Descriptions size="small" column={{ xs: 1, md: 3 }}>
-            <Descriptions.Item label="Hệ thống HIS">
-              {c.displayName} <Tag>{c.provider}</Tag>
-            </Descriptions.Item>
-            <Descriptions.Item label="API cho HIS">
-              {c.inboundEnabled ? <Tag color="green">Đang bật</Tag> : <Tag>Chưa cấu hình API key</Tag>}
-            </Descriptions.Item>
-            <Descriptions.Item label="Ứng dụng được cấp key">{c.clients.join(', ') || '—'}</Descriptions.Item>
-            <Descriptions.Item label="IP được phép">
-              {c.allowedIps.filter(Boolean).join(', ') || 'Mọi IP'}
-            </Descriptions.Item>
-            <Descriptions.Item label="Giới hạn">{c.rateLimitPerMinute} request/phút</Descriptions.Item>
-            <Descriptions.Item label="Kéo phiếu định kỳ">
-              {c.pullEnabled ? (
-                <Space size={4}>
-                  <Tag color="green">Bật</Tag>
-                  <Typography.Text code>{c.pullCron}</Typography.Text>
-                  <span>({c.pullLookbackDays} ngày gần nhất)</span>
-                </Space>
-              ) : (
-                <Tag>Tắt</Tag>
-              )}
-            </Descriptions.Item>
-            <Descriptions.Item label="Giả lập HIS (dev)">
-              {c.devEndpoints ? <Tag color="orange">Bật</Tag> : <Tag>Tắt</Tag>}
-            </Descriptions.Item>
-            <Descriptions.Item label="Tài liệu" span={2}>
-              docs/HIS_INTEGRATION.md — endpoint, cách ký request, mẫu payload, mã lỗi
-            </Descriptions.Item>
-          </Descriptions>
-        )}
-      </Card>
+      {!c ? (
+        <Card loading={config.isLoading} style={{ marginBottom: 16 }} />
+      ) : (
+        <div className="his-cards">
+          <HisCard
+            icon={Hospital}
+            tone="teal"
+            title="Hệ thống HIS"
+            badge={
+              c.provider === 'Mock'
+                ? { label: 'Mock', tone: 'warning' }
+                : { label: c.provider, tone: 'neutral' }
+            }
+            rows={[
+              { k: 'Hệ thống', v: c.displayName },
+              { k: 'Mã nhà cung cấp', v: c.provider, mono: true },
+            ]}
+          />
+          <HisCard
+            icon={Plug}
+            tone="primary"
+            title="API cho HIS"
+            badge={
+              c.inboundEnabled
+                ? { label: 'Đang bật', tone: 'success' }
+                : { label: 'Chưa cấu hình', tone: 'neutral' }
+            }
+            rows={[
+              { k: 'Đường dẫn', v: `${window.location.origin}/api/integration/his`, mono: true, copy: true },
+              { k: 'Xác thực', v: 'API key + HMAC-SHA256' },
+              { k: 'Header', v: 'X-Api-Key, X-Timestamp, X-Signature', mono: true },
+            ]}
+          />
+          <HisCard
+            icon={KeyRound}
+            tone="purple"
+            title="Ứng dụng được cấp key"
+            rows={
+              c.clients.length
+                ? c.clients.map((name, i) => ({ k: `Ứng dụng ${i + 1}`, v: name, mono: true }))
+                : [{ k: 'Ứng dụng', v: 'Chưa cấp key nào' }]
+            }
+          />
+          <HisCard
+            icon={Network}
+            tone="indigo"
+            title="IP được phép"
+            rows={
+              c.allowedIps.filter(Boolean).length
+                ? c.allowedIps.filter(Boolean).map((ip, i) => ({ k: `Dải ${i + 1}`, v: ip, mono: true }))
+                : [{ k: 'Phạm vi', v: 'Mọi IP' }]
+            }
+          />
+          <HisCard
+            icon={Gauge}
+            tone="orange"
+            title="Giới hạn (rate limit)"
+            rows={[
+              { k: 'Mỗi phút', v: `${c.rateLimitPerMinute.toLocaleString('vi-VN')} yêu cầu / ứng dụng` },
+            ]}
+          />
+          <HisCard
+            icon={CalendarClock}
+            tone="success"
+            title="Kéo phiếu định kỳ"
+            badge={c.pullEnabled ? { label: 'Đang bật', tone: 'success' } : { label: 'Tắt', tone: 'neutral' }}
+            rows={[
+              { k: 'Lịch (cron)', v: c.pullCron, mono: true },
+              { k: 'Khoảng kéo', v: `${c.pullLookbackDays} ngày gần nhất` },
+            ]}
+          />
+          <HisCard
+            icon={FlaskConical}
+            tone="warning"
+            title="Giả lập HIS (dev)"
+            badge={c.devEndpoints ? { label: 'DEV', tone: 'warning' } : { label: 'Tắt', tone: 'neutral' }}
+            rows={[
+              {
+                k: 'Kịch bản',
+                v: c.devEndpoints
+                  ? 'Phiếu hợp lệ / lệch hóa đơn / gửi trùng'
+                  : 'Chỉ bật ở môi trường phát triển',
+              },
+            ]}
+          />
+          <HisCard
+            icon={BookOpen}
+            tone="neutral"
+            title="Tài liệu"
+            rows={[
+              { k: 'Đặc tả', v: 'docs/HIS_INTEGRATION.md', mono: true },
+              { k: 'Nội dung', v: 'Endpoint, cách ký request, payload mẫu, mã lỗi' },
+            ]}
+          />
+        </div>
+      )}
       <DataTable<IntegrationLogListItemDto>
         data={logs.data}
         loading={logs.isFetching}
@@ -250,13 +401,9 @@ function LogDrawer({ id, onClose }: { id: string | null; onClose: () => void }) 
             )}
           </Descriptions>
           <Typography.Title level={5}>Nội dung gửi (request)</Typography.Title>
-          <pre style={{ maxHeight: 320, overflow: 'auto', background: '#fafafa', padding: 12, fontSize: 12 }}>
-            {pretty(l.requestBody)}
-          </pre>
+          <pre className="his-payload">{pretty(l.requestBody)}</pre>
           <Typography.Title level={5}>Kết quả trả về (response)</Typography.Title>
-          <pre style={{ maxHeight: 320, overflow: 'auto', background: '#fafafa', padding: 12, fontSize: 12 }}>
-            {pretty(l.responseBody)}
-          </pre>
+          <pre className="his-payload">{pretty(l.responseBody)}</pre>
         </Space>
       )}
     </Drawer>
