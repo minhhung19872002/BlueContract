@@ -20,11 +20,11 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           global-json-file: backend/global.json
-      - run: dotnet restore BlueProcure.sln
-      - run: dotnet format BlueProcure.sln --verify-no-changes --no-restore
-      - run: dotnet build BlueProcure.sln -c Release --no-restore
+      - run: dotnet restore BlueContract.sln
+      - run: dotnet format BlueContract.sln --verify-no-changes --no-restore
+      - run: dotnet build BlueContract.sln -c Release --no-restore
       # Integration tests use Testcontainers (Docker is available on ubuntu runners).
-      - run: dotnet test BlueProcure.sln -c Release --no-build --collect:"XPlat Code Coverage" --results-directory ./TestResults
+      - run: dotnet test BlueContract.sln -c Release --no-build --collect:"XPlat Code Coverage" --results-directory ./TestResults
       - uses: actions/upload-artifact@v4
         if: always()
         with:

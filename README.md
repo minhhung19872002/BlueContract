@@ -62,7 +62,7 @@ Cần cài **.NET 10 SDK** và **Node.js 22**. Hạ tầng (Postgres, kho tệp 
 
 ```powershell
 docker compose up -d postgres storage gotenberg onlyoffice mailpit
-cd backend;  dotnet run --project src/BlueProcure.Api          # http://localhost:5296
+cd backend;  dotnet run --project src/BlueContract.Api          # http://localhost:5296
 cd frontend; npm install; npm run dev                           # http://localhost:5173 (proxy /api → 5296)
 ```
 

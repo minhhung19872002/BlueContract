@@ -20,7 +20,7 @@ Mỗi mục là một ADR ngắn: **Bối cảnh → Quyết định → Hệ qu
 - **Quyết định:** `snake_case` (EFCore.NamingConventions). Bảng lịch sử migration tên `__ef_migrations_history`. Kiểu `decimal` mặc định `numeric(18,2)` (tiền); cột số lượng sẽ được cấu hình riêng `numeric(18,3)`. Thời gian là `timestamptz` (UTC); ngày nghiệp vụ hiển thị theo `Asia/Ho_Chi_Minh` (`IClock.TodayLocal`).
 
 ## ADR-005 — Khởi tạo khi chạy lần đầu
-- **Quyết định:** Khi start, API chạy `DatabaseInitializer` (migrate → seed idempotent → tạo bucket MinIO, có retry khi dependency chưa sẵn sàng). Cờ `Database:InitializeOnStartup` (mặc định `true`). Lệnh `dotnet BlueProcure.Api.dll --seed-only` chỉ migrate + seed rồi thoát (dùng trong `scripts/seed.*`).
+- **Quyết định:** Khi start, API chạy `DatabaseInitializer` (migrate → seed idempotent → tạo bucket MinIO, có retry khi dependency chưa sẵn sàng). Cờ `Database:InitializeOnStartup` (mặc định `true`). Lệnh `dotnet BlueContract.Api.dll --seed-only` chỉ migrate + seed rồi thoát (dùng trong `scripts/seed.*`).
 - **Hệ quả:** Khi chạy nhiều instance API, nên đặt `InitializeOnStartup=false` cho các instance phụ hoặc chạy migrate như một bước deploy riêng (ghi trong DEPLOY.md ở Phase 9).
 
 ## ADR-006 — Sinh TypeScript client từ OpenAPI

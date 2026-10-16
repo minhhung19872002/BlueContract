@@ -8,7 +8,7 @@ param([switch]$ResetDemo)
 $ErrorActionPreference = 'Stop'
 Set-Location (Split-Path -Parent $PSScriptRoot)
 
-$appArgs = @('BlueProcure.Api.dll', '--seed-only')
+$appArgs = @('BlueContract.Api.dll', '--seed-only')
 if ($ResetDemo) { $appArgs += '--reset-demo' }
 
 docker compose exec -T api dotnet @appArgs

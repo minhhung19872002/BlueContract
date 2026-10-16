@@ -4,7 +4,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-args=(BlueProcure.Api.dll --seed-only)
+args=(BlueContract.Api.dll --seed-only)
 [ "${1:-}" = "--reset-demo" ] && args+=(--reset-demo)
 
 docker compose exec -T api dotnet "${args[@]}"

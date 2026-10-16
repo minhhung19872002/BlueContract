@@ -7,7 +7,7 @@ staged="$(git diff --cached --name-only --diff-filter=ACM)"
 
 if echo "$staged" | grep -qE '^backend/.*\.cs$'; then
   echo "pre-commit: dotnet format --verify-no-changes"
-  (cd "$root/backend" && dotnet format BlueProcure.sln --verify-no-changes --no-restore) || {
+  (cd "$root/backend" && dotnet format BlueContract.sln --verify-no-changes --no-restore) || {
     echo "Định dạng C# chưa đúng. Chạy: cd backend && dotnet format" >&2; exit 1; }
 fi
 
