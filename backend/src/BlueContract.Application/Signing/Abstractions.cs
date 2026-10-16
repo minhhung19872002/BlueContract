@@ -114,6 +114,9 @@ public interface IPdfSignatureService
 
     /// <summary>Lists and verifies every signature in a PDF.</summary>
     IReadOnlyList<PdfSignatureInfo> Verify(byte[] pdf);
+
+    /// <summary>True when the bytes decode as an image the visible signature can draw (PNG / JPEG, sane size).</summary>
+    bool IsUsableImage(byte[] image);
 }
 
 /// <summary>Builds CAdES-detached CMS from a document digest and an external signer (key held by a provider or token).</summary>

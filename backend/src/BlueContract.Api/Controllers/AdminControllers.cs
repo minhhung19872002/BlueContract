@@ -1,6 +1,7 @@
 using BlueContract.Api.Auth;
 using BlueContract.Application.Admin;
 using BlueContract.Application.Common;
+using BlueContract.Application.Signing;
 using BlueContract.Domain.Identity;
 using BlueContract.Domain.Organizations;
 using Microsoft.AspNetCore.Mvc;
@@ -9,8 +10,30 @@ using P = BlueContract.Domain.Identity.Permissions;
 namespace BlueContract.Api.Controllers;
 
 [Route("api/admin/organization")]
-public sealed class OrganizationController(OrganizationService service) : ApiControllerBase
+public sealed class OrganizationController(OrganizationService service, SignatureImageService images) : ApiControllerBase
 {
+    /// <summary>Seal image drawn by "đóng dấu điện tử" (spec §8).</summary>
+    [HttpPost("seal")]
+    [HasPermission(P.OrganizationManage)]
+    [RequestSizeLimit(FileInspector.MaxUploadBytes + (1024 * 1024))]
+    public async Task<IActionResult> SetSeal(IFormFile? file, CancellationToken ct)
+    {
+        var upload = await TemplatesController.ReadUploadAsync(file, ct);
+        return upload.IsSuccess ? FromResult(await images.SetSealAsync(upload.Value, ct)) : Problem(upload.Error!);
+    }
+
+    [HttpGet("seal")]
+    [HasPermission(P.OrganizationManage, P.MasterDataView)]
+    public async Task<IActionResult> GetSeal(CancellationToken ct)
+    {
+        var image = await images.GetSealAsync(ct);
+        return image.IsSuccess ? File(image.Value.Content, image.Value.ContentType) : Problem(image.Error!);
+    }
+
+    [HttpDelete("seal")]
+    [HasPermission(P.OrganizationManage)]
+    public async Task<IActionResult> RemoveSeal(CancellationToken ct) => FromResult(await images.RemoveSealAsync(ct));
+
     [HttpGet]
     [HasPermission(P.OrganizationManage, P.MasterDataView)]
     public async Task<ActionResult<OrganizationDto>> Get(CancellationToken ct) => FromResult(await service.GetAsync(ct));

@@ -1,3 +1,6 @@
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
+using System.Reflection;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -31,7 +34,12 @@ public class UploadTests(ApiFactory factory)
     public async Task Every_upload_endpoint_refuses_disguised_and_oversized_files()
     {
         var endpoints = await EndpointsAsync();
-        endpoints.Count.ShouldBe(13, "one entry per upload endpoint of the API");
+        // Every action taking a file must be listed here (counted on the controllers, so a new upload cannot be missed).
+        var uploadActions = typeof(Program).Assembly.GetTypes()
+            .Where(t => t.IsSubclassOf(typeof(ControllerBase)))
+            .SelectMany(t => t.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly))
+            .Count(m => m.GetParameters().Any(p => p.ParameterType == typeof(IFormFile)));
+        endpoints.Count.ShouldBe(uploadActions, "one entry per upload endpoint of the API");
         var oversized = new byte[(int)FileInspector.MaxUploadBytes + 1];
         "%PDF-1.7\n"u8.CopyTo(oversized);
 
@@ -155,6 +163,8 @@ public class UploadTests(ApiFactory factory)
             new("invoice-file", "muasam", $"/api/warehouse-receipts/{receiptId}/invoice-file", "hd.xml", "application/xml", ["INVOICE_FILE_TYPE_INVALID"], []),
             new("invoice-parse", "muasam", "/api/warehouse-receipts/invoice/parse", "hd.xml", "application/xml", ["INVOICE_XML_INVALID"], []),
             new("signature-verify", "ketoan", "/api/signing/verify", "ky.pdf", "application/pdf", ["DOCUMENT_FILE_TYPE_INVALID"], []),
+            new("signature-image", "ketoan", "/api/account/signature-images/signature", "chu-ky.png", "image/png", ["SIGNATURE_IMAGE_INVALID"], []),
+            new("organization-seal", "admin", "/api/admin/organization/seal", "con-dau.png", "image/png", ["SIGNATURE_IMAGE_INVALID"], []),
         ];
     }
 

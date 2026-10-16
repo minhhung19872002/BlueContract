@@ -47,7 +47,8 @@ public sealed class SigningService(
     IAuditLogger audit,
     ICurrentUser current,
     IClock clock,
-    SigningDefaults defaults)
+    SigningDefaults defaults,
+    SignatureImageService images)
 {
     private static readonly TimeSpan RequestLifetime = TimeSpan.FromMinutes(10);
 
@@ -135,7 +136,8 @@ public sealed class SigningService(
         var signerTitle = standing.Title ?? await db.Users.IgnoreQueryFilters().Where(u => u.Id == current.UserId).Select(u => u.JobTitle).FirstOrDefaultAsync(ct);
 
         var original = await ReadAllAsync(version.PdfFileKey, ct);
-        var prepared = pdf.Prepare(original, new SignatureAppearance(kind, signerName, signerTitle, standing.Caption, step.SignatureAnchor, now, version.SignatureCount));
+        var image = await images.ForSignatureAsync(kind, current.UserId!.Value, ct);
+        var prepared = pdf.Prepare(original, new SignatureAppearance(kind, signerName, signerTitle, standing.Caption, step.SignatureAnchor, now, version.SignatureCount, image));
 
         var request = new SigningRequest(document.Id, version.Id, step.Id, current.UserId!.Value, standing.OnBehalfOf, kind, provider.ProviderCode,
             prepared.FieldName, $"signing/{Guid.CreateVersion7():N}.pdf", version.PdfSha256, Convert.ToHexStringLower(prepared.DocumentDigest), now, RequestLifetime);

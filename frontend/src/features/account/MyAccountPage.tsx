@@ -12,6 +12,7 @@ import { authStore } from '../../auth/authStore';
 import { useAuth } from '../../auth/useAuth';
 import { PageHeader, useApiError } from '../../components/common';
 import { InfoGrid } from '../../components/layout';
+import { SignatureImageSlot } from '../../components/SignatureImageSlot';
 import { ChangePasswordForm } from '../../pages/auth/ChangePasswordPage';
 import './account.css';
 
@@ -183,6 +184,23 @@ export function MyAccountPage() {
             },
           ]}
         />
+      </section>
+      <section className="account__card">
+        <div>
+          <h2 className="account__title">Chữ ký hiển thị khi ký số</h2>
+          <p className="account__lead">
+            Ảnh được đặt vào ô chữ ký trên tệp PDF cùng họ tên và thời điểm ký. Nên dùng ảnh PNG nền trong
+            suốt, chữ ký mực xanh hoặc đen, tối đa 2 MB.
+          </p>
+        </div>
+        <div className="account__images">
+          <SignatureImageSlot slot="signature" title="Chữ ký tay" hint="Dùng cho các bước Ký số." />
+          <SignatureImageSlot
+            slot="initial"
+            title="Chữ ký nháy"
+            hint="Dùng cho bước Ký nháy; để trống thì dùng chữ ký tay."
+          />
+        </div>
       </section>
       <div className="account__grid">
         <TwoFactorCard />

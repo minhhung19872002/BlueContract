@@ -67,6 +67,10 @@ Ký hợp đồng, tổng hợp đề xuất, biên bản nghiệm thu, 08a, đ�
 - **Tài khoản công ty**: thông tin NCC; Quản trị NCC quản lý tài khoản nhân viên.
 - **Tổng quan**: tài liệu chờ ký, đơn gọi hàng chờ xác nhận, phiếu cần bổ sung hóa đơn, công nợ bệnh viện còn phải trả.
 
+### Ảnh chữ ký và con dấu
+
+Mỗi người tải **ảnh chữ ký tay** (và nếu muốn, **chữ ký nháy**) ở **Tài khoản → Chữ ký hiển thị khi ký số**; Quản trị tải **ảnh con dấu** ở **Quản trị → Thông tin bệnh viện → Con dấu điện tử**. Ảnh được đặt vào ô chữ ký trên PDF cùng họ tên, chức danh và thời điểm ký (PNG nền trong suốt hoặc JPEG, tối đa 2 MB). Không có ảnh thì ô chữ ký chỉ có chữ như trước.
+
 ## 4. Tổng quan và báo cáo
 
 - **Tổng quan** (bệnh viện): tài liệu chờ xử lý theo loại, hợp đồng sắp hết hạn / sắp hết số lượng, phiếu nhập kho cảnh báo, gọi hàng chưa xác nhận quá hạn, biểu đồ thanh toán 12 tháng.

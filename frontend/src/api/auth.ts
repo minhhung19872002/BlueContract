@@ -64,3 +64,33 @@ export async function reloadCurrentUser() {
 export async function logoutRequest() {
   await apiClient.post('/api/auth/logout');
 }
+
+// ---------------- Signature images (spec §8) ----------------
+
+export const SIGNATURE_IMAGE_URLS = {
+  signature: '/api/account/signature-images/signature',
+  initial: '/api/account/signature-images/initial',
+  seal: '/api/admin/organization/seal',
+} as const;
+
+export type SignatureImageSlot = keyof typeof SIGNATURE_IMAGE_URLS;
+
+/** The stored image, or null when none is set (404). */
+export async function fetchSignatureImage(slot: SignatureImageSlot): Promise<Blob | null> {
+  try {
+    return (await apiClient.get<Blob>(SIGNATURE_IMAGE_URLS[slot], { responseType: 'blob' })).data;
+  } catch (e) {
+    if ((e as { response?: { status?: number } }).response?.status === 404) return null;
+    throw e;
+  }
+}
+
+export async function uploadSignatureImage(slot: SignatureImageSlot, file: File) {
+  const data = new FormData();
+  data.append('file', file);
+  await apiClient.post(SIGNATURE_IMAGE_URLS[slot], data);
+}
+
+export async function removeSignatureImage(slot: SignatureImageSlot) {
+  await apiClient.delete(SIGNATURE_IMAGE_URLS[slot]);
+}

@@ -2,9 +2,14 @@ import { App, Button, Card, Col, Form, Input, Row } from 'antd';
 import { useEffect } from 'react';
 import { resources, useAction, useGet, type OrganizationDto } from '../../api/admin';
 import { PageHeader, useApiError } from '../../components/common';
+import { Panel } from '../../components/layout';
+import { SignatureImageSlot } from '../../components/SignatureImageSlot';
+import { useAuth } from '../../auth/useAuth';
+import { P } from '../../auth/permissions';
 
 /** Thông tin bệnh viện — used in every contract/document template; never hard-coded (spec §1). */
 export function OrganizationPage() {
+  const { can } = useAuth();
   const org = useGet<OrganizationDto>(resources.organization, [resources.organization]);
   const save = useAction<object>(resources.organization, (body) => ({
     url: resources.organization,
@@ -115,6 +120,16 @@ export function OrganizationPage() {
           </Button>
         </Form>
       </Card>
+      <div style={{ marginTop: 16 }}>
+        <Panel title="Con dấu điện tử">
+          <SignatureImageSlot
+            slot="seal"
+            title="Ảnh con dấu"
+            hint="Đặt vào ô đóng dấu điện tử của Văn thư trên mọi tài liệu. Nên dùng ảnh PNG nền trong suốt, tối đa 2 MB."
+            readOnly={!can(P.OrganizationManage)}
+          />
+        </Panel>
+      </div>
     </>
   );
 }

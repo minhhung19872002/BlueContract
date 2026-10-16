@@ -7,6 +7,7 @@ using iText.Bouncycastle.X509;
 using iText.Commons.Bouncycastle.Cert;
 using iText.Forms.Form.Element;
 using iText.IO.Font;
+using iText.IO.Image;
 using iText.Kernel.Colors;
 using iText.Kernel.Font;
 using iText.Kernel.Geom;
@@ -40,8 +41,19 @@ internal sealed class PdfSignatureService : IPdfSignatureService
         var (page, rect) = Locate(signer.GetDocument(), a);
 
         var font = PdfFontFactory.CreateFont(RegularFont.Value, PdfEncodings.IDENTITY_H, PdfFontFactory.EmbeddingStrategy.FORCE_EMBEDDED);
-        var appearance = new SignatureFieldAppearance(SignerProperties.IGNORED_ID)
-            .SetContent(Text(a))
+        var appearance = new SignatureFieldAppearance(SignerProperties.IGNORED_ID);
+        var image = a.Image is { } bytes ? TryImage(bytes) : null;
+        if (image is not null)
+        {
+            // Handwritten signature / initials / seal on the left, the text on the right (spec §8).
+            appearance.SetContent(Text(a), image);
+        }
+        else
+        {
+            appearance.SetContent(Text(a));
+        }
+
+        appearance
             .SetFont(font)
             .SetFontSize(a.Kind == SignatureKind.Initial ? 6.5f : 7.5f);
         if (a.Kind == SignatureKind.Organization)
@@ -128,6 +140,20 @@ internal sealed class PdfSignatureService : IPdfSignatureService
         }
 
         return result;
+    }
+
+    public bool IsUsableImage(byte[] image) => TryImage(image) is { } data && data.GetWidth() <= 4000 && data.GetHeight() <= 4000;
+
+    private static ImageData? TryImage(byte[] bytes)
+    {
+        try
+        {
+            return ImageDataFactory.Create(bytes);
+        }
+        catch (Exception ex) when (ex is iText.IO.Exceptions.IOException or iText.Commons.Exceptions.ITextException or ArgumentException or IndexOutOfRangeException)
+        {
+            return null;
+        }
     }
 
     private static string Text(SignatureAppearance a)

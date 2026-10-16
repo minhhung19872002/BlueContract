@@ -46,6 +46,7 @@ public static class DependencyInjection
         services.AddScoped<WorkflowAccess>();
         services.AddScoped<WorkflowService>();
         services.AddScoped<SigningService>();
+        services.AddScoped<SignatureImageService>();
         services.AddScoped<NotificationService>();
         services.AddScoped<NotificationOutbox>();
         services.AddScoped<CatalogService>();

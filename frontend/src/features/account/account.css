@@ -135,3 +135,9 @@ h2.account__title {
   justify-content: flex-end;
   gap: 8px;
 }
+
+.account__images {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+  gap: 16px;
+}
