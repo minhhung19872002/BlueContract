@@ -3,7 +3,10 @@ using BlueContract.Application.Common;
 using BlueContract.Application.Documents;
 using BlueContract.Application.Notifications;
 using BlueContract.Application.Signing;
+using BlueContract.Application.Catalog;
+using BlueContract.Application.Integration;
 using BlueContract.Infrastructure.Documents;
+using BlueContract.Infrastructure.Integration;
 using BlueContract.Infrastructure.Jobs;
 using BlueContract.Infrastructure.Signing;
 using Hangfire;
@@ -58,6 +61,8 @@ public static class DependencyInjection
         services.AddScoped<DatabaseInitializer>();
         services.AddScoped<IdentitySeeder>();
         services.AddScoped<DemoSeeder>();
+        services.AddScoped<CatalogSeeder>();
+        services.AddScoped<DemoProcurementSeeder>();
         services.AddScoped<TemplateSeeder>();
         services.AddScoped<WorkflowSeeder>();
 
@@ -82,12 +87,42 @@ public static class DependencyInjection
         services.AddScoped<IEmailSender, SmtpEmailSender>();
         services.AddSingleton<IAppLinkBuilder, AppLinkBuilder>();
         services.AddSingleton<IExcelExporter, ClosedXmlExcelExporter>();
+        services.AddSingleton<IItemWorkbook, ClosedXmlItemWorkbook>();
 
         // Documents: template engine, PDF conversion, online editor
         services.AddSingleton<IDocumentGenerator, DocxTemplateEngine>();
         services.AddScoped<IPdfConverter, GotenbergPdfConverter>();
         services.Configure<OnlyOfficeOptions>(configuration.GetSection(OnlyOfficeOptions.SectionName));
         services.AddScoped<IDocumentEditorService, OnlyOfficeEditorService>();
+        services.AddSingleton<IDocxRevisions, DocxRevisions>();
+
+        // HIS integration (spec §7): deterministic mock for demo/tests, configurable REST adapter for real vendors.
+        services.Configure<HisOptions>(configuration.GetSection(HisOptions.SectionName));
+        var his = configuration.GetSection(HisOptions.SectionName).Get<HisOptions>() ?? new HisOptions();
+        if (his.Provider.Equals("Rest", StringComparison.OrdinalIgnoreCase))
+        {
+            services.AddHttpClient(RestHisClient.ClientName, (sp, c) =>
+            {
+                var o = sp.GetRequiredService<IOptions<HisOptions>>().Value;
+                c.BaseAddress = string.IsNullOrWhiteSpace(o.BaseUrl)
+                    ? throw new InvalidOperationException("His:BaseUrl is required when His:Provider=Rest.")
+                    : new Uri(o.BaseUrl.EndsWith('/') ? o.BaseUrl : o.BaseUrl + "/");
+                if (!string.IsNullOrEmpty(o.ApiKey))
+                {
+                    c.DefaultRequestHeaders.Add(o.ApiKeyHeader, o.ApiKey);
+                }
+            }).AddStandardResilienceHandler(r =>
+            {
+                r.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(Math.Max(his.TimeoutSeconds, 5) * 3);
+                r.AttemptTimeout.Timeout = TimeSpan.FromSeconds(Math.Max(his.TimeoutSeconds, 5));
+                r.CircuitBreaker.SamplingDuration = r.AttemptTimeout.Timeout * 2;
+            });
+            services.AddScoped<IHisClient, RestHisClient>();
+        }
+        else
+        {
+            services.AddSingleton<IHisClient, MockHisClient>();
+        }
 
         // Digital signing (PAdES via iText) and providers
         services.Configure<SigningOptions>(configuration.GetSection(SigningOptions.SectionName));

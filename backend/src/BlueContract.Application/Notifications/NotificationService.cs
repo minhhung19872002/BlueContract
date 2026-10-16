@@ -151,4 +151,5 @@ public static class NotificationTypes
     public const string WorkflowCompleted = "workflow.completed";
     public const string WorkflowOverdue = "workflow.overdue";
     public const string WorkflowComment = "workflow.comment";
+    public const string ContractEffective = "contract.effective";
 }

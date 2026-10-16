@@ -1,6 +1,9 @@
 using System.Globalization;
 using BlueContract.Application.Admin;
 using BlueContract.Application.Auth;
+using BlueContract.Application.Bids;
+using BlueContract.Application.Catalog;
+using BlueContract.Application.Contracts;
 using BlueContract.Application.Documents;
 using BlueContract.Application.Notifications;
 using BlueContract.Application.Signing;
@@ -39,6 +42,13 @@ public static class DependencyInjection
         services.AddScoped<SigningService>();
         services.AddScoped<NotificationService>();
         services.AddScoped<NotificationOutbox>();
+        services.AddScoped<CatalogService>();
+        services.AddScoped<ItemImportValidator>();
+        services.AddScoped<BidDecisionService>();
+        services.AddScoped<ContractDocumentData>();
+        services.AddScoped<ContractService>();
+        services.AddScoped<IWorkflowObserver, ContractWorkflowObserver>();
+        services.AddScoped<IWorkflowObserver, AppendixWorkflowObserver>();
         return services;
     }
 }

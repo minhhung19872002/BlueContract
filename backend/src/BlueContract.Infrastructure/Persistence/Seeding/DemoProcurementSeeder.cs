@@ -1,0 +1,195 @@
+using BlueContract.Application.Bids;
+using BlueContract.Application.Common;
+using BlueContract.Application.Contracts;
+using BlueContract.Application.Signing;
+using BlueContract.Application.Workflows;
+using BlueContract.Domain.Contracts;
+using BlueContract.Infrastructure.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+
+namespace BlueContract.Infrastructure.Persistence.Seeding;
+
+/// <summary>
+/// Demo business data in several states (spec §12), produced by running the real use cases as the demo users, so every
+/// document, workflow event and signature is exactly what users would create: 2 bid decisions (thuốc, VTYT) synced from
+/// the mock HIS, a contract waiting for the supplier's review, a fully signed effective contract and a non-bidding repair
+/// contract in draft. Idempotent: skipped once the first bid decision exists.
+/// </summary>
+internal sealed class DemoProcurementSeeder(IServiceProvider services, IHttpClientFactory http, ILogger<DemoProcurementSeeder> logger)
+{
+    public const string DrugBid = "125/QĐ-BVĐK";
+    public const string SupplyBid = "126/QĐ-BVĐK";
+    public const string ContractUnderReview = "15/2026/HĐ-BVĐK";
+    public const string ContractEffective = "16/2026/HĐ-BVĐK";
+    public const string ContractRepair = "17/2026/HĐ-SC";
+
+    public async Task SeedAsync(CancellationToken ct)
+    {
+        using (var scope = services.CreateScope())
+        {
+            if (await scope.ServiceProvider.GetRequiredService<AppDbContext>().BidDecisions.AnyAsync(b => b.Number == DrugBid, ct))
+            {
+                return;
+            }
+        }
+
+        // Signing renders PDFs through Gotenberg: wait for it so the scenario is never left half-done.
+        if (!await GotenbergReadyAsync(ct))
+        {
+            logger.LogWarning("Gotenberg is not reachable; demo procurement scenarios will be seeded on a later start");
+            return;
+        }
+
+        var drugBid = await AsAsync("muasam", sp => CreateBidAsync(sp, DrugBid, "THUOC", "0101234567",
+            "Gói thầu số 01: Cung cấp thuốc generic năm 2026", ct), ct);
+        var supplyBid = await AsAsync("muasam", sp => CreateBidAsync(sp, SupplyBid, "VTYT", "0302345678",
+            "Gói thầu số 02: Cung cấp vật tư y tế tiêu hao năm 2026", ct), ct);
+
+        // HĐ thuốc: đã qua Tổ rà soát, đang chờ NCC1 rà soát trong menu Hợp đồng.
+        var underReview = await AsAsync("muasam", sp => CreateBidContractAsync(sp, drugBid, ContractUnderReview, "Cung cấp thuốc generic năm 2026", "HD_THUOC", ct), ct);
+        await AsAsync("muasam", sp => Ok(sp.GetRequiredService<ContractService>().SubmitAsync(underReview.ContractId, ct)), ct);
+        await AsAsync("rasoat", sp => ApproveAsync(sp, underReview.DocumentId, "Nội dung phù hợp quyết định thầu, chuyển NCC rà soát", ct), ct);
+
+        // HĐ VTYT: ký đủ 4 chữ ký → có hiệu lực.
+        var effective = await AsAsync("muasam", sp => CreateBidContractAsync(sp, supplyBid, ContractEffective, "Cung cấp vật tư y tế tiêu hao năm 2026", "HD_VTYT", ct), ct);
+        await AsAsync("muasam", sp => Ok(sp.GetRequiredService<ContractService>().SubmitAsync(effective.ContractId, ct)), ct);
+        await AsAsync("rasoat", sp => ApproveAsync(sp, effective.DocumentId, "Đã rà soát", ct), ct);
+        await AsAsync("ncc2", sp => Ok(sp.GetRequiredService<ContractService>().SupplierRespondAsync(effective.ContractId, new SupplierResponseRequest(true, null), ct)), ct);
+        foreach (var signer in new[] { "ncc2", "ketoan", "giamdoc", "vanthu" })
+        {
+            await AsAsync(signer, sp => SignAsync(sp, effective.DocumentId, ct), ct);
+        }
+
+        // HĐ sửa chữa ngoài thầu (bản nháp).
+        await AsAsync("muasam", sp => CreateRepairContractAsync(sp, ct), ct);
+        logger.LogInformation("Demo procurement scenarios seeded");
+    }
+
+    private async Task<bool> GotenbergReadyAsync(CancellationToken ct)
+    {
+        var client = http.CreateClient(DependencyInjection.GotenbergClient);
+        for (var attempt = 0; attempt < 15; attempt++)
+        {
+            try
+            {
+                using var response = await client.GetAsync(new Uri("/health", UriKind.Relative), ct);
+                if (response.IsSuccessStatusCode)
+                {
+                    return true;
+                }
+            }
+            catch (HttpRequestException)
+            {
+                // not up yet
+            }
+
+            await Task.Delay(TimeSpan.FromSeconds(2), ct);
+        }
+
+        return false;
+    }
+
+    private async Task<T> AsAsync<T>(string userName, Func<IServiceProvider, Task<T>> action, CancellationToken ct)
+    {
+        ImpersonatedUser user;
+        using (var lookup = services.CreateScope())
+        {
+            user = await ImpersonatedUser.LoadAsync(lookup.ServiceProvider.GetRequiredService<AppDbContext>(), userName, ct);
+        }
+
+        using (UserContextOverride.Use(user))
+        {
+            using var scope = services.CreateScope();
+            return await action(scope.ServiceProvider);
+        }
+    }
+
+    private async Task AsAsync(string userName, Func<IServiceProvider, Task> action, CancellationToken ct) =>
+        await AsAsync(userName, async sp =>
+        {
+            await action(sp);
+            return true;
+        }, ct);
+
+    private static async Task<Guid> CreateBidAsync(IServiceProvider sp, string number, string category, string taxCode, string package, CancellationToken ct)
+    {
+        var db = sp.GetRequiredService<AppDbContext>();
+        var bids = sp.GetRequiredService<BidDecisionService>();
+        var categoryId = await db.ItemCategories.Where(c => c.Code == category).Select(c => c.Id).FirstAsync(ct);
+        var supplierId = await db.Suppliers.Where(s => s.TaxCode == taxCode).Select(s => s.Id).FirstAsync(ct);
+        var id = Value(await bids.CreateAsync(new SaveBidDecisionRequest(number, new DateOnly(2026, 2, 15),
+            "Phê duyệt kết quả lựa chọn nhà thầu " + package.ToLowerInvariant(), package, "Đấu thầu rộng rãi qua mạng",
+            "Nguồn thu sự nghiệp và quỹ bảo hiểm y tế", "12 tháng kể từ ngày hợp đồng có hiệu lực", categoryId, null, new DateOnly(2027, 2, 28)), ct));
+        await Ok(bids.UpsertSupplierAsync(id, new BidSupplierRequest(supplierId, 0), ct));
+        Value(await bids.SyncFromHisAsync(id, null, ct));
+        var items = Value(await bids.ItemsAsync(id, null, ct));
+        await Ok(bids.UpsertSupplierAsync(id, new BidSupplierRequest(supplierId, items.Sum(i => i.Amount)), ct));
+        await Ok(bids.ActivateAsync(id, ct));
+        return id;
+    }
+
+    private static async Task<(Guid ContractId, Guid DocumentId)> CreateBidContractAsync(IServiceProvider sp, Guid bidId, string number, string name, string template, CancellationToken ct)
+    {
+        var db = sp.GetRequiredService<AppDbContext>();
+        var bid = await db.BidDecisions.AsNoTracking().FirstAsync(b => b.Id == bidId, ct);
+        var items = Value(await sp.GetRequiredService<BidDecisionService>().ItemsAsync(bidId, null, ct));
+        var templateId = await db.DocumentTemplates.Where(t => t.Code == template).Select(t => t.Id).FirstAsync(ct);
+        var contracts = sp.GetRequiredService<ContractService>();
+        var id = Value(await contracts.CreateAsync(new SaveContractRequest(
+            ProcurementType.Bidding, bidId, items[0].SupplierId, null, number, name, ContractKind.UnitPriceCallOff, true, bid.CategoryId, null, null,
+            null, new DateOnly(2026, 3, 1), new DateOnly(2027, 2, 28), "12 tháng kể từ ngày hợp đồng có hiệu lực",
+            "Thanh toán bằng chuyển khoản theo từng đợt giao hàng, trong vòng 90 ngày kể từ ngày nghiệm thu và nhận đủ hồ sơ thanh toán hợp lệ.",
+            "Hàng hóa còn hạn dùng tối thiểu 12 tháng tại thời điểm giao hàng; đổi trả hàng lỗi trong 07 ngày.",
+            "Giao hàng tại kho của Bên A trong vòng 05 ngày làm việc kể từ ngày nhận đơn gọi hàng.",
+            "BL-" + number.Split('/')[0] + "/2026", "Ngân hàng TMCP Đầu tư và Phát triển Việt Nam - CN Nghệ An", null, new DateOnly(2027, 3, 31), templateId,
+            [.. items.Take(10).Select(i => new ContractLineRequest(i.ItemId, null, decimal.Round(i.Quantity * 0.6m, 0), i.UnitPrice, 5))]), ct));
+        var documentId = await db.Contracts.Where(c => c.Id == id).Select(c => c.DocumentId!.Value).FirstAsync(ct);
+        return (id, documentId);
+    }
+
+    private static async Task<Guid> CreateRepairContractAsync(IServiceProvider sp, CancellationToken ct)
+    {
+        var db = sp.GetRequiredService<AppDbContext>();
+        var categoryId = await db.ItemCategories.Where(c => c.Code == "SUA_CHUA").Select(c => c.Id).FirstAsync(ct);
+        var supplierId = await db.Suppliers.Where(s => s.TaxCode == "2901234567").Select(s => s.Id).FirstAsync(ct);
+        var templateId = await db.DocumentTemplates.Where(t => t.Code == "HD_DICHVU_KHONGTHAU").Select(t => t.Id).FirstAsync(ct);
+        return Value(await sp.GetRequiredService<ContractService>().CreateAsync(new SaveContractRequest(
+            ProcurementType.NonBidding, null, supplierId, null, ContractRepair, "Sửa chữa hệ thống khí y tế Khoa Hồi sức tích cực", ContractKind.LumpSum, false,
+            categoryId, null, "Hợp đồng ngoài thầu (giá trị dưới hạn mức chỉ định thầu rút gọn)", null, null, null, "45 ngày kể từ ngày ký",
+            "Thanh toán một lần bằng chuyển khoản sau khi nghiệm thu, bàn giao.", "Bảo hành 12 tháng cho vật tư thay thế và công sửa chữa.",
+            "Thi công tại Khoa Hồi sức tích cực - Chống độc, ngoài giờ cao điểm.", null, null, null, null, templateId,
+            [
+                new ContractLineRequest(null, new NewItemRequest("SC-KYT-01", "Thay van giảm áp oxy trung tâm", "Bộ", "Van giảm áp 2 cấp, đồng hồ báo áp", null, "Amico", "Canada", null), 4, 9_800_000, 10),
+                new ContractLineRequest(null, new NewItemRequest("SC-KYT-02", "Thay ổ cắm khí y tế đầu giường", "Cái", "Ổ cắm oxy/khí nén/hút chuẩn DIN", null, "Amico", "Canada", null), 12, 3_450_000, 10),
+                new ContractLineRequest(null, new NewItemRequest("SC-KYT-03", "Nhân công kiểm tra rò rỉ, hiệu chỉnh hệ thống", "Gói", null, null, null, null, null), 1, 15_000_000, 10),
+            ]), ct));
+    }
+
+    private static async Task ApproveAsync(IServiceProvider sp, Guid documentId, string comment, CancellationToken ct)
+    {
+        var wf = Value(await sp.GetRequiredService<WorkflowService>().GetForDocumentAsync(documentId, ct));
+        var stepId = wf?.MyStepId ?? throw new InvalidOperationException("Demo seeding: the user has no active step.");
+        Value(await sp.GetRequiredService<WorkflowService>().ApproveAsync(stepId, new ApproveStepRequest(comment, false), ct));
+    }
+
+    private static async Task SignAsync(IServiceProvider sp, Guid documentId, CancellationToken ct)
+    {
+        var wf = Value(await sp.GetRequiredService<WorkflowService>().GetForDocumentAsync(documentId, ct));
+        var stepId = wf?.MyStepId ?? throw new InvalidOperationException("Demo seeding: the user has no signing step.");
+        Value(await sp.GetRequiredService<SigningService>().BeginAsync(stepId, new BeginSignRequest("MOCK", null, null), ct));
+    }
+
+    private static T Value<T>(Result<T> result) =>
+        result.IsSuccess ? result.Value : throw new InvalidOperationException($"Demo seeding failed: {result.Error!.Code}");
+
+    private static async Task Ok(Task<Result> task)
+    {
+        var result = await task;
+        if (!result.IsSuccess)
+        {
+            throw new InvalidOperationException($"Demo seeding failed: {result.Error!.Code}");
+        }
+    }
+}

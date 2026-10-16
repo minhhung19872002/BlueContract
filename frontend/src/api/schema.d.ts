@@ -2950,6 +2950,1540 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/items/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ItemCategoryDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    Page?: number;
+                    PageSize?: number;
+                    Search?: string;
+                    /** @description Property name to sort by (whitelisted per endpoint). */
+                    SortBy?: string;
+                    SortDesc?: boolean;
+                    /** @description Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows). */
+                    ForExport?: boolean;
+                    SafePage?: number;
+                    SafePageSize?: number;
+                    CategoryId?: string;
+                    Source?: components["schemas"]["ItemSource"];
+                    SupplierId?: string;
+                    BidDecisionId?: string;
+                    IsActive?: boolean;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PagedResultOfItemDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SaveItemRequest"];
+                    "text/json": components["schemas"]["SaveItemRequest"];
+                    "application/*+json": components["schemas"]["SaveItemRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ItemDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/items/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    Page?: number;
+                    PageSize?: number;
+                    Search?: string;
+                    /** @description Property name to sort by (whitelisted per endpoint). */
+                    SortBy?: string;
+                    SortDesc?: boolean;
+                    /** @description Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows). */
+                    ForExport?: boolean;
+                    SafePage?: number;
+                    SafePageSize?: number;
+                    CategoryId?: string;
+                    Source?: components["schemas"]["ItemSource"];
+                    SupplierId?: string;
+                    BidDecisionId?: string;
+                    IsActive?: boolean;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/items/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ItemDto"];
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SaveItemRequest"];
+                    "text/json": components["schemas"]["SaveItemRequest"];
+                    "application/*+json": components["schemas"]["SaveItemRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ItemDto"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/items/import-template": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Biểu mẫu import .xlsx (1: thuốc/VTYT/hóa chất/sinh phẩm, 2: hàng hóa/tài sản/dịch vụ). */
+        get: {
+            parameters: {
+                query?: {
+                    kind?: components["schemas"]["ItemImportKind"];
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/bid-decisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    Page?: number;
+                    PageSize?: number;
+                    Search?: string;
+                    /** @description Property name to sort by (whitelisted per endpoint). */
+                    SortBy?: string;
+                    SortDesc?: boolean;
+                    /** @description Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows). */
+                    ForExport?: boolean;
+                    SafePage?: number;
+                    SafePageSize?: number;
+                    Year?: number;
+                    SupplierId?: string;
+                    CategoryId?: string;
+                    Status?: components["schemas"]["BidDecisionStatus"];
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PagedResultOfBidDecisionListItemDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SaveBidDecisionRequest"];
+                    "text/json": components["schemas"]["SaveBidDecisionRequest"];
+                    "application/*+json": components["schemas"]["SaveBidDecisionRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": string;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/bid-decisions/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    Page?: number;
+                    PageSize?: number;
+                    Search?: string;
+                    /** @description Property name to sort by (whitelisted per endpoint). */
+                    SortBy?: string;
+                    SortDesc?: boolean;
+                    /** @description Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows). */
+                    ForExport?: boolean;
+                    SafePage?: number;
+                    SafePageSize?: number;
+                    Year?: number;
+                    SupplierId?: string;
+                    CategoryId?: string;
+                    Status?: components["schemas"]["BidDecisionStatus"];
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/bid-decisions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["BidDecisionDto"];
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SaveBidDecisionRequest"];
+                    "text/json": components["schemas"]["SaveBidDecisionRequest"];
+                    "application/*+json": components["schemas"]["SaveBidDecisionRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/bid-decisions/{id}/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    supplierId?: string;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["BidItemDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["BidItemRequest"];
+                    "text/json": components["schemas"]["BidItemRequest"];
+                    "application/*+json": components["schemas"]["BidItemRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": string;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/bid-decisions/{id}/attachment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "multipart/form-data": {
+                        file?: components["schemas"]["IFormFile"];
+                    };
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/bid-decisions/{id}/suppliers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["BidSupplierRequest"];
+                    "text/json": components["schemas"]["BidSupplierRequest"];
+                    "application/*+json": components["schemas"]["BidSupplierRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/bid-decisions/{id}/suppliers/{supplierId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    supplierId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/bid-decisions/{id}/items/{itemId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    itemId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/bid-decisions/{id}/his-sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Đồng bộ danh mục từ HIS theo (Số QĐ + MST) — tất cả NCC hoặc một NCC. */
+        post: {
+            parameters: {
+                query?: {
+                    supplierId?: string;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["HisSyncResultDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/bid-decisions/{id}/import/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Kiểm tra tệp import (xem trước, đánh dấu dòng lỗi) — không ghi dữ liệu. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "multipart/form-data": {
+                        file?: components["schemas"]["IFormFile"];
+                    };
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ImportPreviewDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/bid-decisions/{id}/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "multipart/form-data": {
+                        file?: components["schemas"]["IFormFile"];
+                    };
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ImportResultDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/bid-decisions/{id}/activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/bid-decisions/{id}/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contracts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    Page?: number;
+                    PageSize?: number;
+                    Search?: string;
+                    /** @description Property name to sort by (whitelisted per endpoint). */
+                    SortBy?: string;
+                    SortDesc?: boolean;
+                    /** @description Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows). */
+                    ForExport?: boolean;
+                    SafePage?: number;
+                    SafePageSize?: number;
+                    SupplierId?: string;
+                    CategoryId?: string;
+                    Status?: components["schemas"]["ContractStatus"];
+                    ProcurementType?: components["schemas"]["ProcurementType"];
+                    BidDecisionId?: string;
+                    EffectiveOnly?: boolean;
+                    ExpiringSoon?: boolean;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PagedResultOfContractListItemDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SaveContractRequest"];
+                    "text/json": components["schemas"]["SaveContractRequest"];
+                    "application/*+json": components["schemas"]["SaveContractRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": string;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contracts/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    Page?: number;
+                    PageSize?: number;
+                    Search?: string;
+                    /** @description Property name to sort by (whitelisted per endpoint). */
+                    SortBy?: string;
+                    SortDesc?: boolean;
+                    /** @description Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows). */
+                    ForExport?: boolean;
+                    SafePage?: number;
+                    SafePageSize?: number;
+                    SupplierId?: string;
+                    CategoryId?: string;
+                    Status?: components["schemas"]["ContractStatus"];
+                    ProcurementType?: components["schemas"]["ProcurementType"];
+                    BidDecisionId?: string;
+                    EffectiveOnly?: boolean;
+                    ExpiringSoon?: boolean;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contracts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ContractDto"];
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SaveContractRequest"];
+                    "text/json": components["schemas"]["SaveContractRequest"];
+                    "application/*+json": components["schemas"]["SaveContractRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contracts/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Xem trước PDF của hợp đồng đang soạn (wizard bước 4). */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SaveContractRequest"];
+                    "text/json": components["schemas"]["SaveContractRequest"];
+                    "application/*+json": components["schemas"]["SaveContractRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                        "application/pdf": unknown;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contracts/{id}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contracts/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CancelContractRequest"];
+                    "text/json": components["schemas"]["CancelContractRequest"];
+                    "application/*+json": components["schemas"]["CancelContractRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contracts/{id}/supplier-response": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** NCC: "Đồng ý ký" hoặc "Gửi lại" (có sửa đổi). */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SupplierResponseRequest"];
+                    "text/json": components["schemas"]["SupplierResponseRequest"];
+                    "application/*+json": components["schemas"]["SupplierResponseRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contracts/{id}/supplier-revision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** NCC tải lên bản DOCX đã sửa (bắt buộc Track Changes). */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "multipart/form-data": {
+                        file?: components["schemas"]["IFormFile"];
+                    };
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": string;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contracts/{id}/revisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["RevisionListDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Kế toán chấp nhận / từ chối từng thay đổi. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ResolveRevisionsRequest"];
+                    "text/json": components["schemas"]["ResolveRevisionsRequest"];
+                    "application/*+json": components["schemas"]["ResolveRevisionsRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": string;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contracts/{id}/appendices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SaveAppendixRequest"];
+                    "text/json": components["schemas"]["SaveAppendixRequest"];
+                    "application/*+json": components["schemas"]["SaveAppendixRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": string;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contracts/appendices/{appendixId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    appendixId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SaveAppendixRequest"];
+                    "text/json": components["schemas"]["SaveAppendixRequest"];
+                    "application/*+json": components["schemas"]["SaveAppendixRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contracts/appendices/{appendixId}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    appendixId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contracts/appendices/{appendixId}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    appendixId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/system/info": {
         parameters: {
             query?: never;
@@ -3866,6 +5400,33 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AppendixLineDto: {
+            /** Format: uuid */
+            contractItemId: string;
+            itemName: string;
+            /** Format: double */
+            oldQuantity: number;
+            /** Format: double */
+            newQuantity: null | number;
+            /** Format: double */
+            oldUnitPrice: number;
+            /** Format: double */
+            newUnitPrice: null | number;
+            /** Format: double */
+            valueChange: number;
+        };
+        AppendixLineRequest: {
+            /** Format: uuid */
+            contractItemId: string;
+            /** Format: double */
+            newQuantity: null | number;
+            /** Format: double */
+            newUnitPrice: null | number;
+        };
+        /** @enum {unknown} */
+        AppendixStatus: "Draft" | "InWorkflow" | "Effective" | "Cancelled";
+        /** @enum {unknown} */
+        AppendixType: "AddQuantity" | "PriceReduction" | "InfoChange" | "Extension";
         ApproveStepRequest: {
             comment: null | string;
             skipNextOptional: boolean;
@@ -3910,6 +5471,136 @@ export interface components {
             clientCertificate: null | string;
             comment: null | string;
         };
+        BidContractDto: {
+            /** Format: uuid */
+            id: string;
+            number: string;
+            name: string;
+            supplierName: string;
+            status: components["schemas"]["ContractStatus"];
+            /** Format: double */
+            totalAmount: number;
+        };
+        BidDecisionDto: {
+            /** Format: uuid */
+            id: string;
+            number: string;
+            /** Format: date */
+            signedDate: string;
+            summary: string;
+            packageName: string;
+            selectionMethod: null | string;
+            fundingSource: null | string;
+            executionPeriod: null | string;
+            /** Format: uuid */
+            categoryId: string;
+            categoryName: string;
+            importKind: components["schemas"]["ItemImportKind"];
+            /** Format: uuid */
+            facilityId: null | string;
+            /** Format: date */
+            validUntil: null | string;
+            attachmentName: null | string;
+            attachmentSha256: null | string;
+            status: components["schemas"]["BidDecisionStatus"];
+            suppliers: components["schemas"]["BidSupplierDto"][];
+            contracts: components["schemas"]["BidContractDto"][];
+            hisName: string;
+        };
+        BidDecisionListItemDto: {
+            /** Format: uuid */
+            id: string;
+            number: string;
+            /** Format: date */
+            signedDate: string;
+            packageName: string;
+            summary: string;
+            /** Format: uuid */
+            categoryId: string;
+            categoryName: string;
+            status: components["schemas"]["BidDecisionStatus"];
+            /** Format: int32 */
+            supplierCount: number;
+            /** Format: int32 */
+            itemCount: number;
+            /** Format: double */
+            totalValue: number;
+            /** Format: int32 */
+            contractCount: number;
+        };
+        /** @enum {unknown} */
+        BidDecisionStatus: "Draft" | "Active" | "Closed";
+        BidItemDto: {
+            /** Format: uuid */
+            itemId: string;
+            hisKey: null | string;
+            code: string;
+            name: string;
+            activeIngredient: null | string;
+            strength: null | string;
+            specification: null | string;
+            unit: string;
+            manufacturer: null | string;
+            country: null | string;
+            registrationNumber: null | string;
+            bidGroup: null | string;
+            /** Format: uuid */
+            supplierId: string;
+            supplierName: string;
+            /** Format: double */
+            quantity: number;
+            /** Format: double */
+            unitPrice: number;
+            /** Format: double */
+            amount: number;
+            /** Format: double */
+            contractedQuantity: number;
+            /** Format: double */
+            remainingQuantity: number;
+            source: components["schemas"]["ItemSource"];
+        };
+        BidItemRequest: {
+            /** Format: uuid */
+            supplierId: string;
+            code: string;
+            name: string;
+            unit: string;
+            /** Format: double */
+            quantity: number;
+            /** Format: double */
+            unitPrice: number;
+            hisKey: null | string;
+            activeIngredient: null | string;
+            strength: null | string;
+            specification: null | string;
+            manufacturer: null | string;
+            country: null | string;
+            registrationNumber: null | string;
+            bidGroup: null | string;
+        };
+        BidSupplierDto: {
+            /** Format: uuid */
+            supplierId: string;
+            taxCode: string;
+            name: string;
+            /** Format: double */
+            winningValue: number;
+            /** Format: int32 */
+            itemCount: number;
+            /** Format: double */
+            itemsValue: number;
+            /** Format: double */
+            contractedValue: number;
+        };
+        BidSupplierRequest: {
+            /** Format: uuid */
+            supplierId: string;
+            /** Format: double */
+            winningValue: number;
+        };
+        CancelContractRequest: {
+            reason: null | string;
+        };
         ChangePasswordRequest: {
             currentPassword: string;
             newPassword: string;
@@ -3920,6 +5611,180 @@ export interface components {
         CompleteSignRequest: {
             signatureValue: string;
         };
+        /** @description What the caller may do on the contract right now (drives the buttons of the detail screen). */
+        ContractActionsDto: {
+            canEdit: boolean;
+            canSubmit: boolean;
+            canCancel: boolean;
+            canCreateAppendix: boolean;
+            /** Format: uuid */
+            supplierReviewStepId: null | string;
+            /** Format: uuid */
+            accountantReviewStepId: null | string;
+            /** Format: int32 */
+            supplierReviewOrder: null | number;
+            /** Format: int32 */
+            pendingRevisionCount: number;
+        };
+        ContractAppendixDto: {
+            /** Format: uuid */
+            id: string;
+            number: string;
+            type: components["schemas"]["AppendixType"];
+            reason: string;
+            infoChanges: null | string;
+            /** Format: date */
+            oldExpiryDate: null | string;
+            /** Format: date */
+            newExpiryDate: null | string;
+            /** Format: double */
+            valueChange: number;
+            status: components["schemas"]["AppendixStatus"];
+            /** Format: uuid */
+            documentId: null | string;
+            /** Format: date-time */
+            appliedAt: null | string;
+            lines: components["schemas"]["AppendixLineDto"][];
+        };
+        ContractDto: {
+            /** Format: uuid */
+            id: string;
+            number: string;
+            name: string;
+            procurementType: components["schemas"]["ProcurementType"];
+            kind: components["schemas"]["ContractKind"];
+            requiresWarehouseReceipt: boolean;
+            /** Format: uuid */
+            bidDecisionId: null | string;
+            bidDecisionNumber: null | string;
+            /** Format: uuid */
+            supplierId: string;
+            supplierName: string;
+            supplierTaxCode: string;
+            /** Format: uuid */
+            categoryId: string;
+            categoryName: string;
+            /** Format: uuid */
+            facilityId: null | string;
+            facilityName: null | string;
+            /** Format: date */
+            signedDate: null | string;
+            /** Format: date */
+            effectiveDate: null | string;
+            /** Format: date */
+            expiryDate: null | string;
+            duration: null | string;
+            /** Format: double */
+            amountBeforeVat: number;
+            /** Format: double */
+            vatAmount: number;
+            /** Format: double */
+            totalAmount: number;
+            paymentTerms: null | string;
+            warrantyTerms: null | string;
+            deliveryTerms: null | string;
+            guaranteeNumber: null | string;
+            guaranteeBank: null | string;
+            /** Format: double */
+            guaranteeAmount: null | number;
+            /** Format: date */
+            guaranteeExpiry: null | string;
+            note: null | string;
+            /** Format: uuid */
+            templateId: null | string;
+            templateName: null | string;
+            /** Format: uuid */
+            documentId: null | string;
+            status: components["schemas"]["ContractStatus"];
+            lastReturnReason: null | string;
+            /** Format: date-time */
+            effectiveAt: null | string;
+            items: components["schemas"]["ContractItemDto"][];
+            appendices: components["schemas"]["ContractAppendixDto"][];
+            actions: components["schemas"]["ContractActionsDto"];
+        };
+        ContractItemDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            itemId: string;
+            itemCode: string;
+            itemName: string;
+            unit: string;
+            hisKey: null | string;
+            specification: null | string;
+            /** Format: double */
+            quantity: number;
+            /** Format: double */
+            unitPrice: number;
+            /** Format: double */
+            vatRate: number;
+            /** Format: double */
+            amount: number;
+            /** Format: double */
+            vatAmount: number;
+            /** Format: double */
+            maxUnitPrice: null | number;
+            /** Format: double */
+            proposedQuantity: number;
+            /** Format: double */
+            approvedQuantity: number;
+            /** Format: double */
+            calledQuantity: number;
+            /** Format: double */
+            receivedQuantity: number;
+            /** Format: double */
+            acceptedQuantity: number;
+            /** Format: double */
+            paidQuantity: number;
+            /** Format: double */
+            remainingQuantity: number;
+        };
+        /** @enum {unknown} */
+        ContractKind: "UnitPriceCallOff" | "LumpSum";
+        /** @description A goods line: an existing item (bid item or catalog item) or a new item typed in (ngoài thầu). */
+        ContractLineRequest: {
+            /** Format: uuid */
+            itemId: null | string;
+            newItem: null | components["schemas"]["NewItemRequest"];
+            /** Format: double */
+            quantity: number;
+            /** Format: double */
+            unitPrice: number;
+            /** Format: double */
+            vatRate: number;
+        };
+        ContractListItemDto: {
+            /** Format: uuid */
+            id: string;
+            number: string;
+            name: string;
+            procurementType: components["schemas"]["ProcurementType"];
+            kind: components["schemas"]["ContractKind"];
+            /** Format: uuid */
+            supplierId: string;
+            supplierName: string;
+            /** Format: uuid */
+            categoryId: string;
+            categoryName: string;
+            bidDecisionNumber: null | string;
+            status: components["schemas"]["ContractStatus"];
+            /** Format: double */
+            totalAmount: number;
+            /** Format: date */
+            effectiveDate: null | string;
+            /** Format: date */
+            expiryDate: null | string;
+            /** Format: double */
+            receivedPercent: number;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        /**
+         * @description Contract lifecycle (spec §5.3). Signing states mirror the active step of the contract workflow.
+         * @enum {unknown}
+         */
+        ContractStatus: "Draft" | "InReview" | "SupplierReview" | "AccountantReview" | "SupplierSigning" | "AccountantInitialing" | "DirectorSigning" | "Stamping" | "Effective" | "Liquidated" | "Cancelled" | "Returned";
         CreateDelegationRequest: {
             /** Format: uuid */
             delegatorUserId: string;
@@ -4073,6 +5938,16 @@ export interface components {
             isFinal: boolean;
             isCurrent: boolean;
         };
+        /** @description One tracked change (Track Changes) in a DOCX, as shown in the "thay đổi của NCC" list. */
+        DocxRevision: {
+            id: string;
+            kind: components["schemas"]["RevisionKind"];
+            author: null | string;
+            /** Format: date-time */
+            date: null | string;
+            text: string;
+            context: string;
+        };
         /** @enum {unknown} */
         EditorMode: "Edit" | "Review" | "View";
         EditorSessionDto: {
@@ -4100,6 +5975,17 @@ export interface components {
             /** Format: date-time */
             expiresAt: string;
         };
+        HisSyncResultDto: {
+            /** Format: int32 */
+            suppliers: number;
+            /** Format: int32 */
+            created: number;
+            /** Format: int32 */
+            updated: number;
+            /** Format: int32 */
+            unchanged: number;
+            messages: string[];
+        };
         /** @enum {unknown} */
         HistoryChangeType: "Created" | "Updated" | "Deleted";
         HistoryEntryDto: {
@@ -4113,6 +5999,44 @@ export interface components {
         };
         /** Format: binary */
         IFormFile: string;
+        ImportCellError: {
+            column: string;
+            message: string;
+        };
+        ImportPreviewDto: {
+            /** Format: int32 */
+            totalRows: number;
+            /** Format: int32 */
+            validRows: number;
+            /** Format: int32 */
+            errorRows: number;
+            rows: components["schemas"]["ImportRowDto"][];
+        };
+        ImportResultDto: {
+            /** Format: int32 */
+            created: number;
+            /** Format: int32 */
+            updated: number;
+        };
+        ImportRowDto: {
+            /** Format: int32 */
+            rowNumber: number;
+            hisKey: null | string;
+            code: null | string;
+            name: null | string;
+            unit: null | string;
+            supplierTaxCode: null | string;
+            supplierName: null | string;
+            categoryCode: null | string;
+            /** Format: double */
+            quantity: null | number;
+            /** Format: double */
+            unitPrice: null | number;
+            /** Format: double */
+            vatRate: null | number;
+            isUpdate: boolean;
+            errors: components["schemas"]["ImportCellError"][];
+        };
         InboxCountDto: {
             /** Format: int32 */
             pending: number;
@@ -4146,6 +6070,53 @@ export interface components {
         };
         /** @enum {unknown} */
         InboxTab: "Pending" | "Processed" | "Sent" | "Returned";
+        ItemCategoryDto: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            name: string;
+            domain: components["schemas"]["ProcurementDomain"];
+            importKind: components["schemas"]["ItemImportKind"];
+            defaultContractTemplateCode: null | string;
+        };
+        ItemDto: {
+            /** Format: uuid */
+            id: string;
+            hisKey: null | string;
+            code: string;
+            name: string;
+            activeIngredient: null | string;
+            strength: null | string;
+            specification: null | string;
+            unit: string;
+            manufacturer: null | string;
+            country: null | string;
+            registrationNumber: null | string;
+            bidGroup: null | string;
+            /** Format: uuid */
+            categoryId: string;
+            categoryName: string;
+            /** Format: uuid */
+            supplierId: null | string;
+            supplierName: null | string;
+            /** Format: uuid */
+            bidDecisionId: null | string;
+            bidDecisionNumber: null | string;
+            /** Format: double */
+            winningUnitPrice: null | number;
+            source: components["schemas"]["ItemSource"];
+            isActive: boolean;
+        };
+        /**
+         * @description Which Excel import template a category uses (spec §10 items 1–2).
+         * @enum {unknown}
+         */
+        ItemImportKind: "Medical" | "General";
+        /**
+         * @description Where an item record came from (spec §9.1-4 "xem nguồn").
+         * @enum {unknown}
+         */
+        ItemSource: "His" | "Import" | "Manual";
         JsonObject: Record<string, never>;
         LoginRequest: {
             userName: string;
@@ -4165,6 +6136,16 @@ export interface components {
             id: string;
             code: string;
             name: string;
+        };
+        NewItemRequest: {
+            code: string;
+            name: string;
+            unit: string;
+            activeIngredient: null | string;
+            specification: null | string;
+            manufacturer: null | string;
+            country: null | string;
+            hisKey: null | string;
         };
         NotificationDto: {
             /** Format: uuid */
@@ -4209,6 +6190,24 @@ export interface components {
             /** Format: int32 */
             pageSize: number;
         };
+        PagedResultOfBidDecisionListItemDto: {
+            items: components["schemas"]["BidDecisionListItemDto"][];
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+        };
+        PagedResultOfContractListItemDto: {
+            items: components["schemas"]["ContractListItemDto"][];
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+        };
         PagedResultOfDepartmentDto: {
             items: components["schemas"]["DepartmentDto"][];
             /** Format: int32 */
@@ -4229,6 +6228,15 @@ export interface components {
         };
         PagedResultOfInboxItemDto: {
             items: components["schemas"]["InboxItemDto"][];
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+        };
+        PagedResultOfItemDto: {
+            items: components["schemas"]["ItemDto"][];
             /** Format: int32 */
             total: number;
             /** Format: int32 */
@@ -4291,9 +6299,21 @@ export interface components {
             permissions: components["schemas"]["PermissionDto"][];
             roles: components["schemas"]["RoleDto"][];
         };
+        /**
+         * @description Mảng phụ trách — groups items/contracts for scoping and approval routing.
+         * @enum {unknown}
+         */
+        ProcurementDomain: "Drug" | "MedicalSupply" | "Chemical" | "Equipment" | "Administration";
+        /** @enum {unknown} */
+        ProcurementType: "Bidding" | "NonBidding";
         ResetPasswordResponse: {
             temporaryPassword: string;
             emailSent: boolean;
+        };
+        ResolveRevisionsRequest: {
+            /** Format: uuid */
+            versionId: string;
+            decisions: components["schemas"]["RevisionDecision"][];
         };
         ReturnStepRequest: {
             /** Format: int32 */
@@ -4304,6 +6324,21 @@ export interface components {
             /** Format: int32 */
             order: number;
             name: string;
+        };
+        RevisionDecision: {
+            id: string;
+            accept: boolean;
+        };
+        /** @enum {unknown} */
+        RevisionKind: "Insertion" | "Deletion" | "Formatting";
+        RevisionListDto: {
+            /** Format: uuid */
+            documentId: string;
+            /** Format: uuid */
+            versionId: string;
+            /** Format: int32 */
+            versionNumber: number;
+            revisions: components["schemas"]["DocxRevision"][];
         };
         RoleDto: {
             /** Format: uuid */
@@ -4316,6 +6351,71 @@ export interface components {
             /** Format: int32 */
             userCount: number;
             permissions: string[];
+        };
+        SaveAppendixRequest: {
+            number: null | string;
+            type: components["schemas"]["AppendixType"];
+            reason: string;
+            infoChanges: null | string;
+            /** Format: date */
+            newExpiryDate: null | string;
+            /** Format: uuid */
+            templateId: null | string;
+            lines: components["schemas"]["AppendixLineRequest"][];
+        };
+        SaveBidDecisionRequest: {
+            number: string;
+            /** Format: date */
+            signedDate: string;
+            summary: string;
+            packageName: string;
+            selectionMethod: null | string;
+            fundingSource: null | string;
+            executionPeriod: null | string;
+            /** Format: uuid */
+            categoryId: string;
+            /** Format: uuid */
+            facilityId: null | string;
+            /** Format: date */
+            validUntil: null | string;
+        };
+        SaveContractRequest: {
+            procurementType: components["schemas"]["ProcurementType"];
+            /** Format: uuid */
+            bidDecisionId: null | string;
+            /** Format: uuid */
+            supplierId: null | string;
+            newSupplier: null | components["schemas"]["SaveSupplierRequest"];
+            number: string;
+            name: string;
+            kind: components["schemas"]["ContractKind"];
+            requiresWarehouseReceipt: boolean;
+            /** Format: uuid */
+            categoryId: string;
+            /** Format: uuid */
+            facilityId: null | string;
+            note: null | string;
+            /** Format: date */
+            signedDate: null | string;
+            /** Format: date */
+            effectiveDate: null | string;
+            /** Format: date */
+            expiryDate: null | string;
+            duration: null | string;
+            paymentTerms: null | string;
+            warrantyTerms: null | string;
+            deliveryTerms: null | string;
+            guaranteeNumber: null | string;
+            guaranteeBank: null | string;
+            /** Format: double */
+            guaranteeAmount: null | number;
+            /** Format: date */
+            guaranteeExpiry: null | string;
+            /** Format: uuid */
+            templateId: string;
+            items: components["schemas"]["ContractLineRequest"][];
+            /** @default true */
+            regenerateDocument: boolean;
         };
         SaveDepartmentRequest: {
             code: string;
@@ -4332,6 +6432,25 @@ export interface components {
             name: string;
             address: null | string;
             hisFacilityCode: null | string;
+            /** @default true */
+            isActive: boolean;
+        };
+        SaveItemRequest: {
+            code: string;
+            name: string;
+            unit: string;
+            /** Format: uuid */
+            categoryId: string;
+            hisKey: null | string;
+            activeIngredient: null | string;
+            strength: null | string;
+            specification: null | string;
+            manufacturer: null | string;
+            country: null | string;
+            registrationNumber: null | string;
+            bidGroup: null | string;
+            /** Format: uuid */
+            supplierId: null | string;
             /** @default true */
             isActive: boolean;
         };
@@ -4482,6 +6601,10 @@ export interface components {
             isActive: boolean;
             /** Format: int32 */
             accountCount: number;
+        };
+        SupplierResponseRequest: {
+            agree: boolean;
+            comment: null | string;
         };
         SupplierStaffDto: {
             /** Format: uuid */

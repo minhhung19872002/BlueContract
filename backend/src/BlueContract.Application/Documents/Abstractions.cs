@@ -12,6 +12,28 @@ public interface IDocumentGenerator
     IReadOnlyList<string> ScanTags(byte[] template);
 }
 
+public enum RevisionKind
+{
+    Insertion = 0,
+    Deletion = 1,
+    Formatting = 2,
+}
+
+/// <summary>One tracked change (Track Changes) in a DOCX, as shown in the "thay đổi của NCC" list.</summary>
+public sealed record DocxRevision(string Id, RevisionKind Kind, string? Author, DateTimeOffset? Date, string Text, string Context);
+
+/// <summary>Reads and resolves tracked changes in DOCX files (supplier review loop, spec §6.1 B3).</summary>
+public interface IDocxRevisions
+{
+    IReadOnlyList<DocxRevision> List(byte[] docx);
+
+    /// <summary>Accepts (true) or rejects (false) the listed revisions; others stay tracked.</summary>
+    byte[] Resolve(byte[] docx, IReadOnlyDictionary<string, bool> decisions);
+
+    /// <summary>"Chốt bản": accepts every remaining tracked change.</summary>
+    byte[] AcceptAll(byte[] docx);
+}
+
 /// <summary>DOCX → PDF conversion (Gotenberg/LibreOffice).</summary>
 public interface IPdfConverter
 {

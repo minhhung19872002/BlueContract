@@ -1,0 +1,15 @@
+{
+  "name": "blueprocure-e2e",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "playwright test",
+    "install-browsers": "playwright install chromium"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.49.1",
+    "@types/node": "22.10.2",
+    "jszip": "3.10.1",
+    "typescript": "5.9.3"
+  }
+}

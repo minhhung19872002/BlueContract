@@ -1,4 +1,7 @@
+using BlueContract.Domain.Bids;
+using BlueContract.Domain.Catalog;
 using BlueContract.Domain.Common;
+using BlueContract.Domain.Contracts;
 using BlueContract.Domain.Documents;
 using BlueContract.Domain.Identity;
 using BlueContract.Domain.Organizations;
@@ -68,6 +71,16 @@ public interface IAppDbContext
     DbSet<Notification> Notifications { get; }
 
     DbSet<SigningCertificate> SigningCertificates { get; }
+
+    DbSet<ItemCategory> ItemCategories { get; }
+
+    DbSet<Item> Items { get; }
+
+    DbSet<BidDecision> BidDecisions { get; }
+
+    DbSet<Contract> Contracts { get; }
+
+    DbSet<ContractAppendix> ContractAppendices { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

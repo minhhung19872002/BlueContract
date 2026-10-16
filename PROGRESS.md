@@ -62,14 +62,21 @@ Theo dõi tiến độ theo Phase (spec §14). Đánh dấu `[x]` khi hạng m�
 **Kiểm chứng:** dotnet test 229/229 (101 Domain, 25 Application, 103 Integration — gồm 12 test API ký: 5 người ký PHIEU_NHAP_KHO mẫu và verify 5 chữ ký toàn vẹn, trả lại đúng bước, idempotent + 2 click đồng thời chỉ 1 chữ ký, ủy quyền "KT. KẾ TOÁN TRƯỞNG", remote poll, USB token với chứng thư tạo trong test, ký hàng loạt, ký nháy không cần CA, khóa sửa khi trình ký) · 
 pm run lint/test/build pass (23 test) · Trình duyệt (Docker): thủ kho ký từ xa → PDF có khung chữ ký đúng ô "Thủ kho"; NCC1 ký hàng loạt trên Cổng NCC; kế toán kho trả lại → thủ kho nhận toast realtime, badge cập nhật ngay; lưu cấu hình luồng.
 
-## Phase 4 — QĐ thầu & Hợp đồng
-- [ ] BidDecision (+Supplier, +Item), Item, ItemCategory
-- [ ] Import Excel (preview, highlight lỗi) + biểu mẫu .xlsx
-- [ ] `IHisClient` + MockHisClient, đồng bộ danh mục theo (Số QĐ + MST)
-- [ ] Contract wizard 4 bước, sinh DOCX từ mẫu, sửa ONLYOFFICE
-- [ ] Luồng ký HĐ đầy đủ (vòng NCC sửa ↔ Kế toán), chốt bản → PDF → ký
-- [ ] Phụ lục; HĐ ngoài thầu (tạo NCC ngay trong form)
-- [ ] E2E #1
+## Phase 4 — QĐ thầu & Hợp đồng ✅ (16/10/2026)
+- [x] Danh mục: 8 hạng mục (seed mọi môi trường), Item (mã key HIS, nguồn HIS / Import / Nhập tay), màn hình Danh mục hàng hóa theo tab hạng mục, nhập tay, xuất Excel
+- [x] BidDecision (+ NCC trúng thầu, + hàng trúng thầu, đính kèm PDF QĐ, ban hành/đóng, số QĐ khóa sau ban hành), SL đã vào HĐ / còn lại theo từng mặt hàng
+- [x] Import Excel 2 biểu mẫu (.xlsx — thuốc/VTYT/hóa chất/sinh phẩm; hàng hóa/tài sản/dịch vụ, có sheet hướng dẫn + danh sách mã hạng mục + dropdown): xem trước từng dòng, tô đỏ ô lỗi (thiếu cột bắt buộc, số kiểu VN, MST, hạng mục, trùng mã), chỉ import khi hết lỗi; import lại = cập nhật; 	emplates/01_…xlsx,  2_…xlsx
+- [x] `IHisClient`: `MockHisClient` tất định (cùng Số QĐ + MST → cùng danh mục; X–N–T cân đối) và `RestHisClient` cấu hình URL + ánh xạ trường (`His:*`), retry/circuit breaker/timeout; đồng bộ danh mục theo (Số QĐ + MST), idempotent
+- [x] Hợp đồng: wizard 4 bước (Nguồn → NCC & hàng hóa → Điều khoản → Mẫu & xem trước PDF), lưu nháp tự động; SL ≤ còn lại của QĐ, đơn giá ≤ giá trúng thầu (client + server); sinh DOCX từ mẫu; sửa trực tiếp trong ONLYOFFICE; chi tiết HĐ 6 tab (thông tin, hàng hóa & theo dõi thực hiện, tài liệu, luồng ký, phụ lục, lịch sử)
+- [x] Luồng ký HĐ đầy đủ: Tổ rà soát → NCC rà soát (menu Hợp đồng, ONLYOFFICE Review hoặc tải lên DOCX Track Changes) → Kế toán xem từng thay đổi, chấp nhận/từ chối từng thay đổi → gửi lại NCC (vòng lặp) → NCC đồng ý bản cuối → **chốt bản** (chấp nhận thay đổi còn lại → phiên bản mới → PDF) → NCC ký → KT ký nháy → GĐ ký → Văn thư đóng dấu → **Hiệu lực** + email NCC; trạng thái HĐ đồng bộ theo luồng (observer)
+- [x] Phụ lục: bổ sung SL / giảm giá / thay đổi thông tin / gia hạn, sinh DOCX từ mẫu PHU_LUC, cùng luồng ký, hiệu lực thì cập nhật ContractItem / ngày hết hạn
+- [x] HĐ ngoài thầu: tạo NCC ngay trong form (cấp tài khoản quản trị NCC, gửi mật khẩu tạm), mặt hàng nhập tay
+- [x] Dữ liệu demo bằng chính nghiệp vụ (đóng vai người dùng): QĐ 125 (thuốc, NCC1) + QĐ 126 (VTYT, NCC2) đồng bộ từ HIS, HĐ 15 chờ NCC1 rà soát, HĐ 16 đã ký đủ có hiệu lực, HĐ 17 sửa chữa ngoài thầu bản nháp
+- [x] E2E #1 (Playwright, `e2e/`, `scripts/e2e.ps1`): QĐ → HĐ → NCC sửa → Kế toán duyệt → ký đủ → hiệu lực, toàn bộ qua UI 6 vai trò; workflow `E2E` trên GitHub Actions (thủ công + hằng đêm)
+
+**Sửa lỗi phát hiện trong phase:** `IgnoreQueryFilters()` trong subquery tắt luôn bộ lọc cô lập NCC của cả truy vấn (NCC thấy HĐ của NCC khác) → bỏ khỏi mọi subquery + test hồi quy; NCC không còn thấy HĐ bản nháp nội bộ; job email Hangfire không deserialize được danh sách người nhận (kiểu do collection expression sinh ra) → chuẩn hóa thành mảng + test; placeholder DatePicker tiếng Anh (lỗi locale antd) → ghi đè tiếng Việt; mẫu biểu từng bị xuất nhầm vào `backend/src/templates` → chuyển về `templates/`.
+
+**Kiểm chứng:** `dotnet test` 254/254 (115 Domain, 25 Application, 114 Integration — gồm luồng HĐ đầy đủ qua API có vòng NCC↔Kế toán + 4 chữ ký hợp lệ + phụ lục áp dụng, HĐ ngoài thầu tạo NCC + tài khoản, import Excel có lỗi/hết lỗi, dữ liệu demo đủ trạng thái, DocxRevisions, HIS mock/REST, email job) · `npm run lint/test/build` pass · **E2E #1 Playwright pass (29 s)** · trình duyệt: danh sách/chi tiết QĐ, wizard xem trước PDF 4 trang, tạo HĐ, panel rà soát của NCC1.
 
 ## Phase 5 — Đề xuất – Tổng hợp – Gọi hàng
 - [ ] Proposal (X–N–T từ HIS, rule ≤ còn lại HĐ)

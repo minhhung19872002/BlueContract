@@ -20,7 +20,8 @@ public sealed class WorkflowService(
     NotificationService notifications,
     IAuditLogger audit,
     ICurrentUser current,
-    IClock clock)
+    IClock clock,
+    IEnumerable<IWorkflowObserver> observers)
 {
     // ---------------- Templates (Cấu hình luồng ký) ----------------
 
@@ -137,15 +138,9 @@ public sealed class WorkflowService(
             return Error.Validation("WORKFLOW_SUPPLIER_REQUIRED");
         }
 
-        // Signing needs the PDF rendition of the current version.
-        var currentVersion = document.CurrentVersion ?? throw new DomainException("DOCUMENT_PDF_REQUIRED");
-        if (template.Steps.Any(s => s.RequiresSignature) && currentVersion.PdfFileKey is null)
+        if (document.CurrentVersion is null)
         {
-            var rendered = await documents.RenderPdfAsync(document.Id, currentVersion.Id, ct);
-            if (!rendered.IsSuccess)
-            {
-                return rendered.Error!;
-            }
+            return Error.Validation("DOCUMENT_DOCX_REQUIRED");
         }
 
         var wf = new WorkflowInstance(document.Id, template, current.UserId!.Value, current.FullName, document.SupplierId, clock.UtcNow);
@@ -153,6 +148,10 @@ public sealed class WorkflowService(
         db.WorkflowInstances.Add(wf);
         document.MarkInWorkflow();
         audit.Log("WorkflowStart", nameof(Document), document.Id.ToString(), new { wf.Id, template.Code });
+
+        // Everyone in the loop reads the PDF rendition; a signing step also needs the final (changes accepted) version.
+        await documents.PrepareForSigningAsync(document, finalize: wf.ActiveStep?.RequiresSignature == true, ct);
+        await PublishAsync(wf, document, WorkflowChangeKind.Started, null, null, ct);
         await NotifyActiveAsync(wf, document, ct);
         await db.SaveChangesAsync(ct);
         return wf.Id;
@@ -196,7 +195,7 @@ public sealed class WorkflowService(
         }
 
         var outcome = wf!.Act(step.Id, current.UserId!.Value, ActorName(standing), standing.OnBehalfOf, r.Comment, null, clock.UtcNow, r.SkipNextOptional);
-        await AfterActAsync(wf, outcome, ct);
+        await AfterActAsync(wf, outcome, step, r.Comment, ct);
         await db.SaveChangesAsync(ct);
         return await ToDtoAsync(wf, ct);
     }
@@ -226,8 +225,11 @@ public sealed class WorkflowService(
         }
         else
         {
+            await PrepareActiveStepAsync(wf, document, ct);
             await NotifyActiveAsync(wf, document, ct, returnedReason: r.Reason);
         }
+
+        await PublishAsync(wf, document, WorkflowChangeKind.Returned, step, r.Reason, ct);
 
         await db.SaveChangesAsync(ct);
         return await ToDtoAsync(wf, ct);
@@ -270,6 +272,8 @@ public sealed class WorkflowService(
         wf.Resubmit(current.UserId!.Value, current.FullName ?? string.Empty, clock.UtcNow);
         var document = await db.Documents.Include(d => d.Versions).FirstAsync(d => d.Id == wf.DocumentId, ct);
         document.MarkInWorkflow();
+        await PrepareActiveStepAsync(wf, document, ct);
+        await PublishAsync(wf, document, WorkflowChangeKind.Resubmitted, null, null, ct);
         await NotifyActiveAsync(wf, document, ct);
         await db.SaveChangesAsync(ct);
         return await ToDtoAsync(wf, ct);
@@ -289,9 +293,10 @@ public sealed class WorkflowService(
         }
 
         wf.Cancel(current.UserId!.Value, current.FullName ?? string.Empty, r.Text, clock.UtcNow);
-        var document = await db.Documents.FirstAsync(d => d.Id == wf.DocumentId, ct);
+        var document = await db.Documents.Include(d => d.Versions).FirstAsync(d => d.Id == wf.DocumentId, ct);
         document.MarkDraft();
         audit.Log("WorkflowCancel", nameof(Document), document.Id.ToString(), new { wf.Id }, r.Text);
+        await PublishAsync(wf, document, WorkflowChangeKind.Cancelled, null, r.Text, ct);
         await db.SaveChangesAsync(ct);
         return Result.Success();
     }
@@ -388,7 +393,7 @@ public sealed class WorkflowService(
             x.Step != null && x.Step.DueAt != null && x.Step.DueAt < now,
             x.Instance.StartedByName,
             x.Instance.StartedAt,
-            db.Suppliers.IgnoreQueryFilters().Where(s => s.Id == x.Instance.SupplierId).Select(s => s.Name).FirstOrDefault(),
+            db.Suppliers.Where(s => s.Id == x.Instance.SupplierId).Select(s => s.Name).FirstOrDefault(),
             x.LastActivityAt));
 
         return await projected.ToPagedAsync(q, ct);
@@ -455,7 +460,7 @@ public sealed class WorkflowService(
         return (wf, step, null);
     }
 
-    internal async Task AfterActAsync(WorkflowInstance wf, ActOutcome outcome, CancellationToken ct)
+    internal async Task AfterActAsync(WorkflowInstance wf, ActOutcome outcome, WorkflowStepInstance actedStep, string? comment, CancellationToken ct)
     {
         if (outcome == ActOutcome.AlreadyDone)
         {
@@ -467,12 +472,27 @@ public sealed class WorkflowService(
         {
             document.Complete();
             audit.Log("WorkflowCompleted", nameof(Document), document.Id.ToString(), new { wf.Id });
+            await PublishAsync(wf, document, WorkflowChangeKind.Completed, actedStep, comment, ct);
             await notifications.NotifyAsync([wf.StartedBy], NotificationTypes.WorkflowCompleted, $"Đã hoàn tất ký duyệt: {document.Title}",
                 null, $"/tai-lieu/{document.Id}", email: true, ct);
             return;
         }
 
+        await PrepareActiveStepAsync(wf, document, ct);
+        await PublishAsync(wf, document, WorkflowChangeKind.Advanced, actedStep, comment, ct);
         await NotifyActiveAsync(wf, document, ct);
+    }
+
+    /// <summary>Before a signing step: "chốt bản" (accept tracked changes) and render the PDF to sign.</summary>
+    private Task PrepareActiveStepAsync(WorkflowInstance wf, Document document, CancellationToken ct) =>
+        wf.ActiveStep?.RequiresSignature == true ? documents.PrepareForSigningAsync(document, finalize: true, ct) : Task.CompletedTask;
+
+    internal async Task PublishAsync(WorkflowInstance wf, Document document, WorkflowChangeKind kind, WorkflowStepInstance? step, string? note, CancellationToken ct)
+    {
+        foreach (var observer in observers.Where(o => o.Handles(document.Type)))
+        {
+            await observer.OnChangedAsync(new WorkflowChange(wf, document, kind, step, note), ct);
+        }
     }
 
     private string ActorName(ActorStanding standing) =>

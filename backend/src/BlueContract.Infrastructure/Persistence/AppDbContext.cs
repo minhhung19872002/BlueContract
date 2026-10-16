@@ -1,6 +1,9 @@
 using System.Linq.Expressions;
 using BlueContract.Application.Common;
+using BlueContract.Domain.Bids;
+using BlueContract.Domain.Catalog;
 using BlueContract.Domain.Common;
+using BlueContract.Domain.Contracts;
 using BlueContract.Domain.Documents;
 using BlueContract.Domain.Identity;
 using BlueContract.Domain.Organizations;
@@ -88,6 +91,16 @@ public sealed class AppDbContext : DbContext, IAppDbContext, IDataProtectionKeyC
 
     public DbSet<SigningCertificate> SigningCertificates => Set<SigningCertificate>();
 
+    public DbSet<ItemCategory> ItemCategories => Set<ItemCategory>();
+
+    public DbSet<Item> Items => Set<Item>();
+
+    public DbSet<BidDecision> BidDecisions => Set<BidDecision>();
+
+    public DbSet<Contract> Contracts => Set<Contract>();
+
+    public DbSet<ContractAppendix> ContractAppendices => Set<ContractAppendix>();
+
     public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -118,6 +131,9 @@ public sealed class AppDbContext : DbContext, IAppDbContext, IDataProtectionKeyC
                 builder.HasQueryFilter(SupplierIsolationFilter, BuildSupplierFilter(clr, nameof(ISupplierScoped.SupplierId)));
             }
         }
+
+        // NOTE: IgnoreQueryFilters() switches the filters off for the WHOLE query, including the root of a projection.
+        // Never use it inside a subquery of a supplier-scoped query (ADR-031); load such data in a separate query.
 
         // Master data with special ownership rules.
         modelBuilder.Entity<Supplier>().HasQueryFilter(SupplierIsolationFilter, s => !IsSupplierCaller || s.Id == CallerSupplierId);

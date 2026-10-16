@@ -22,7 +22,8 @@ internal static class AuthSetup
 
         services.AddHttpContextAccessor();
         services.AddMemoryCache();
-        services.AddScoped<ICurrentUser, CurrentUser>();
+        // Seeding / background code may run as a specific user (UserContextOverride); otherwise the JWT of the request.
+        services.AddScoped<ICurrentUser>(sp => UserContextOverride.Current ?? ActivatorUtilities.CreateInstance<CurrentUser>(sp));
 
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>

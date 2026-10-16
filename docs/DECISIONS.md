@@ -103,3 +103,29 @@ Mỗi mục là một ADR ngắn: **Bối cảnh → Quyết định → Hệ qu
 ## ADR-027 — Thông báo: Hangfire + SignalR + outbox trong unit of work
 - **Quyết định:** Email gửi qua Hangfire (PostgreSQL storage, schema hangfire, retry 5 lần). Job định kỳ workflow-sla-reminders chạy mỗi giờ. Realtime dùng SignalR hub /hubs/notifications (JWT qua query ccess_token). Push và email được xếp vào NotificationOutbox (scoped), và NotificationDispatchInterceptor chỉ gửi sau khi SaveChanges thành công. Nhờ vậy trình duyệt refetch thấy ngay dữ liệu mới, và không có email cho thay đổi đã rollback. Trạng thái ký từ xa / USB token nằm trong IDistributedCache (bộ nhớ trong 1 instance).
 - **Hệ quả:** Chạy nhiều instance API cần thêm SignalR backplane (Redis) và distributed cache dùng chung. Chỉ bật Hangfire server ở một instance (Hangfire:ServerEnabled). Dashboard /hangfire chỉ mở khi môi trường là Development.
+
+## ADR-028 — Đơn giá hợp đồng đã gồm thuế GTGT
+- **Bối cảnh:** Với thuốc, VTYT, đơn giá trúng thầu được công bố là giá đã gồm VAT; hóa đơn và nghiệm thu đối chiếu theo giá này.
+- **Quyết định:** `ContractItem.UnitPrice` là đơn giá đã gồm VAT. Thành tiền = SL × đơn giá. VAT được tách ra từ thành tiền: `VAT = round(thành tiền × t/(100+t))`. Giá trị trước thuế = tổng − VAT. Mọi số tiền làm tròn đến đồng (`MidpointRounding.AwayFromZero`).
+- **Hệ quả:** Biểu mẫu Excel ghi rõ "đơn giá đã gồm thuế GTGT". Thuế suất mặc định là 5% (y tế) hoặc 10% (hàng hóa/dịch vụ), sửa được theo từng dòng.
+
+## ADR-029 — Công thức "còn lại" của hợp đồng và của quyết định thầu
+- **Quyết định:** Hợp đồng: `Còn lại = SL hợp đồng − SL đã nhập kho`. Các cột đã đề xuất / duyệt / gọi / nghiệm thu / thanh toán được các module Phase 5–7 cập nhật qua `ContractItem.Track`. QĐ thầu: `Còn lại = SL trúng thầu − Σ SL trong các HĐ chưa hủy` (tính khi truy vấn, không lưu). Không cho tạo HĐ vượt phần còn lại. Phụ lục không được giảm SL xuống dưới SL đã nhập kho.
+
+## ADR-030 — Vòng rà soát NCC ↔ Kế toán bằng Track Changes
+- **Quyết định:** NCC sửa trong ONLYOFFICE ở chế độ Review (bắt buộc theo dõi thay đổi) hoặc tải lên DOCX có Track Changes (tệp không có thay đổi được theo dõi sẽ bị từ chối). "Đồng ý ký" chỉ được phép khi không còn thay đổi chưa xử lý, và bước Kế toán (tùy chọn) được bỏ qua. "Gửi lại" chuyển sang Kế toán. Kế toán chấp nhận/từ chối từng thay đổi (`IDocxRevisions` trên OpenXML, theo vị trí R1..Rn của đúng phiên bản đang xem; phiên bản đã đổi thì trả 409). Sau đó Kế toán có thể "Gửi lại NCC" (trả về bước NCC rà soát, vòng lặp) hoặc "Chấp nhận & chuyển ký" (coi như bản cuối). Trước mọi bước ký, `DocumentService.PrepareForSigningAsync` chốt bản: chấp nhận các thay đổi còn lại thành phiên bản mới, rồi render PDF.
+- **Hệ quả / giới hạn:** Thay đổi ngắt đoạn được xử lý bằng cách bỏ dấu đánh dấu (không gộp đoạn). Thay đổi định dạng khi từ chối thì khôi phục thuộc tính cũ. Thêm/xóa dòng bảng được hỗ trợ.
+
+## ADR-031 — Cô lập dữ liệu NCC và `IgnoreQueryFilters`
+- **Bối cảnh:** Lỗi phát hiện trong Phase 4: dùng `db.Suppliers.IgnoreQueryFilters()` trong subquery (để lấy tên NCC) đã tắt bộ lọc của **toàn bộ** truy vấn. Kết quả là NCC thấy được hợp đồng của NCC khác trong danh sách.
+- **Quyết định:** Không dùng `IgnoreQueryFilters()` trong subquery của truy vấn có dữ liệu thuộc NCC. Nếu cần dữ liệu ngoài phạm vi thì tải bằng một truy vấn riêng. Có test hồi quy. NCC chỉ thấy hợp đồng từ khi bệnh viện gửi rà soát (ẩn các trạng thái `Draft`, `InReview`, `Returned`).
+
+## ADR-032 — Tích hợp HIS outbound: mock tất định + REST cấu hình được
+- **Quyết định:** `His:Provider=Mock` (mặc định) sinh danh mục tất định theo (Số QĐ + MST) từ bộ dữ liệu mẫu (thuốc / VTYT / hàng hóa – dịch vụ) và số liệu X–N–T cân đối. `His:Provider=Rest` dùng `RestHisClient`: URL có placeholder, đường dẫn mảng kết quả và ánh xạ từng trường (hỗ trợ đường dẫn có dấu chấm) đều cấu hình trong `appsettings`; retry, circuit breaker, timeout qua `Microsoft.Extensions.Http.Resilience`. Lỗi kết nối hiển thị cho người dùng là `HIS_UNAVAILABLE`, kèm gợi ý import Excel.
+- **Hệ quả:** Khi tích hợp hãng HIS thật chỉ cần cấu hình, không phải sửa code (Phase 6 bổ sung chiều inbound).
+
+## ADR-033 — Dữ liệu demo sinh bằng chính use case (đóng vai người dùng)
+- **Quyết định:** `DemoProcurementSeeder` chạy các service nghiệp vụ thật dưới danh tính từng người dùng demo (`UserContextOverride` dùng AsyncLocal; ICurrentUser được đăng ký dạng factory: lấy override nếu có, không thì lấy JWT). Nhờ vậy tài liệu, luồng ký, chữ ký và nhật ký demo giống hệt dữ liệu người dùng tạo ra. Seeder chờ Gotenberg sẵn sàng trước khi chạy để không bao giờ dừng giữa chừng. Seeder là idempotent: bỏ qua khi QĐ demo đầu tiên đã tồn tại.
+
+## ADR-034 — E2E Playwright
+- **Quyết định:** Thư mục `e2e/` (Playwright 1.49, Chromium) chạy trên stack docker compose. Mỗi vai trò dùng một browser context riêng. Thao tác nghiệp vụ đi qua UI; chỉ dùng API để tải tệp DOCX về (mô phỏng NCC sửa bằng Word). CI có workflow riêng `E2E` (chạy thủ công và hằng đêm), khởi động stack không gồm ONLYOFFICE để giảm thời gian.

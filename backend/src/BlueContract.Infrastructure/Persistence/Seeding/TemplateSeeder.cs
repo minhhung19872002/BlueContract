@@ -51,6 +51,20 @@ public sealed class TemplateSeeder(AppDbContext db, IFileStorage storage, IDocum
             written.Add(path);
         }
 
+        // Biểu mẫu import danh mục (spec §10 items 1–2).
+        var workbook = new Reporting.ClosedXmlItemWorkbook();
+        foreach (var (kind, fileName) in new[]
+                 {
+                     (Domain.Catalog.ItemImportKind.Medical, "01_Bieu_mau_import_thuoc_VTYT_hoa_chat_sinh_pham.xlsx"),
+                     (Domain.Catalog.ItemImportKind.General, "02_Bieu_mau_import_hang_hoa_tai_san_dich_vu.xlsx"),
+                 })
+        {
+            var categories = CatalogSeeder.Categories.Where(c => c.Kind == kind).Select(c => (c.Code, c.Name)).ToList();
+            var path = Path.Combine(directory, fileName);
+            File.WriteAllBytes(path, workbook.CreateTemplate(kind, categories));
+            written.Add(path);
+        }
+
         return written;
     }
 }

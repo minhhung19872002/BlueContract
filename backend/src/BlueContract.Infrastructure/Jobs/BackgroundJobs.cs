@@ -23,8 +23,13 @@ public sealed class HangfireOptions
 /// <summary>Durable jobs on Hangfire (PostgreSQL storage): email delivery with automatic retries.</summary>
 internal sealed class HangfireBackgroundJobs(IBackgroundJobClient client) : IBackgroundJobs
 {
-    public void EnqueueEmail(EmailMessage message) =>
-        client.Enqueue<EmailJob>(job => job.SendAsync(message, CancellationToken.None));
+    public void EnqueueEmail(EmailMessage message)
+    {
+        // Job arguments are stored as JSON: use plain arrays (collection expressions may produce compiler-generated list
+        // types that cannot be deserialized by the worker).
+        var payload = new EmailMessage(message.To.ToArray(), message.Subject, message.HtmlBody, message.Cc?.ToArray());
+        client.Enqueue<EmailJob>(job => job.SendAsync(payload, CancellationToken.None));
+    }
 }
 
 public sealed class EmailJob(IEmailSender sender)

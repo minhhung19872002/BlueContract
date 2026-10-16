@@ -2,7 +2,10 @@ import {
   ApartmentOutlined,
   AuditOutlined,
   BankOutlined,
+  ContainerOutlined,
   DashboardOutlined,
+  FileProtectOutlined,
+  AppstoreOutlined,
   EditOutlined,
   NodeIndexOutlined,
   SafetyCertificateOutlined,
@@ -26,6 +29,19 @@ export const internalNav: NavItem[] = [
     permissions: [P.SigningInbox],
     inboxBadge: true,
   },
+  {
+    key: '/quyet-dinh-thau',
+    label: 'Quyết định thầu',
+    icon: <FileProtectOutlined />,
+    permissions: [P.BidView],
+  },
+  {
+    key: '/danh-muc-hang-hoa',
+    label: 'Danh mục hàng hóa',
+    icon: <AppstoreOutlined />,
+    permissions: [P.ItemView],
+  },
+  { key: '/hop-dong', label: 'Hợp đồng', icon: <ContainerOutlined />, permissions: [P.ContractView] },
   { key: '/xac-minh-chu-ky', label: 'Xác minh chữ ký', icon: <SafetyCertificateOutlined /> },
   {
     key: '/quan-tri',
@@ -93,6 +109,7 @@ export const supplierNav: NavItem[] = [
     permissions: [P.SigningInbox],
     inboxBadge: true,
   },
+  { key: '/ncc/hop-dong', label: 'Hợp đồng', icon: <ContainerOutlined />, permissions: [P.ContractView] },
   { key: '/ncc/xac-minh-chu-ky', label: 'Xác minh chữ ký', icon: <SafetyCertificateOutlined /> },
   {
     key: '/ncc/cong-ty',

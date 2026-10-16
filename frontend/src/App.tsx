@@ -8,6 +8,21 @@ import { SessionBootstrap } from './auth/guards';
 import { isApiProblem } from './api/http';
 import './i18n/dayjs';
 
+// antd's vi_VN date-picker locale is overwritten by rc-picker's English placeholders: restore Vietnamese ones.
+const locale = {
+  ...viVN,
+  DatePicker: viVN.DatePicker && {
+    ...viVN.DatePicker,
+    lang: {
+      ...viVN.DatePicker.lang,
+      placeholder: 'Chọn ngày',
+      yearPlaceholder: 'Chọn năm',
+      monthPlaceholder: 'Chọn tháng',
+      rangePlaceholder: ['Từ ngày', 'Đến ngày'] as [string, string],
+    },
+  },
+};
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -22,7 +37,7 @@ const queryClient = new QueryClient({
 
 export function App() {
   return (
-    <ConfigProvider locale={viVN} theme={theme}>
+    <ConfigProvider locale={locale} theme={theme}>
       <AntApp>
         <QueryClientProvider client={queryClient}>
           <SessionBootstrap>

@@ -24,6 +24,12 @@ import { DocumentPage } from './features/documents/DocumentPage';
 import { SigningInboxPage } from './features/signing/SigningInboxPage';
 import { VerifySignaturePage } from './features/signing/VerifySignaturePage';
 import { WorkflowTemplatesPage } from './features/admin/WorkflowTemplatesPage';
+import { ItemsPage } from './features/catalog/ItemsPage';
+import { BidDecisionsPage } from './features/bids/BidDecisionsPage';
+import { BidDecisionDetailPage } from './features/bids/BidDecisionDetailPage';
+import { ContractsPage } from './features/contracts/ContractsPage';
+import { ContractWizardPage } from './features/contracts/ContractWizardPage';
+import { ContractDetailPage } from './features/contracts/ContractDetailPage';
 
 const guard = (permissions: string[], element: React.ReactNode) => (
   <RequirePermission any={permissions}>{element}</RequirePermission>
@@ -65,6 +71,13 @@ export const router = createBrowserRouter([
           { path: '/quan-tri/mau-bieu', element: guard([P.TemplateManage], <TemplatesPage />) },
           { path: '/tai-lieu/:id', element: <DocumentPage /> },
           { path: '/trinh-ky', element: guard([P.SigningInbox], <SigningInboxPage />) },
+          { path: '/quyet-dinh-thau', element: guard([P.BidView], <BidDecisionsPage />) },
+          { path: '/quyet-dinh-thau/:id', element: guard([P.BidView], <BidDecisionDetailPage />) },
+          { path: '/danh-muc-hang-hoa', element: guard([P.ItemView], <ItemsPage />) },
+          { path: '/hop-dong', element: guard([P.ContractView], <ContractsPage />) },
+          { path: '/hop-dong/tao-moi', element: guard([P.ContractCreate], <ContractWizardPage />) },
+          { path: '/hop-dong/:id', element: guard([P.ContractView], <ContractDetailPage />) },
+          { path: '/hop-dong/:id/sua', element: guard([P.ContractCreate], <ContractWizardPage />) },
           { path: '/xac-minh-chu-ky', element: <VerifySignaturePage /> },
           { path: '/quan-tri/luong-ky', element: guard([P.WorkflowManage], <WorkflowTemplatesPage />) },
         ],
@@ -82,6 +95,8 @@ export const router = createBrowserRouter([
           { path: 'tai-khoan', element: <MyAccountPage /> },
           { path: 'cong-ty', element: guard([P.SupplierCompanyView], <CompanyPage />) },
           { path: 'trinh-ky', element: guard([P.SigningInbox], <SigningInboxPage />) },
+          { path: 'hop-dong', element: guard([P.ContractView], <ContractsPage />) },
+          { path: 'hop-dong/:id', element: guard([P.ContractView], <ContractDetailPage />) },
           { path: 'xac-minh-chu-ky', element: <VerifySignaturePage /> },
           { path: 'tai-lieu/:id', element: <DocumentPage /> },
         ],

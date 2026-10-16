@@ -1,4 +1,5 @@
 using BlueContract.Application.Common;
+using BlueContract.Application.Documents;
 using BlueContract.Application.Workflows;
 using BlueContract.Domain.Common;
 using BlueContract.Domain.Documents;
@@ -42,6 +43,7 @@ public sealed class SigningService(
     IFileStorage storage,
     WorkflowAccess access,
     WorkflowService workflows,
+    DocumentService documents,
     IAuditLogger audit,
     ICurrentUser current,
     IClock clock,
@@ -104,6 +106,12 @@ public sealed class SigningService(
         }
 
         var document = await db.Documents.Include(d => d.Versions).FirstAsync(d => d.Id == wf!.DocumentId, ct);
+        if (document.CurrentVersion is { IsLocked: false, PdfFileKey: null })
+        {
+            await documents.PrepareForSigningAsync(document, finalize: true, ct);
+            await db.SaveChangesAsync(ct);
+        }
+
         var version = document.CurrentVersion;
         if (version?.PdfFileKey is null || version.PdfSha256 is null)
         {
@@ -306,7 +314,7 @@ public sealed class SigningService(
 
         var actorName = standing.Caption is null ? current.FullName ?? string.Empty : $"{current.FullName} ({standing.Caption})";
         var outcome = wf!.Act(step.Id, request.UserId, actorName, request.OnBehalfOfUserId, comment, signature.Id, now);
-        await workflows.AfterActAsync(wf, outcome, ct);
+        await workflows.AfterActAsync(wf, outcome, step, comment, ct);
         audit.Log("Sign", nameof(Document), document.Id.ToString(), new
         {
             step = step.Code,

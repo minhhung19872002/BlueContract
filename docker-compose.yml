@@ -119,6 +119,9 @@ services:
       Seed__AdminPassword: ${SEED_ADMIN_PASSWORD:-}
       Signing__DefaultProvider: ${SIGNING_DEFAULT_PROVIDER:-MOCK}
       Signing__EnableMockProviders: ${SIGNING_ENABLE_MOCK:-true}
+      His__Provider: ${HIS_PROVIDER:-Mock}
+      His__BaseUrl: ${HIS_BASE_URL:-}
+      His__ApiKey: ${HIS_API_KEY:-}
       Hangfire__DashboardEnabled: ${HANGFIRE_DASHBOARD:-true}
       Email__Host: mailpit
       Email__Port: "1025"

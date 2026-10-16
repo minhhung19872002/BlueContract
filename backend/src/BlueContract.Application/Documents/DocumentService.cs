@@ -7,6 +7,7 @@ using BlueContract.Domain.Identity;
 using BlueContract.Domain.Workflows;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace BlueContract.Application.Documents;
 
@@ -88,6 +89,8 @@ public sealed class DocumentService(
     IUrlSigner urlSigner,
     IAuditLogger audit,
     WorkflowAccess workflowAccess,
+    IDocxRevisions revisions,
+    IServiceProvider services,
     ICurrentUser currentUser,
     IClock clock)
 {
@@ -189,13 +192,53 @@ public sealed class DocumentService(
             return Error.Validation("DOCUMENT_VERSION_LOCKED");
         }
 
-        var docx = await ReadAllAsync(version.DocxFileKey, ct);
+        await RenderVersionPdfAsync(document, version, ct);
+        await db.SaveChangesAsync(ct);
+        return ToDto(version, document.CurrentVersionId);
+    }
+
+    /// <summary>
+    /// Makes the current version signable (spec §6.1 B3-5): with <paramref name="finalize"/> every remaining tracked change is
+    /// accepted into a new "bản chốt" version first; then the PDF rendition is produced if missing. No-op once signed.
+    /// </summary>
+    public async Task PrepareForSigningAsync(Document document, bool finalize, CancellationToken ct)
+    {
+        var version = document.CurrentVersion;
+        if (version is null || version.IsLocked || version.DocxFileKey is null)
+        {
+            return;
+        }
+
+        if (finalize)
+        {
+            var docx = await ReadAllAsync(version.DocxFileKey, ct);
+            if (revisions.List(docx).Count > 0)
+            {
+                version = await AddDocxVersionAsync(document, revisions.AcceptAll(docx), "Chốt bản để ký: chấp nhận các thay đổi đã theo dõi",
+                    currentUser.UserId, currentUser.FullName ?? "Hệ thống", ct);
+            }
+        }
+
+        if (version.PdfFileKey is null)
+        {
+            await RenderVersionPdfAsync(document, version, ct);
+        }
+    }
+
+    /// <summary>Current DOCX of a document (for revision review), with its version id.</summary>
+    internal async Task<(DocumentVersion Version, byte[] Docx)?> ReadCurrentDocxAsync(Document document, CancellationToken ct)
+    {
+        var version = document.CurrentVersion;
+        return version?.DocxFileKey is null ? null : (version, await ReadAllAsync(version.DocxFileKey, ct));
+    }
+
+    private async Task RenderVersionPdfAsync(Document document, DocumentVersion version, CancellationToken ct)
+    {
+        var docx = await ReadAllAsync(version.DocxFileKey!, ct);
         var bytes = await pdf.ConvertToPdfAsync(docx, document.Title, ct);
         using var stream = new MemoryStream(bytes);
         var stored = await storage.UploadAsync($"documents/{document.Id:N}/v{version.VersionNumber}/document.pdf", stream, "application/pdf", ct);
         version.AttachPdf(stored.ObjectKey, stored.Sha256, stored.Size);
-        await db.SaveChangesAsync(ct);
-        return ToDto(version, document.CurrentVersionId);
     }
 
     /// <summary>Short-lived presigned download link after the permission check (spec §11). Every download is audited.</summary>
@@ -374,9 +417,14 @@ public sealed class DocumentService(
             var instances = await db.WorkflowInstances.Include("_steps").Include("_events")
                 .Where(w => w.DocumentId == document.Id && (w.Status == WorkflowStatus.Running || w.Status == WorkflowStatus.Returned))
                 .ToListAsync(ct);
+            var observers = services.GetServices<IWorkflowObserver>().Where(o => o.Handles(document.Type)).ToList();
             foreach (var wf in instances)
             {
                 wf.RestartForNewVersion(userId ?? Guid.Empty, userName ?? "Hệ thống", clock.UtcNow);
+                foreach (var observer in observers)
+                {
+                    await observer.OnChangedAsync(new WorkflowChange(wf, document, WorkflowChangeKind.Restarted, null, null), ct);
+                }
             }
 
             if (instances.Count == 0)

@@ -40,6 +40,7 @@ public sealed class DatabaseInitializer(
         await RetryAsync("storage bucket", () => storage.EnsureBucketAsync(ct), ct);
         await SeedSettingsAsync(ct);
         await services.GetRequiredService<IdentitySeeder>().SeedAsync(ct);
+        await services.GetRequiredService<CatalogSeeder>().SeedAsync(ct);
         if (seedOptions.Value.Demo)
         {
             await services.GetRequiredService<DemoSeeder>().SeedAsync(ct);
@@ -47,6 +48,10 @@ public sealed class DatabaseInitializer(
 
         await services.GetRequiredService<TemplateSeeder>().SeedAsync(ct);
         await services.GetRequiredService<WorkflowSeeder>().SeedAsync(ct);
+        if (seedOptions.Value.Demo)
+        {
+            await services.GetRequiredService<DemoProcurementSeeder>().SeedAsync(ct);
+        }
     }
 
     private async Task ResetDemoAsync(CancellationToken ct)
