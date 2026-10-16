@@ -401,7 +401,13 @@ public sealed class AuditLogsController(AuditLogService service, IExcelExporter 
 
     [HttpGet("entity-types")]
     [HasPermission(P.AuditView)]
-    public Task<List<string>> EntityTypes(CancellationToken ct) => service.EntityTypesAsync(ct);
+    public Task<List<AuditEntityTypeDto>> EntityTypes(CancellationToken ct) => service.EntityTypesAsync(ct);
+
+    /// <summary>Actions of the audit trail with their Vietnamese names (filter "Hành động").</summary>
+    [HttpGet("actions")]
+    [HasPermission(P.AuditView)]
+    public List<AuditEntityTypeDto> Actions() =>
+        [.. AuditVocabulary.Actions.Select(a => new AuditEntityTypeDto(a.Key, a.Value)).OrderBy(a => a.Label, StringComparer.Create(System.Globalization.CultureInfo.GetCultureInfo("vi-VN"), false))];
 
     [HttpGet("export")]
     [HasPermission(P.AuditView)]
@@ -410,9 +416,10 @@ public sealed class AuditLogsController(AuditLogService service, IExcelExporter 
         var page = await service.ListAsync(query with { Page = 1, PageSize = PageQuery.MaxExportRows, ForExport = true }, filter, ct);
         var bytes = excel.Export("Nhật ký", [
             new ExcelColumn<AuditLogDto>("Thời gian", x => x.OccurredAt, ExcelColumnFormat.DateTime, 18),
-            new ExcelColumn<AuditLogDto>("Người dùng", x => x.UserName, Width: 18),
-            new ExcelColumn<AuditLogDto>("Hành động", x => x.Action, Width: 16),
-            new ExcelColumn<AuditLogDto>("Đối tượng", x => x.EntityType, Width: 20),
+            new ExcelColumn<AuditLogDto>("Người dùng", x => x.UserFullName ?? x.UserName, Width: 22),
+            new ExcelColumn<AuditLogDto>("Tên đăng nhập", x => x.UserName, Width: 16),
+            new ExcelColumn<AuditLogDto>("Hành động", x => x.ActionLabel, Width: 26),
+            new ExcelColumn<AuditLogDto>("Đối tượng", x => x.EntityLabel, Width: 22),
             new ExcelColumn<AuditLogDto>("Mã đối tượng", x => x.EntityId, Width: 38),
             new ExcelColumn<AuditLogDto>("Địa chỉ IP", x => x.IpAddress, Width: 16),
             new ExcelColumn<AuditLogDto>("Ghi chú", x => x.Note, Width: 30),

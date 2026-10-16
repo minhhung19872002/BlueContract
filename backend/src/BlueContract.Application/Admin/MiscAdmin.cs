@@ -222,13 +222,19 @@ public sealed record AuditLogDto(
     string? OldValues,
     string? NewValues,
     string? Note,
-    string? CorrelationId);
+    string? CorrelationId,
+    string? UserFullName = null,
+    string ActionLabel = "",
+    string EntityLabel = "");
+
+/// <summary>A kind of audited record: stored name and its Vietnamese label.</summary>
+public sealed record AuditEntityTypeDto(string Value, string Label);
 
 public sealed record AuditLogFilter(Guid? UserId, string? Action, string? EntityType, string? EntityId, DateTimeOffset? From, DateTimeOffset? To);
 
 public sealed class AuditLogService(IAppDbContext db)
 {
-    public Task<PagedResult<AuditLogDto>> ListAsync(PageQuery q, AuditLogFilter f, CancellationToken ct)
+    public async Task<PagedResult<AuditLogDto>> ListAsync(PageQuery q, AuditLogFilter f, CancellationToken ct)
     {
         var query = db.AuditLogs.AsNoTracking();
         if (f.UserId is not null)
@@ -267,14 +273,27 @@ public sealed class AuditLogService(IAppDbContext db)
             query = query.Where(a => EF.Functions.ILike(a.UserName!, p) || EF.Functions.ILike(a.Note!, p) || EF.Functions.ILike(a.EntityId!, p));
         }
 
-        return query.OrderByDescending(a => a.OccurredAt).ThenByDescending(a => a.Id)
+        var page = await query.OrderByDescending(a => a.OccurredAt).ThenByDescending(a => a.Id)
             .Select(a => new AuditLogDto(a.Id, a.OccurredAt, a.UserId, a.UserName, a.IpAddress, a.UserAgent, a.Action, a.EntityType,
-                a.EntityId, a.OldValues, a.NewValues, a.Note, a.CorrelationId))
+                a.EntityId, a.OldValues, a.NewValues, a.Note, a.CorrelationId,
+                db.Users.IgnoreQueryFilters().Where(u => u.Id == a.UserId).Select(u => u.FullName).FirstOrDefault(), "", ""))
             .ToPagedAsync(q, ct);
+
+        // People read who did what to which record, in Vietnamese (spec §9.3).
+        return page with
+        {
+            Items = [.. page.Items.Select(a => a with
+            {
+                UserFullName = a.UserFullName ?? a.UserName,
+                ActionLabel = AuditVocabulary.Action(a.Action),
+                EntityLabel = AuditVocabulary.Subject(a.EntityType),
+            })],
+        };
     }
 
-    public async Task<List<string>> EntityTypesAsync(CancellationToken ct) =>
-        await db.AuditLogs.AsNoTracking().Select(a => a.EntityType).Distinct().OrderBy(x => x).ToListAsync(ct);
+    public async Task<List<AuditEntityTypeDto>> EntityTypesAsync(CancellationToken ct) =>
+        [.. (await db.AuditLogs.AsNoTracking().Select(a => a.EntityType).Distinct().ToListAsync(ct))
+            .Select(t => new AuditEntityTypeDto(t, AuditVocabulary.Subject(t))).OrderBy(t => t.Label, StringComparer.Create(System.Globalization.CultureInfo.GetCultureInfo("vi-VN"), false))];
 }
 
 // ---------- Lookups for selects ----------

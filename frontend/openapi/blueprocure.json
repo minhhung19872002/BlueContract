@@ -2749,7 +2749,30 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "type": "string"
+                    "$ref": "#/components/schemas/AuditEntityTypeDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/audit-logs/actions": {
+      "get": {
+        "tags": [
+          "AuditLogs"
+        ],
+        "summary": "Actions of the audit trail with their Vietnamese names (filter \"Hành động\").",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AuditEntityTypeDto"
                   }
                 }
               }
@@ -12133,6 +12156,22 @@
         ],
         "description": "How the step's actor is determined."
       },
+      "AuditEntityTypeDto": {
+        "required": [
+          "value",
+          "label"
+        ],
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        },
+        "description": "A kind of audited record: stored name and its Vietnamese label."
+      },
       "AuditLogDto": {
         "required": [
           "id",
@@ -12219,6 +12258,20 @@
               "null",
               "string"
             ]
+          },
+          "userFullName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "actionLabel": {
+            "type": "string",
+            "default": ""
+          },
+          "entityLabel": {
+            "type": "string",
+            "default": ""
           }
         }
       },
@@ -13703,6 +13756,20 @@
               "null",
               "string"
             ]
+          },
+          "userFullName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "actionLabel": {
+            "type": "string",
+            "default": ""
+          },
+          "subjectLabel": {
+            "type": "string",
+            "default": ""
           }
         },
         "description": "One line of the contract \"Lịch sử\" tab (spec §9.1-5): an audit entry of the contract, one of its documents or\r\nappendices. `Subject` is the audited type (Contract, ContractAppendix, Document); `Details` the JSON of the\r\nchange or business action."

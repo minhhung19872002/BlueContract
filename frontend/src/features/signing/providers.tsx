@@ -19,7 +19,7 @@ export function providerHint(p: SigningProviderDto) {
   return p.mode === 'RemoteAsync'
     ? 'Ký số từ xa · xác nhận trên điện thoại'
     : p.mode === 'ClientSide'
-      ? 'Token USB · cắm vào máy'
+      ? 'USB token · cắm vào máy'
       : 'Ký trên máy chủ';
 }
 

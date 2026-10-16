@@ -46,13 +46,13 @@ import { ExportableTable } from '../../components/TableExportButton';
 
 function ValidationResult({ result }: { result: TemplateValidationResult }) {
   if (result.isValid) {
-    return <Alert type="success" showIcon message={`Mẫu hợp lệ — ${result.tags.length} thẻ placeholder.`} />;
+    return <Alert type="success" showIcon message={`Mẫu hợp lệ — ${result.tags.length} thẻ dữ liệu.`} />;
   }
   return (
     <Alert
       type="error"
       showIcon
-      message={`Có ${result.errors.length} lỗi placeholder`}
+      message={`Có ${result.errors.length} lỗi thẻ dữ liệu`}
       description={
         <List
           size="small"
@@ -161,7 +161,7 @@ function UploadTemplateModal({
             </Form.Item>
             <Form.Item
               name="kind"
-              label="Loại mẫu (quyết định placeholder hợp lệ)"
+              label="Loại mẫu (quyết định thẻ dữ liệu được dùng)"
               rules={[{ required: true }]}
             >
               <Select
@@ -199,7 +199,7 @@ function UploadTemplateModal({
             <p>Kéo thả hoặc bấm để chọn tệp Word (tối đa 20 MB)</p>
           </Upload.Dragger>
         </Form.Item>
-        {validate.isPending && <Alert type="info" message="Đang kiểm tra placeholder..." />}
+        {validate.isPending && <Alert type="info" message="Đang kiểm tra thẻ dữ liệu…" />}
         {validation && <ValidationResult result={validation} />}
       </Form>
     </Modal>
@@ -234,7 +234,7 @@ function FieldsCatalog({ kind }: { kind: TemplateKind }) {
         dataSource={fields.data.fields}
         columns={[
           {
-            title: 'Placeholder',
+            title: 'Thẻ dữ liệu',
             dataIndex: 'path',
             render: (p: string) => <Typography.Text code copyable>{`{{${p}}}`}</Typography.Text>,
           },
@@ -416,7 +416,7 @@ function TemplateDrawer({ id, onClose }: { id: string | null; onClose: () => voi
               },
               {
                 key: 'placeholders',
-                label: `Placeholder trong mẫu (${t.placeholders.length})`,
+                label: `Thẻ dữ liệu trong mẫu (${t.placeholders.length})`,
                 children: (
                   <Space wrap>
                     {t.placeholders.map((p) => (
@@ -427,7 +427,7 @@ function TemplateDrawer({ id, onClose }: { id: string | null; onClose: () => voi
               },
               {
                 key: 'catalog',
-                label: 'Danh sách placeholder hợp lệ',
+                label: 'Danh sách thẻ dữ liệu được dùng',
                 children: <FieldsCatalog kind={t.kind} />,
               },
             ]}
@@ -468,7 +468,7 @@ export function TemplatesPage() {
     <>
       <PageHeader
         title="Mẫu biểu"
-        subtitle="Mẫu DOCX dùng sinh hợp đồng, biên bản, phiếu… Mỗi lần tải lên được kiểm tra placeholder và lưu phiên bản."
+        subtitle="Mẫu DOCX dùng sinh hợp đồng, biên bản, phiếu… Mỗi lần tải lên được kiểm tra thẻ dữ liệu và lưu phiên bản."
         extra={
           <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreating(true)}>
             Thêm mẫu biểu
@@ -532,7 +532,7 @@ export function TemplatesPage() {
         />
         <Typography.Paragraph type="secondary" style={{ marginTop: 12 }}>
           {rows.length} mẫu{kind ? ` loại ${statusLabel('templateKind', kind)}` : ''}. Bấm vào một dòng để xem
-          phiên bản, placeholder và xem trước.
+          phiên bản, thẻ dữ liệu và xem trước.
         </Typography.Paragraph>
       </Card>
       <TemplateDrawer id={selected} onClose={() => setSelected(null)} />

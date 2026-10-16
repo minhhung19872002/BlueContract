@@ -42,7 +42,7 @@ public sealed class ItemsController(CatalogService service, IExcelExporter excel
             new ExcelColumn<ItemDto>("Nhà cung cấp", x => x.SupplierName, Width: 30),
             new ExcelColumn<ItemDto>("Số QĐ thầu", x => x.BidDecisionNumber, Width: 16),
             new ExcelColumn<ItemDto>("Đơn giá trúng thầu", x => x.WinningUnitPrice, ExcelColumnFormat.Money, 16),
-            new ExcelColumn<ItemDto>("Nguồn", x => x.Source switch { ItemSource.His => "HIS", ItemSource.Import => "Import Excel", _ => "Nhập tay" }, Width: 12),
+            new ExcelColumn<ItemDto>("Nguồn", x => x.Source switch { ItemSource.His => "HIS", ItemSource.Import => "Nhập từ Excel", _ => "Nhập tay" }, Width: 12),
         ], page.Items);
         return Excel(bytes, "danh-muc-hang-hoa.xlsx");
     }

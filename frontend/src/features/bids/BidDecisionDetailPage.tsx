@@ -337,7 +337,7 @@ export function BidDecisionDetailPage() {
           type="info"
           showIcon
           style={{ marginBottom: 16 }}
-          message="Thêm NCC trúng thầu, lấy danh mục từ HIS (theo Số QĐ + MST) hoặc import Excel, sau đó Ban hành để tạo hợp đồng."
+          message="Thêm NCC trúng thầu, lấy danh mục từ HIS (theo Số QĐ + MST) hoặc nhập từ Excel, sau đó Ban hành để tạo hợp đồng."
         />
       )}
 
@@ -422,7 +422,7 @@ export function BidDecisionDetailPage() {
                           Đồng bộ từ HIS
                         </Button>
                         <Button icon={<FileExcelOutlined />} onClick={() => setImporting(true)}>
-                          Import Excel
+                          Nhập từ Excel
                         </Button>
                         <Button
                           icon={<PlusOutlined />}

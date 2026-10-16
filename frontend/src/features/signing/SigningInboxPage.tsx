@@ -52,7 +52,12 @@ import { PageHeader } from '../../components/common';
 import type { TableState } from '../../hooks/useUrlState';
 import { dueLabel } from '../../utils/due';
 import { formatDate, formatDateTime } from '../../utils/format';
-import { readTokenCertificate, signWithToken, tokenPluginConfigured } from './tokenPlugin';
+import {
+  describeTokenError,
+  readTokenCertificate,
+  signWithToken,
+  tokenPluginConfigured,
+} from './tokenPlugin';
 import { waitForRemoteSignature } from './signingFlow';
 import { WorkflowActions, WorkflowCard } from './WorkflowPanel';
 import { providerHint, providerIcon, usePreferredProvider } from './providers';
@@ -289,14 +294,14 @@ function useBatchSigning() {
           } catch (e) {
             state.failed.push({
               title: r.documentTitle,
-              error: e instanceof Error ? e.message : toApiProblem(e).title,
+              error: describeTokenError(e, 'Ký không thành công'),
             });
           }
           state.done += 1;
           setProgress({ ...state });
         }
       } catch (e) {
-        message.error(e instanceof Error ? e.message : 'Không đọc được chứng thư từ USB token.');
+        message.error(describeTokenError(e, 'Không đọc được chứng thư từ USB token.'));
       }
     } else {
       try {

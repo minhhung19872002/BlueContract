@@ -131,15 +131,22 @@ public sealed class ContractService(
             .Concat(contract.DocumentId is { } doc ? [doc.ToString()] : Array.Empty<string>())
             .ToList();
 
-        return await db.AuditLogs.AsNoTracking()
+        var entries = await db.AuditLogs.AsNoTracking()
             .Where(a => !HistoryNoise.Contains(a.Action) &&
                 ((a.EntityType == nameof(Contract) && a.EntityId == contractKey) ||
                  (a.EntityType == nameof(ContractAppendix) && appendixKeys.Contains(a.EntityId!)) ||
                  (a.EntityType == nameof(Document) && documentKeys.Contains(a.EntityId!))))
             .OrderByDescending(a => a.OccurredAt).ThenByDescending(a => a.Id)
             .Take(500)
-            .Select(a => new ContractHistoryEntryDto(a.OccurredAt, a.UserName, a.Action, a.EntityType, a.Note, a.NewValues))
+            .Select(a => new ContractHistoryEntryDto(a.OccurredAt, a.UserName, a.Action, a.EntityType, a.Note, a.NewValues,
+                db.Users.IgnoreQueryFilters().Where(u => u.Id == a.UserId).Select(u => u.FullName).FirstOrDefault(), "", ""))
             .ToListAsync(ct);
+        return entries.Select(e => e with
+        {
+            UserFullName = e.UserFullName ?? e.UserName,
+            ActionLabel = AuditVocabulary.Action(e.Action),
+            SubjectLabel = AuditVocabulary.Subject(e.Subject),
+        }).ToList();
     }
 
     public async Task<Result<ContractDto>> GetAsync(Guid id, CancellationToken ct)

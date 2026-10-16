@@ -88,7 +88,16 @@ public sealed record ContractActionsDto(
 /// appendices. <c>Subject</c> is the audited type (Contract, ContractAppendix, Document); <c>Details</c> the JSON of the
 /// change or business action.
 /// </summary>
-public sealed record ContractHistoryEntryDto(DateTimeOffset At, string? UserName, string Action, string Subject, string? Note, string? Details);
+public sealed record ContractHistoryEntryDto(
+    DateTimeOffset At,
+    string? UserName,
+    string Action,
+    string Subject,
+    string? Note,
+    string? Details,
+    string? UserFullName = null,
+    string ActionLabel = "",
+    string SubjectLabel = "");
 
 public sealed record ContractDto(
     Guid Id,

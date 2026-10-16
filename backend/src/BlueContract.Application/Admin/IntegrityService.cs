@@ -86,8 +86,10 @@ public sealed class IntegrityService(
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
+            // The technical cause stays in the server log; people read what went wrong and what to do.
             logger.LogError(ex, "Integrity check failed");
-            error = ex.Message;
+            error = "Lần kiểm tra bị dừng giữa chừng do không đọc được kho lưu trữ tệp hoặc cơ sở dữ liệu. "
+                + $"Kiểm tra dịch vụ lưu trữ rồi chạy lại; chi tiết kỹ thuật trong nhật ký máy chủ (mã yêu cầu {System.Diagnostics.Activity.Current?.TraceId.ToString() ?? "—"}).";
         }
 
         run.Finish(files, bytes, issues, clock.UtcNow, error);

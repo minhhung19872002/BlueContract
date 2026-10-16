@@ -75,7 +75,7 @@ export function ImportItemsDialog({
 
   return (
     <Modal
-      title="Import danh mục hàng hóa từ Excel"
+      title="Nhập danh mục hàng hóa từ Excel"
       open={open}
       onCancel={close}
       width="min(1200px, 96vw)"
@@ -101,7 +101,7 @@ export function ImportItemsDialog({
           {step === 2 && <Button onClick={() => setConfirming(false)}>Quay lại</Button>}
           {step === 2 && (
             <Button type="primary" loading={commit.isPending} onClick={runImport}>
-              Import {preview!.validRows} dòng
+              Nhập {preview!.validRows} dòng
             </Button>
           )}
         </Space>
@@ -224,7 +224,7 @@ export function ImportItemsDialog({
         <Space direction="vertical" style={{ width: '100%' }}>
           <Banner
             tone="info"
-            title="Kiểm tra lần cuối rồi bấm Import. Mặt hàng đã có (cùng mã key HIS) sẽ được cập nhật."
+            title="Kiểm tra lần cuối rồi bấm Nhập. Mặt hàng đã có (cùng mã key HIS) sẽ được cập nhật."
           />
           <InfoGrid
             items={[

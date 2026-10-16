@@ -6,6 +6,7 @@ import { downloadFile, toApiProblem, type ApiProblem } from '../api/http';
 import { useGet, type HistoryEntryDto } from '../api/admin';
 import { formatDateTime } from '../utils/format';
 import { StatusTag, statusTone } from './StatusTag';
+import { fieldLabel, isTechnicalField } from '../utils/auditDetails';
 
 /** Page title 24/600, one-line description, actions on the right (design/Page List.dc.html). */
 export function PageHeader({
@@ -142,6 +143,7 @@ export function HistoryButton({ url, title }: { url: string; title: string }) {
             const changed = Object.keys(snapshot).filter(
               (k) =>
                 !HIDDEN_FIELDS.has(k) &&
+                !isTechnicalField(k) &&
                 (!previous || JSON.stringify(previous[k]) !== JSON.stringify(snapshot[k])),
             );
             const tone = statusTone('historyChange', h.changeType);
@@ -167,7 +169,7 @@ export function HistoryButton({ url, title }: { url: string; title: string }) {
                     <div className="history-diff">
                       {changed.map((k) => (
                         <div key={k} className="history-diff__row">
-                          <span className="history-diff__key">{FIELD_LABELS[k] ?? k}</span>
+                          <span className="history-diff__key">{FIELD_LABELS[k] ?? fieldLabel(k)}</span>
                           <span className="history-diff__value">
                             {previous && (
                               <>

@@ -11,6 +11,7 @@ import {
 import { toApiProblem } from '../../api/http';
 import {
   certificateFileToBase64,
+  describeTokenError,
   readTokenCertificate,
   signWithToken,
   tokenPluginConfigured,
@@ -41,13 +42,6 @@ interface TokenState {
 const PHASES = ['Đang kết nối', 'Đang ký', 'Đã gắn chữ ký vào PDF'];
 
 /** Readable error for the USB-token plugin: "Failed to fetch" means the local plugin is not running. */
-function tokenError(e: unknown) {
-  const raw = e instanceof Error ? e.message : '';
-  if (/failed to fetch|networkerror|load failed/i.test(raw)) {
-    return 'Không kết nối được plugin ký số trên máy. Hãy cắm USB token, mở phần mềm ký số của nhà cung cấp chứng thư rồi thử lại.';
-  }
-  return raw || toApiProblem(e).title;
-}
 
 /**
  * "Ký số" for a workflow step (spec §8, design/Sign Modal.dc.html): a modal to pick the signing provider, then a 3-step
@@ -144,7 +138,7 @@ export function SignButton({ stepId, label = 'Ký số', comment, documentCode, 
       }
       setToken({ certificate, request, busy: false });
     } catch (e) {
-      message.error(tokenError(e));
+      message.error(describeTokenError(e));
       setToken({ certificate, busy: false });
       setPhase(0);
     }
@@ -257,7 +251,7 @@ export function SignButton({ stepId, label = 'Ký số', comment, documentCode, 
                   try {
                     await startToken(await readTokenCertificate());
                   } catch (e) {
-                    message.error(tokenError(e));
+                    message.error(describeTokenError(e));
                   }
                 }}
               >

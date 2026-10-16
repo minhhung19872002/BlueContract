@@ -88,7 +88,7 @@ const STATUS: Record<string, Record<string, StatusStyle>> = {
   },
   itemSource: {
     His: { label: 'Đồng bộ HIS', tone: 'teal' },
-    Import: { label: 'Import Excel', tone: 'indigo' },
+    Import: { label: 'Nhập từ Excel', tone: 'indigo' },
     Manual: { label: 'Nhập tay', tone: 'neutral' },
   },
   contractStatus: {
@@ -254,7 +254,7 @@ export type StatusDomain = keyof typeof STATUS;
 
 export function statusLabel(domain: StatusDomain, value: string | boolean | null | undefined): string {
   if (value === null || value === undefined) return '';
-  return STATUS[domain]?.[String(value)]?.label ?? String(value);
+  return STATUS[domain]?.[String(value)]?.label ?? 'Không xác định';
 }
 
 export function statusOptions(domain: StatusDomain) {
@@ -319,7 +319,7 @@ export function StatusTag({
   return (
     <span className={className} style={style}>
       {dot && <span className="status-tag__dot" aria-hidden />}
-      {s?.label ?? String(value)}
+      {s?.label ?? 'Không xác định'}
       {suffix}
     </span>
   );

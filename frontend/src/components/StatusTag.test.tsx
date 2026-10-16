@@ -52,3 +52,62 @@ describe('StatusTag (design system tones)', () => {
     );
   });
 });
+
+describe('StatusTag covers every value the API sends', () => {
+  // Domain of the tag → enum schema of the OpenAPI document generated from the backend.
+  const SCHEMAS: Record<string, string> = {
+    userStatus: 'UserStatus',
+    userType: 'UserType',
+    departmentType: 'DepartmentType',
+    warehouseType: 'WarehouseType',
+    templateKind: 'TemplateKind',
+    documentStatus: 'DocumentStatus',
+    documentType: 'DocumentType',
+    bidStatus: 'BidDecisionStatus',
+    itemSource: 'ItemSource',
+    contractStatus: 'ContractStatus',
+    procurementType: 'ProcurementType',
+    contractKind: 'ContractKind',
+    appendixType: 'AppendixType',
+    appendixStatus: 'AppendixStatus',
+    revisionKind: 'RevisionKind',
+    proposalStatus: 'ProposalStatus',
+    summaryStatus: 'ProposalSummaryStatus',
+    callOrderStatus: 'CallOrderStatus',
+    workflowStatus: 'WorkflowStatus',
+    stepStatus: 'StepStatus',
+    workflowAction: 'WorkflowActionType',
+    assigneeType: 'AssigneeType',
+    workflowEvent: 'WorkflowEventType',
+    signatureKind: 'SignatureKind',
+    historyChange: 'HistoryChangeType',
+    receiptStatus: 'ReceiptStatus',
+    receiptValidation: 'ReceiptValidationStatus',
+    receiptType: 'ReceiptType',
+    receiptSource: 'ReceiptSource',
+    integrationStatus: 'IntegrationLogStatus',
+    paymentRecordStatus: 'PaymentRecordStatus',
+    paymentStatus: 'PaymentStatus',
+    integrationDirection: 'IntegrationDirection',
+  };
+
+  it('has a Vietnamese label for every enum value of the API', async () => {
+    const openapi = (await import('../../openapi/blueprocure.json')).default as unknown as {
+      components: { schemas: Record<string, { enum?: string[] }> };
+    };
+    const missing: string[] = [];
+    for (const [domain, schema] of Object.entries(SCHEMAS)) {
+      const values = openapi.components.schemas[schema]?.enum;
+      expect(values, schema).toBeDefined();
+      for (const v of values ?? []) {
+        const label = statusLabel(domain as Parameters<typeof statusLabel>[0], v);
+        if (label === 'Không xác định') missing.push(`${domain}.${v}`);
+      }
+    }
+    expect(missing).toEqual([]);
+  });
+
+  it('never shows a raw code for an unknown value', () => {
+    expect(statusLabel('contractStatus', 'SomethingNew')).toBe('Không xác định');
+  });
+});

@@ -125,32 +125,6 @@ export function ContractCalls({
   );
 }
 
-/** Business verbs of the audit trail, as people read them. */
-const ACTIONS: Record<string, string> = {
-  Create: 'Tạo',
-  Update: 'Cập nhật',
-  Delete: 'Xóa',
-  ContractCreate: 'Tạo hợp đồng',
-  ContractCancel: 'Hủy hợp đồng',
-  ContractRevisions: 'Xử lý thay đổi của NCC',
-  ContractEffective: 'Hợp đồng có hiệu lực',
-  AppendixApplied: 'Áp dụng phụ lục',
-  WorkflowStart: 'Gửi ký / rà soát',
-  WorkflowReturn: 'Trả lại',
-  WorkflowReset: 'Bắt đầu lại luồng ký',
-  WorkflowContinued: 'Luồng ký tiếp tục',
-  WorkflowCompleted: 'Ký xong',
-  WorkflowCancel: 'Hủy luồng ký',
-  Sign: 'Ký số',
-  EditorSave: 'Lưu phiên bản từ trình soạn thảo',
-};
-
-const SUBJECTS: Record<string, string> = {
-  Contract: 'Hợp đồng',
-  ContractAppendix: 'Phụ lục',
-  Document: 'Tài liệu',
-};
-
 /** Tab "Lịch sử": audit trail of the contract, its document and appendices (newest first). */
 export function ContractHistory({ contractId }: { contractId: string }) {
   const history = useGet<ContractHistoryEntryDto[]>(`/api/contracts/${contractId}/history`, [
@@ -171,14 +145,17 @@ export function ContractHistory({ contractId }: { contractId: string }) {
       scroll={{ x: 'max-content' }}
       columns={[
         { title: 'Thời điểm', dataIndex: 'at', width: 150, render: (v: string) => formatDateTime(v) },
-        { title: 'Người thực hiện', dataIndex: 'userName', render: (v?: string | null) => v ?? 'Hệ thống' },
+        {
+          title: 'Người thực hiện',
+          dataIndex: 'userFullName',
+          render: (v?: string | null) => v ?? 'Hệ thống',
+        },
         {
           title: 'Hành động',
-          dataIndex: 'action',
+          dataIndex: 'actionLabel',
           render: (v: string, r) => (
             <span>
-              <strong>{ACTIONS[v] ?? v}</strong>{' '}
-              <Typography.Text type="secondary">· {SUBJECTS[r.subject] ?? r.subject}</Typography.Text>
+              <strong>{v}</strong> <Typography.Text type="secondary">· {r.subjectLabel}</Typography.Text>
             </span>
           ),
         },

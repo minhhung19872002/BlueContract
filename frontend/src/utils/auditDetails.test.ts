@@ -15,7 +15,7 @@ describe('describeAuditDetails', () => {
         'Contract',
         '{"number": "15/2026/HĐ", "totalAmount": 2960206800, "procurementType": 0}',
       ),
-    ).toEqual(['Số: 15/2026/HĐ', 'Tổng giá trị: 2.960.206.800 ₫']);
+    ).toEqual(['Số: 15/2026/HĐ', 'Tổng giá trị: 2.960.206.800 ₫', 'Hình thức: Trong thầu']);
   });
 
   it('never returns raw JSON objects', () => {

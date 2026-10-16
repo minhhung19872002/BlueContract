@@ -113,7 +113,7 @@ internal sealed class SystemConfigAdmin(
         catch (Exception e) when (e is SocketException or IOException or ProtocolException or SmtpCommandException or SmtpProtocolException
             or AuthenticationException or MailKit.Security.AuthenticationException or MailKit.Security.SslHandshakeException or OperationCanceledException)
         {
-            return Result.Failure(Error.Validation("MAIL_TEST_FAILED") with { Detail = e is OperationCanceledException ? "Hết thời gian chờ máy chủ." : e.Message });
+            return Result.Failure(Error.Validation("MAIL_TEST_FAILED") with { Detail = MailFailure(e, options) });
         }
 
         audit.Log("SystemConfigTestMail", "Email", null, new { To = to.Address, options.Host, options.Port });
@@ -122,6 +122,17 @@ internal sealed class SystemConfigAdmin(
     }
 
     public async Task ResetMailAsync(CancellationToken ct) => await ResetAsync(EmailPrefix, "Email", ct);
+
+    /// <summary>Why the test email failed, in Vietnamese (the SMTP library's English message is only a hint at the end).</summary>
+    private static string MailFailure(Exception e, EmailOptions o) => e switch
+    {
+        OperationCanceledException => $"Máy chủ {o.Host}:{o.Port} không phản hồi trong 30 giây.",
+        SocketException => $"Không kết nối được máy chủ {o.Host}:{o.Port} (sai địa chỉ / cổng, hoặc tường lửa chặn).",
+        AuthenticationException or MailKit.Security.AuthenticationException => "Máy chủ từ chối tài khoản hoặc mật khẩu SMTP.",
+        MailKit.Security.SslHandshakeException => "Không thiết lập được kết nối mã hóa (kiểm tra tùy chọn STARTTLS và cổng).",
+        SmtpCommandException c => $"Máy chủ từ chối thư (mã {(int)c.StatusCode}): {c.Message}",
+        _ => $"Lỗi giao tiếp với máy chủ SMTP: {e.Message}",
+    };
 
     // ---------------- Signing ----------------
 

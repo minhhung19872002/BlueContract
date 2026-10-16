@@ -105,7 +105,7 @@ public static class ErrorMessages
         ["TEMPLATE_NOT_FOUND"] = "Không tìm thấy mẫu biểu.",
         ["TEMPLATE_VERSION_NOT_FOUND"] = "Không tìm thấy phiên bản mẫu biểu.",
         ["TEMPLATE_NOT_DOCX"] = "Tệp mẫu phải là tài liệu Word (.docx) hợp lệ.",
-        ["TEMPLATE_PLACEHOLDERS_INVALID"] = "Mẫu có placeholder không hợp lệ. Vui lòng kiểm tra danh sách lỗi trước khi tải lên.",
+        ["TEMPLATE_PLACEHOLDERS_INVALID"] = "Mẫu có thẻ dữ liệu không hợp lệ. Vui lòng kiểm tra danh sách lỗi trước khi tải lên.",
         ["DOCUMENT_TITLE_REQUIRED"] = "Tiêu đề tài liệu không được để trống.",
         ["DOCUMENT_OWNER_REQUIRED"] = "Tài liệu phải gắn với một hồ sơ nghiệp vụ.",
         ["DOCUMENT_VERSION_REASON_REQUIRED"] = "Phải nêu lý do tạo phiên bản.",
@@ -235,10 +235,10 @@ public static class ErrorMessages
         ["BID_SUPPLIER_HAS_CONTRACTS"] = "Nhà cung cấp đã có hợp đồng theo quyết định này.",
         ["BID_ITEM_SUPPLIER_MISMATCH"] = "Mặt hàng đã thuộc nhà cung cấp khác trong quyết định.",
         ["BID_ITEM_IN_CONTRACT"] = "Mặt hàng đã có trong hợp đồng, không thể xóa.",
-        ["HIS_UNAVAILABLE"] = "Không kết nối được HIS. Vui lòng thử lại sau hoặc import danh mục bằng Excel.",
+        ["HIS_UNAVAILABLE"] = "Không kết nối được HIS. Vui lòng thử lại sau hoặc nhập danh mục từ tệp Excel.",
         ["IMPORT_NOT_XLSX"] = "Tệp không phải là bảng tính Excel (.xlsx) đúng biểu mẫu.",
         ["IMPORT_EMPTY"] = "Tệp không có dòng dữ liệu nào.",
-        ["IMPORT_HAS_ERRORS"] = "Tệp còn dòng lỗi — vui lòng sửa và tải lại trước khi import.",
+        ["IMPORT_HAS_ERRORS"] = "Tệp còn dòng lỗi — vui lòng sửa và tải lại trước khi nhập.",
 
         // Contracts
         ["CONTRACT_NUMBER_REQUIRED"] = "Thiếu số hợp đồng.",

@@ -102,7 +102,7 @@ public static partial class TemplateValidator
 
             if (!IsKnownPath(valuePath, stack, globals, collections))
             {
-                errors.Add(new(raw, $"Placeholder không hợp lệ: {valuePath}."));
+                errors.Add(new(raw, $"Thẻ dữ liệu không hợp lệ: {valuePath}."));
             }
         }
 

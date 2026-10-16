@@ -2204,7 +2204,43 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": string[];
+                        "application/json": components["schemas"]["AuditEntityTypeDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/audit-logs/actions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Actions of the audit trail with their Vietnamese names (filter "Hành động"). */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AuditEntityTypeDto"][];
                     };
                 };
             };
@@ -9858,6 +9894,11 @@ export interface components {
          * @enum {unknown}
          */
         AssigneeType: "Role" | "User" | "DocumentSupplier" | "Creator";
+        /** @description A kind of audited record: stored name and its Vietnamese label. */
+        AuditEntityTypeDto: {
+            value: string;
+            label: string;
+        };
         AuditLogDto: {
             /** Format: uuid */
             id: string;
@@ -9875,6 +9916,11 @@ export interface components {
             newValues: null | string;
             note: null | string;
             correlationId: null | string;
+            userFullName?: null | string;
+            /** @default  */
+            actionLabel: string;
+            /** @default  */
+            entityLabel: string;
         };
         BatchSignRequest: {
             stepIds: string[];
@@ -10262,6 +10308,11 @@ export interface components {
             subject: string;
             note: null | string;
             details: null | string;
+            userFullName?: null | string;
+            /** @default  */
+            actionLabel: string;
+            /** @default  */
+            subjectLabel: string;
         };
         /**
          * @description Contract fields a "thay đổi thông tin" appendix may change (spec §5 "nội dung thay đổi có cấu trúc").

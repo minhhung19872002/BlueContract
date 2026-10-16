@@ -30,7 +30,7 @@ describe('status labels', () => {
   it('maps values to Vietnamese labels in one place', () => {
     expect(statusLabel('userStatus', 'Active')).toBe('Hoạt động');
     expect(statusLabel('active', false)).toBe('Ngừng hoạt động');
-    expect(statusLabel('departmentType', 'Unknown')).toBe('Unknown');
+    expect(statusLabel('departmentType', 'Unknown')).toBe('Không xác định');
     expect(statusOptions('userType').map((o) => o.value)).toEqual(['Internal', 'Supplier']);
   });
 });

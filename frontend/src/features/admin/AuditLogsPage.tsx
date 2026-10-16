@@ -1,27 +1,23 @@
-import { DatePicker, Descriptions, Select, Table, Tag, Typography } from 'antd';
+import { DatePicker, Descriptions, Select, Table, Tag, Tooltip, Typography } from 'antd';
 import dayjs from 'dayjs';
 import { resources, useGet, useLookup, usePagedList, type AuditLogDto } from '../../api/admin';
 import { DataTable } from '../../components/DataTable';
 import { ExportExcelButton, PageHeader } from '../../components/common';
 import { useTableUrlState } from '../../hooks/useUrlState';
 import { formatDateTime } from '../../utils/format';
+import { fieldLabel, formatAuditValue, isTechnicalField } from '../../utils/auditDetails';
 
 const FILTERS = ['userId', 'action', 'entityType', 'entityId', 'from', 'to'] as const;
 
-const ACTION_LABELS: Record<string, { label: string; color: string }> = {
-  Create: { label: 'Tạo mới', color: 'green' },
-  Update: { label: 'Cập nhật', color: 'blue' },
-  Delete: { label: 'Xóa', color: 'red' },
-  Login: { label: 'Đăng nhập', color: 'cyan' },
-  LoginFailed: { label: 'Đăng nhập lỗi', color: 'orange' },
-  Logout: { label: 'Đăng xuất', color: 'default' },
-  LockedOut: { label: 'Khóa tài khoản', color: 'red' },
-  PasswordChanged: { label: 'Đổi mật khẩu', color: 'purple' },
-  PasswordReset: { label: 'Đặt lại mật khẩu', color: 'purple' },
-  TwoFactorEnabled: { label: 'Bật 2FA', color: 'green' },
-  TwoFactorDisabled: { label: 'Tắt 2FA', color: 'orange' },
-  RefreshTokenReuse: { label: 'Phát hiện dùng lại phiên', color: 'red' },
-};
+type AuditOption = { value: string; label: string };
+
+/** Tag colour by the kind of action (the Vietnamese name comes from the API). */
+function actionColor(action: string) {
+  if (/Cancel|Delete|Remove|Locked|Reuse|Failed|Return/.test(action)) return 'red';
+  if (/Create|Register|Install|Enabled|Effective|Completed|Sign|Applied/.test(action)) return 'green';
+  if (/Login|Logout|View|Download/.test(action)) return 'default';
+  return 'blue';
+}
 
 function parse(json?: string | null): Record<string, unknown> {
   if (!json) return {};
@@ -32,11 +28,13 @@ function parse(json?: string | null): Record<string, unknown> {
   }
 }
 
-/** Before/after diff of an audit entry. */
+/** Before/after of an audit entry in words: Vietnamese field names, formatted values, technical fields hidden. */
 function Diff({ log }: { log: AuditLogDto }) {
   const before = parse(log.oldValues);
   const after = parse(log.newValues);
-  const keys = [...new Set([...Object.keys(before), ...Object.keys(after)])];
+  const keys = [...new Set([...Object.keys(before), ...Object.keys(after)])].filter(
+    (k) => !isTechnicalField(k),
+  );
   if (keys.length === 0) return <Typography.Text type="secondary">Không có dữ liệu chi tiết</Typography.Text>;
   return (
     <Table
@@ -45,21 +43,23 @@ function Diff({ log }: { log: AuditLogDto }) {
       rowKey="key"
       dataSource={keys.map((k) => ({ key: k, before: before[k], after: after[k] }))}
       columns={[
-        { title: 'Trường', dataIndex: 'key', width: 220 },
+        { title: 'Thông tin', dataIndex: 'key', width: 220, render: (k: string) => fieldLabel(k) },
         {
           title: 'Trước',
           dataIndex: 'before',
-          render: (v: unknown) =>
+          render: (v: unknown, r) =>
             v === undefined ? (
               ''
             ) : (
-              <Typography.Text delete={log.action === 'Update'}>{JSON.stringify(v)}</Typography.Text>
+              <Typography.Text delete={log.action === 'Update'}>
+                {formatAuditValue(log.entityType, r.key, v)}
+              </Typography.Text>
             ),
         },
         {
           title: 'Sau',
           dataIndex: 'after',
-          render: (v: unknown) => (v === undefined ? '' : JSON.stringify(v)),
+          render: (v: unknown, r) => (v === undefined ? '' : formatAuditValue(log.entityType, r.key, v)),
         },
       ]}
     />
@@ -69,14 +69,18 @@ function Diff({ log }: { log: AuditLogDto }) {
 export function AuditLogsPage() {
   const { state, update, apiParams } = useTableUrlState(FILTERS, 50);
   const list = usePagedList<AuditLogDto>(resources.auditLogs, apiParams);
-  const entityTypes = useGet<string[]>(`${resources.auditLogs}/entity-types`, [resources.auditLogs, 'types']);
+  const entityTypes = useGet<AuditOption[]>(`${resources.auditLogs}/entity-types`, [
+    resources.auditLogs,
+    'types',
+  ]);
+  const actions = useGet<AuditOption[]>(`${resources.auditLogs}/actions`, [resources.auditLogs, 'actions']);
   const users = useLookup('internal-users');
 
   return (
     <>
       <PageHeader
         title="Nhật ký hoạt động"
-        subtitle="Bảng ghi chỉ thêm (append-only) — không ai sửa/xóa được, kể cả quản trị viên"
+        subtitle="Nhật ký chỉ được ghi thêm — không ai sửa hay xóa được, kể cả quản trị viên"
       />
       <DataTable<AuditLogDto>
         data={list.data}
@@ -101,7 +105,9 @@ export function AuditLogsPage() {
               placeholder="Hành động"
               style={{ width: 170 }}
               value={state.filters.action}
-              options={Object.entries(ACTION_LABELS).map(([value, a]) => ({ value, label: a.label }))}
+              showSearch
+              optionFilterProp="label"
+              options={actions.data ?? []}
               onChange={(v) => update({ filters: { action: v } })}
             />
             <Select
@@ -109,7 +115,7 @@ export function AuditLogsPage() {
               placeholder="Đối tượng"
               style={{ width: 170 }}
               value={state.filters.entityType}
-              options={(entityTypes.data ?? []).map((t) => ({ value: t, label: t }))}
+              options={entityTypes.data ?? []}
               onChange={(v) => update({ filters: { entityType: v } })}
             />
             <DatePicker.RangePicker
@@ -158,19 +164,24 @@ export function AuditLogsPage() {
           },
           {
             title: 'Người dùng',
-            dataIndex: 'userName',
-            width: 140,
-            render: (v?: string) => v ?? <Typography.Text type="secondary">Hệ thống</Typography.Text>,
+            dataIndex: 'userFullName',
+            width: 180,
+            render: (v: string | null | undefined, log) =>
+              v ? (
+                <Tooltip title={log.userName ? `Tên đăng nhập: ${log.userName}` : undefined}>{v}</Tooltip>
+              ) : (
+                <Typography.Text type="secondary">Hệ thống</Typography.Text>
+              ),
           },
           {
             title: 'Hành động',
-            dataIndex: 'action',
-            width: 170,
-            render: (v: string) => <Tag color={ACTION_LABELS[v]?.color}>{ACTION_LABELS[v]?.label ?? v}</Tag>,
+            dataIndex: 'actionLabel',
+            width: 220,
+            render: (v: string, log) => <Tag color={actionColor(log.action)}>{v}</Tag>,
           },
-          { title: 'Đối tượng', dataIndex: 'entityType', width: 150 },
+          { title: 'Đối tượng', dataIndex: 'entityLabel', width: 170 },
           { title: 'Mã đối tượng', dataIndex: 'entityId', ellipsis: true },
-          { title: 'IP', dataIndex: 'ipAddress', width: 130 },
+          { title: 'Địa chỉ IP', dataIndex: 'ipAddress', width: 130 },
         ]}
       />
     </>
