@@ -40,6 +40,10 @@ import { ReceiptsPage } from './features/receipts/ReceiptsPage';
 import { ReceiptDetailPage } from './features/receipts/ReceiptDetailPage';
 import { ReceiptCreatePage } from './features/receipts/ReceiptCreatePage';
 import { IntegrationPage } from './features/admin/IntegrationPage';
+import { PaymentsPage } from './features/payments/PaymentsPage';
+import { AcceptanceDetailPage, AcceptanceEditorPage } from './features/payments/AcceptancePages';
+import { ValuationCreatePage, ValuationDetailPage } from './features/payments/ValuationPages';
+import { LiquidationCreatePage, LiquidationDetailPage } from './features/payments/LiquidationPages';
 
 const guard = (permissions: string[], element: React.ReactNode) => (
   <RequirePermission any={permissions}>{element}</RequirePermission>
@@ -106,6 +110,29 @@ export const router = createBrowserRouter([
           { path: '/nhap-kho/:id', element: guard([P.ReceiptView], <ReceiptDetailPage />) },
           { path: '/nhap-kho/:id/sua', element: guard([P.ReceiptManage], <ReceiptCreatePage />) },
           { path: '/quan-tri/tich-hop-his', element: guard([P.IntegrationManage], <IntegrationPage />) },
+          { path: '/thanh-toan', element: guard([P.PaymentView], <PaymentsPage />) },
+          {
+            path: '/thanh-toan/nghiem-thu/tao-moi',
+            element: guard([P.PaymentManage], <AcceptanceEditorPage />),
+          },
+          { path: '/thanh-toan/nghiem-thu/:id', element: guard([P.PaymentView], <AcceptanceDetailPage />) },
+          {
+            path: '/thanh-toan/nghiem-thu/:id/sua',
+            element: guard([P.PaymentManage], <AcceptanceEditorPage />),
+          },
+          {
+            path: '/thanh-toan/xac-dinh-gia-tri/tao-moi',
+            element: guard([P.PaymentManage], <ValuationCreatePage />),
+          },
+          {
+            path: '/thanh-toan/xac-dinh-gia-tri/:id',
+            element: guard([P.PaymentView], <ValuationDetailPage />),
+          },
+          {
+            path: '/thanh-toan/thanh-ly/tao-moi',
+            element: guard([P.PaymentManage], <LiquidationCreatePage />),
+          },
+          { path: '/thanh-toan/thanh-ly/:id', element: guard([P.PaymentView], <LiquidationDetailPage />) },
           { path: '/xac-minh-chu-ky', element: <VerifySignaturePage /> },
           { path: '/quan-tri/luong-ky', element: guard([P.WorkflowManage], <WorkflowTemplatesPage />) },
         ],
@@ -129,6 +156,13 @@ export const router = createBrowserRouter([
           { path: 'goi-hang/:id', element: guard([P.CallOrderView], <CallOrderDetailPage />) },
           { path: 'nhap-kho', element: guard([P.ReceiptView], <ReceiptsPage />) },
           { path: 'nhap-kho/:id', element: guard([P.ReceiptView], <ReceiptDetailPage />) },
+          { path: 'thanh-toan', element: guard([P.PaymentView], <PaymentsPage />) },
+          { path: 'thanh-toan/nghiem-thu/:id', element: guard([P.PaymentView], <AcceptanceDetailPage />) },
+          {
+            path: 'thanh-toan/xac-dinh-gia-tri/:id',
+            element: guard([P.PaymentView], <ValuationDetailPage />),
+          },
+          { path: 'thanh-toan/thanh-ly/:id', element: guard([P.PaymentView], <LiquidationDetailPage />) },
           { path: 'xac-minh-chu-ky', element: <VerifySignaturePage /> },
           { path: 'tai-lieu/:id', element: <DocumentPage /> },
         ],

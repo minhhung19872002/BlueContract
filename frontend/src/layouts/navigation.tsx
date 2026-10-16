@@ -5,6 +5,7 @@ import {
   BankOutlined,
   ContainerOutlined,
   DashboardOutlined,
+  DollarOutlined,
   FileProtectOutlined,
   AppstoreOutlined,
   FormOutlined,
@@ -56,6 +57,7 @@ export const internalNav: NavItem[] = [
   },
   { key: '/goi-hang', label: 'Gọi hàng', icon: <PhoneOutlined />, permissions: [P.CallOrderView] },
   { key: '/nhap-kho', label: 'Phiếu nhập kho', icon: <InboxOutlined />, permissions: [P.ReceiptView] },
+  { key: '/thanh-toan', label: 'Thanh toán', icon: <DollarOutlined />, permissions: [P.PaymentView] },
   { key: '/xac-minh-chu-ky', label: 'Xác minh chữ ký', icon: <SafetyCertificateOutlined /> },
   {
     key: '/quan-tri',
@@ -132,6 +134,7 @@ export const supplierNav: NavItem[] = [
   { key: '/ncc/hop-dong', label: 'Hợp đồng', icon: <ContainerOutlined />, permissions: [P.ContractView] },
   { key: '/ncc/goi-hang', label: 'Gọi hàng', icon: <PhoneOutlined />, permissions: [P.CallOrderView] },
   { key: '/ncc/nhap-kho', label: 'Phiếu nhập kho', icon: <InboxOutlined />, permissions: [P.ReceiptView] },
+  { key: '/ncc/thanh-toan', label: 'Thanh toán', icon: <DollarOutlined />, permissions: [P.PaymentView] },
   { key: '/ncc/xac-minh-chu-ky', label: 'Xác minh chữ ký', icon: <SafetyCertificateOutlined /> },
   {
     key: '/ncc/cong-ty',

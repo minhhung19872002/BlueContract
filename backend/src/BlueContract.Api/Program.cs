@@ -168,6 +168,11 @@ try
         app.Services.GetRequiredService<IRecurringJobManager>().AddOrUpdate<BlueContract.Infrastructure.Jobs.WorkflowReminderJob>(
             BlueContract.Infrastructure.Jobs.WorkflowReminderJob.Id, job => job.RunAsync(CancellationToken.None), Cron.Hourly());
 
+        // Spec §6.5: monthly acceptance drafts (daily check at 01:00 Vietnam time against the configured day).
+        app.Services.GetRequiredService<IRecurringJobManager>().AddOrUpdate<BlueContract.Infrastructure.Jobs.AcceptanceJob>(
+            BlueContract.Infrastructure.Jobs.AcceptanceJob.Id, job => job.RunAsync(CancellationToken.None), "0 1 * * *",
+            new RecurringJobOptions { TimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh") });
+
         // Spec §6.4 B1: optional periodic pull of warehouse receipts from the HIS.
         var hisOptions = app.Configuration.GetSection(BlueContract.Infrastructure.Integration.HisOptions.SectionName).Get<BlueContract.Infrastructure.Integration.HisOptions>()
             ?? new BlueContract.Infrastructure.Integration.HisOptions();

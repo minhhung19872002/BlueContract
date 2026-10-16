@@ -181,4 +181,7 @@ public static class NotificationTypes
     public const string ReceiptCompleted = "receipt.completed";
     public const string ReceiptReturned = "receipt.returned";
     public const string ReceiptInvoice = "receipt.invoice";
+    public const string AcceptanceDrafted = "acceptance.drafted";
+    public const string PaymentCompleted = "payment.completed";
+    public const string ContractLiquidated = "contract.liquidated";
 }

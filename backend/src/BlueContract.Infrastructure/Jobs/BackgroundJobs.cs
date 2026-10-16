@@ -87,3 +87,27 @@ public sealed class HisReceiptPullJob(BlueContract.Application.Integration.Integ
         }
     }
 }
+
+/// <summary>
+/// Spec §6.5: on the configured day of each month (SystemSetting acceptance.job_day_of_month, default 1), drafts one
+/// acceptance per contract from the signed receipts not yet accepted. Runs daily at 01:00 Vietnam time and checks the day.
+/// </summary>
+public sealed class AcceptanceJob(BlueContract.Application.Payments.AcceptanceService acceptances, BlueContract.Application.Admin.SettingService settings, IClock clock, ILogger<AcceptanceJob> logger)
+{
+    public const string Id = "monthly-acceptance";
+
+    [DisableConcurrentExecution(1800)]
+    [AutomaticRetry(Attempts = 2)]
+    public async Task RunAsync(CancellationToken ct)
+    {
+        var today = DateOnly.FromDateTime(clock.UtcNow.ToOffset(TimeSpan.FromHours(7)).DateTime);
+        var day = Math.Clamp(await settings.GetIntAsync(BlueContract.Domain.Settings.SystemSettingKeys.AcceptanceJobDayOfMonth, 1, ct), 1, 28);
+        if (today.Day != day)
+        {
+            return;
+        }
+
+        var result = await acceptances.GenerateMonthlyAsync(today, ct);
+        logger.LogInformation("Monthly acceptance job: {Count} drafts for {Period}", result.Created, result.PeriodText);
+    }
+}

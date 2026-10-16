@@ -2,6 +2,7 @@ using BlueContract.Application.Bids;
 using BlueContract.Application.Common;
 using BlueContract.Application.Contracts;
 using BlueContract.Application.Integration;
+using BlueContract.Application.Payments;
 using BlueContract.Application.Proposals;
 using BlueContract.Application.Receipts;
 using BlueContract.Application.Signing;
@@ -29,19 +30,21 @@ internal sealed class DemoProcurementSeeder(IServiceProvider services, IHttpClie
     public const string ContractUnderReview = "15/2026/HĐ-BVĐK";
     public const string ContractEffective = "16/2026/HĐ-BVĐK";
     public const string ContractRepair = "17/2026/HĐ-SC";
+    public const string ContractLiquidated = "18/2026/HĐ-DV";
 
     public async Task SeedAsync(CancellationToken ct)
     {
-        bool contractsSeeded, proposalsSeeded, receiptsSeeded;
+        bool contractsSeeded, proposalsSeeded, receiptsSeeded, paymentsSeeded;
         using (var scope = services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             contractsSeeded = await db.BidDecisions.AnyAsync(b => b.Number == DrugBid, ct);
             proposalsSeeded = await db.Proposals.AnyAsync(ct);
             receiptsSeeded = await db.WarehouseReceipts.AnyAsync(ct);
+            paymentsSeeded = await db.Contracts.AnyAsync(c => c.Number == ContractLiquidated, ct);
         }
 
-        if (contractsSeeded && proposalsSeeded && receiptsSeeded)
+        if (contractsSeeded && proposalsSeeded && receiptsSeeded && paymentsSeeded)
         {
             return;
         }
@@ -66,6 +69,11 @@ internal sealed class DemoProcurementSeeder(IServiceProvider services, IHttpClie
         if (!receiptsSeeded)
         {
             await SeedReceiptsAsync(ct);
+        }
+
+        if (!paymentsSeeded)
+        {
+            await SeedPaymentsAsync(ct);
         }
 
         logger.LogInformation("Demo procurement scenarios seeded");
@@ -188,6 +196,109 @@ internal sealed class DemoProcurementSeeder(IServiceProvider services, IHttpClie
         await SimulateAsync(SimulationScenario.Warning, 2);
         await SimulateAsync(SimulationScenario.Invalid, 1);
     }
+    /// <summary>
+    /// Thanh toán (spec §12 "1 HĐ đã đi hết đến thanh lý"): a service contract of NCC3 signed, confirmed by a virtual receipt,
+    /// accepted, valued (08a + đề nghị thanh toán + UNC) and liquidated; plus the monthly-job draft acceptance of the VTYT
+    /// contract's signed receipt.
+    /// </summary>
+    private async Task SeedPaymentsAsync(CancellationToken ct)
+    {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow.AddHours(7));
+        var contractId = await AsAsync("muasam", async sp =>
+        {
+            var db = sp.GetRequiredService<AppDbContext>();
+            var categoryId = await db.ItemCategories.Where(c => c.Code == "DICH_VU").Select(c => c.Id).FirstAsync(ct);
+            var supplierId = await db.Suppliers.Where(s => s.TaxCode == "2901234567").Select(s => s.Id).FirstAsync(ct);
+            var templateId = await db.DocumentTemplates.Where(t => t.Code == "HD_DICHVU_KHONGTHAU").Select(t => t.Id).FirstAsync(ct);
+            var contracts = sp.GetRequiredService<ContractService>();
+            var id = Value(await contracts.CreateAsync(new SaveContractRequest(
+                ProcurementType.NonBidding, null, supplierId, null, ContractLiquidated, "Bảo trì hệ thống điều hòa trung tâm quý III/2026", ContractKind.LumpSum, false,
+                categoryId, null, "Dịch vụ không nhập kho — nghiệm thu bằng phiếu xác nhận khối lượng", today.AddMonths(-3), today.AddMonths(-3), today.AddMonths(3),
+                "03 tháng", "Thanh toán một lần sau nghiệm thu bằng chuyển khoản.", "Bảo hành dịch vụ 03 tháng.", "Thực hiện tại các khoa, ngoài giờ cao điểm.",
+                null, null, null, null, templateId,
+                [
+                    new ContractLineRequest(null, new NewItemRequest("DV-DH-01", "Vệ sinh, bảo dưỡng dàn nóng/lạnh hệ thống điều hòa trung tâm", "Lần", null, null, null, null, null), 3, 18_000_000, 8),
+                    new ContractLineRequest(null, new NewItemRequest("DV-DH-02", "Nạp bổ sung gas R410A", "Kg", null, null, null, null, null), 20, 450_000, 8),
+                ]), ct));
+            await Ok(contracts.SubmitAsync(id, ct));
+            return id;
+        }, ct);
+        var contractDoc = await AsSystemAsync(sp => sp.GetRequiredService<AppDbContext>().Contracts.Where(c => c.Id == contractId).Select(c => c.DocumentId!.Value).FirstAsync(ct), ct);
+        await AsAsync("rasoat", sp => ActAsync(sp, contractDoc, ct), ct);
+        await AsAsync("ncc3", sp => Ok(sp.GetRequiredService<ContractService>().SupplierRespondAsync(contractId, new SupplierResponseRequest(true, null), ct)), ct);
+        foreach (var user in new[] { "ncc3", "ketoan", "giamdoc", "vanthu" })
+        {
+            await AsAsync(user, sp => ActAsync(sp, contractDoc, ct), ct);
+        }
+
+        // Phiếu xác nhận khối lượng (không qua kho) cho toàn bộ hợp đồng → nghiệm thu.
+        var acceptanceId = await AsAsync("muasam", async sp =>
+        {
+            var contract = await sp.GetRequiredService<AppDbContext>().Contracts.AsNoTracking().Include(c => c.Items).FirstAsync(c => c.Id == contractId, ct);
+            var receipts = sp.GetRequiredService<ReceiptService>();
+            var receiptId = Value(await receipts.CreateAsync(new SaveReceiptRequest(ReceiptType.Receipt, true, contractId, null, today.AddDays(-20), null,
+                "Kỹ sư Phạm Quốc Bảo", "Xác nhận hoàn thành 03 lần bảo trì", [.. contract.Items.Select(i => new SaveReceiptLineRequest(i.Id, i.Quantity, null, null, null))]), ct));
+            await Ok(receipts.SubmitAsync(receiptId, ct));
+            var acceptances = sp.GetRequiredService<AcceptanceService>();
+            var id = Value(await acceptances.CreateAsync(new SaveAcceptanceRequest(contractId, today.AddMonths(-3), today, "Quý III/2026",
+                "Dịch vụ thực hiện đầy đủ, đạt yêu cầu kỹ thuật.", [receiptId]), ct));
+            await Ok(acceptances.SubmitAsync(id, ct));
+            return id;
+        }, ct);
+        await SignPaymentAsync(sp => sp.GetRequiredService<AppDbContext>().AcceptanceRecords.Where(a => a.Id == acceptanceId).Select(a => a.DocumentId!.Value).FirstAsync(ct),
+            ["rasoat", "ncc3", "giamdoc", "vanthu"], ct);
+
+        // 08a + đề nghị thanh toán → ký → UNC đủ tiền.
+        var valuation = await AsAsync("muasam", async sp =>
+        {
+            var valuations = sp.GetRequiredService<ValuationService>();
+            var v = Value(await valuations.CreateAsync(new SaveValuationRequest(contractId, [acceptanceId], "Quý III/2026", 0, 0), ct));
+            await Ok(valuations.SubmitAsync(v.Id, ct));
+            return v;
+        }, ct);
+        await SignPaymentAsync(_ => Task.FromResult(valuation.DocumentId!.Value), ["rasoat", "ncc3", "giamdoc", "vanthu"], ct);
+        await SignPaymentAsync(_ => Task.FromResult(valuation.PaymentRequestDocumentId!.Value), ["ncc3", "giamdoc"], ct);
+        await AsAsync("muasam", async sp => Value(await sp.GetRequiredService<ValuationService>().AddPaymentOrderAsync(valuation.Id,
+            new PaymentOrderRequest("UNC-0921", today.AddDays(-5), valuation.RequestedAmount), null, ct)), ct);
+
+        // Thanh lý → hợp đồng Đã thanh lý.
+        var liquidationDoc = await AsAsync("muasam", async sp =>
+        {
+            var liquidations = sp.GetRequiredService<LiquidationService>();
+            var id = Value(await liquidations.CreateAsync(new SaveLiquidationRequest(contractId, "Hai bên đã thực hiện đầy đủ nghĩa vụ theo hợp đồng."), ct));
+            await Ok(liquidations.SubmitAsync(id, ct));
+            return await sp.GetRequiredService<AppDbContext>().LiquidationRecords.Where(l => l.Id == id).Select(l => l.DocumentId!.Value).FirstAsync(ct);
+        }, ct);
+        await SignPaymentAsync(_ => Task.FromResult(liquidationDoc), ["rasoat", "ncc3", "giamdoc", "vanthu"], ct);
+
+        // Job nghiệm thu hằng tháng: bản nháp cho phiếu nhập kho đã ký của HĐ VTYT.
+        await AsSystemAsync(sp => sp.GetRequiredService<AcceptanceService>().GenerateMonthlyAsync(today.AddMonths(1), ct), ct);
+    }
+
+    private async Task SignPaymentAsync(Func<IServiceProvider, Task<Guid>> document, string[] users, CancellationToken ct)
+    {
+        var documentId = await AsSystemAsync(document, ct);
+        foreach (var user in users)
+        {
+            await AsAsync(user, sp => ActAsync(sp, documentId, ct), ct);
+        }
+    }
+
+    /// <summary>Approve (rà soát) or sign the caller's active step.</summary>
+    private static async Task ActAsync(IServiceProvider sp, Guid documentId, CancellationToken ct)
+    {
+        var wf = Value(await sp.GetRequiredService<WorkflowService>().GetForDocumentAsync(documentId, ct));
+        var step = wf?.Steps.FirstOrDefault(s => s.Id == wf.MyStepId) ?? throw new InvalidOperationException("Demo seeding: the user has no active step.");
+        if (step.RequiresSignature)
+        {
+            await SignAsync(sp, documentId, ct, "Đồng ý");
+        }
+        else
+        {
+            await ApproveAsync(sp, documentId, "Đồng ý", ct);
+        }
+    }
+
     /// <summary>Runs without a signed-in user, like a call from the HIS.</summary>
     private async Task<T> AsSystemAsync<T>(Func<IServiceProvider, Task<T>> action, CancellationToken ct)
     {

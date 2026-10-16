@@ -7,6 +7,7 @@ using BlueContract.Application.Contracts;
 using BlueContract.Application.Documents;
 using BlueContract.Application.Integration;
 using BlueContract.Application.Notifications;
+using BlueContract.Application.Payments;
 using BlueContract.Application.Proposals;
 using BlueContract.Application.Receipts;
 using BlueContract.Application.Receipts.Validation;
@@ -76,6 +77,14 @@ public static class DependencyInjection
         services.AddScoped<IntegrationLogService>();
         services.AddScoped<HisSimulator>();
         services.AddSingleton<IMockHisReceiptQueue, MockHisReceiptQueue>();
+        services.AddScoped<PaymentDocumentData>();
+        services.AddScoped<PaymentDocuments>();
+        services.AddScoped<AcceptanceService>();
+        services.AddScoped<ValuationService>();
+        services.AddScoped<LiquidationService>();
+        services.AddScoped<IWorkflowObserver, AcceptanceWorkflowObserver>();
+        services.AddScoped<IWorkflowObserver, ValuationWorkflowObserver>();
+        services.AddScoped<IWorkflowObserver, LiquidationWorkflowObserver>();
         return services;
     }
 }

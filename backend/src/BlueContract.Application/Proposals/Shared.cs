@@ -4,6 +4,7 @@ using BlueContract.Application.Receipts.Validation;
 using BlueContract.Domain.Common;
 using BlueContract.Domain.Contracts;
 using BlueContract.Domain.Identity;
+using BlueContract.Domain.Payments;
 using BlueContract.Domain.Proposals;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,6 +19,10 @@ public sealed class DocumentNumbers(IAppDbContext db, IClock clock)
     public const string CallOrder = "GH";
     public const string Receipt = "NK";
     public const string Return = "HT";
+    public const string Acceptance = "NT";
+    public const string Valuation = "XD";
+    public const string PaymentRequest = "DN";
+    public const string Liquidation = "TL";
 
     public async Task<string> NextAsync(string prefix, CancellationToken ct)
     {
@@ -36,7 +41,7 @@ public sealed class DocumentNumbers(IAppDbContext db, IClock clock)
 
 /// <summary>
 /// Keeps the execution columns of contract items in sync (spec §5.3 "các cột tính toán"): đã đề xuất, đã duyệt, đã gọi.
-/// Đã nhập kho comes from the warehouse receipts; accepted / paid are owned by the payment module and preserved here.
+/// Đã nhập kho comes from the warehouse receipts, đã nghiệm thu / đã thanh toán from the payment minutes.
 /// </summary>
 public sealed class ContractTracking(IAppDbContext db, PostCommitWork postCommit)
 {
@@ -81,11 +86,23 @@ public sealed class ContractTracking(IAppDbContext db, PostCommitWork postCommit
         var received = await ReceiptValidationLoader.NetReceivedAsync(
             ReceiptValidationLoader.Counted(db.WarehouseReceipts.AsNoTracking()).Where(r => r.Lines.Any(l => l.ContractItemId != null && ids.Contains(l.ContractItemId.Value))), ct);
 
+        // Đã nghiệm thu: biên bản nghiệm thu đã ký; đã thanh toán: các biên bản đó thuộc 08a đã thanh toán (UNC đủ / chốt công nợ).
+        var accepted = await db.AcceptanceRecords.AsNoTracking().Where(a => a.Status == PaymentRecordStatus.Completed)
+            .SelectMany(a => a.Items).Where(i => ids.Contains(i.ContractItemId))
+            .GroupBy(i => i.ContractItemId).Select(g => new { g.Key, Qty = g.Sum(i => i.Quantity) })
+            .ToDictionaryAsync(x => x.Key, x => x.Qty, ct);
+        var paid = await db.AcceptanceRecords.AsNoTracking()
+            .Where(a => a.Status == PaymentRecordStatus.Completed && a.ValuationId != null
+                && db.ValuationRecords.Any(v => v.Id == a.ValuationId && v.PaymentStatus == PaymentStatus.Paid && v.Status != PaymentRecordStatus.Cancelled))
+            .SelectMany(a => a.Items).Where(i => ids.Contains(i.ContractItemId))
+            .GroupBy(i => i.ContractItemId).Select(g => new { g.Key, Qty = g.Sum(i => i.Quantity) })
+            .ToDictionaryAsync(x => x.Key, x => x.Qty, ct);
+
         var contracts = await db.Contracts.Include(c => c.Items).Where(c => c.Items.Any(i => ids.Contains(i.Id))).ToListAsync(ct);
         foreach (var item in contracts.SelectMany(c => c.Items).Where(i => ids.Contains(i.Id)))
         {
             item.Track(proposed.GetValueOrDefault(item.Id), approved.GetValueOrDefault(item.Id), called.GetValueOrDefault(item.Id),
-                received.GetValueOrDefault(item.Id), item.AcceptedQuantity, item.PaidQuantity);
+                received.GetValueOrDefault(item.Id), accepted.GetValueOrDefault(item.Id), paid.GetValueOrDefault(item.Id));
         }
     }
 

@@ -108,12 +108,17 @@ pm run lint/test/build pass (23 test) · Trình duyệt (Docker): thủ kho ký 
 
 **Kiểm chứng:** `dotnet test` 301/301 (Domain 133, Application 46 — 10 rule validation, parser XML, HMAC; Integration 122 — HMAC/timestamp/replay/idempotent, 5 chữ ký nối tiếp cập nhật HĐ, Invalid chặn ký, cảnh báo cần lý do, NCC tải XML hóa đơn, cô lập NCC, nhật ký + gửi lại, giả lập push/pull) · `npm run lint/build` pass · trình duyệt: thủ kho ký phiếu cảnh báo có lý do, NCC bị chặn khi chưa có hóa đơn → tải XML tự điền → ký được; ví dụ ký request trong tài liệu gọi thành công API docker · E2E #1 + #2 vẫn pass.
 
-## Phase 7 — Thanh toán
-- [ ] Job nghiệm thu hằng tháng; BB nghiệm thu
-- [ ] 08a + lũy kế + UNC + Đề nghị thanh toán
-- [ ] Thanh lý + chốt công nợ → Contract `Liquidated`
-- [ ] Cột theo dõi thực hiện ContractItem
-- [ ] E2E #3
+## Phase 7 — Thanh toán ✅ (16/10/2026)
+- [x] Biên bản nghiệm thu (NT-…): job Hangfire `monthly-acceptance` chạy 01:00 giờ VN mỗi ngày, đúng **ngày cấu hình** (`acceptance.job_day_of_month`, mặc định ngày 1) lập bản nháp theo từng hợp đồng từ phiếu nhập kho đã ký đủ chưa nghiệm thu (tháng trước), báo Tổ Mua sắm; nút "Lập nghiệm thu tự động"; lập tay (chọn hợp đồng, kỳ, phiếu); tổng hợp hàng hóa (hoàn trả trừ đi); PDF mẫu `BB_NGHIEM_THU`; luồng Rà soát → NCC → Giám đốc → Văn thư
+- [x] Biên bản xác định giá trị khối lượng hoàn thành **Mẫu 08a** (XD-…): chọn BB nghiệm thu đã ký chưa đưa vào thanh toán → giá trị kỳ này, **lũy kế đến kỳ trước / kỳ này** (theo giá trị và theo khối lượng từng mặt hàng), **% so với HĐ**, tạm ứng / thu hồi tạm ứng; sinh kèm **Đề nghị thanh toán** (DN-…) với luồng ký riêng NCC → Giám đốc; ký xong thì BB nghiệm thu được đánh dấu "đã đưa vào thanh toán"
+- [x] **Ủy nhiệm chi** (số, ngày, số tiền, file scan) bổ sung được cả sau khi ký; không vượt số đề nghị; đủ tiền → "Đã thanh toán"
+- [x] Biên bản thanh lý (TL-…): bảng đối chiếu Giá trị HĐ / thực hiện / đã thanh toán / còn lại / giảm trừ, cảnh báo phiếu chưa nghiệm thu, chặn khi còn 08a đang ký; **đánh dấu khoản chưa thanh toán thành "đã thanh toán"** kèm chứng từ (lưu người đánh dấu, thời điểm, file) để chốt công nợ; ký xong → hợp đồng **Đã thanh lý**, khóa phát sinh mới (phiếu nhập sau đó Không hợp lệ)
+- [x] Cột theo dõi thực hiện HĐ: đã nhập kho / **đã nghiệm thu / đã thanh toán** tính lại từ nguồn
+- [x] Giao diện: menu **Thanh toán** 3 tab (Nghiệm thu / Xác định giá trị 08a / Thanh lý) cho bệnh viện và Cổng NCC, trang lập/chi tiết từng loại (PDF, luồng ký, UNC, chốt công nợ), tab **Thanh toán** trong chi tiết hợp đồng
+- [x] Dữ liệu demo: **1 hợp đồng dịch vụ đi hết đến thanh lý** (18/2026/HĐ-DV: phiếu xác nhận khối lượng → nghiệm thu → 08a + đề nghị thanh toán → UNC → thanh lý), 1 BB nghiệm thu nháp do job lập cho HĐ VTYT
+- [x] **E2E #3** (Playwright): HIS đẩy phiếu (HMAC) → 5 chữ ký → nghiệm thu → 08a + đề nghị thanh toán → UNC → thanh lý → HĐ Đã thanh lý
+
+**Kiểm chứng:** `dotnet test` 310/310 (Domain 140, Application 46, Integration 124 — luồng thanh toán đầy đủ qua API gồm phiếu ảo, lũy kế, UNC vượt mức bị chặn, chốt công nợ, HĐ thanh lý khóa phiếu mới, cô lập NCC) · `npm run lint/build` pass · **E2E #1 + #2 + #3 pass (1,5 phút)**.
 
 ## Phase 8 — Hồ sơ lưu trữ & Báo cáo
 - [ ] Cây hồ sơ, tải ZIP + `muc_luc.pdf`

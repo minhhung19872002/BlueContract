@@ -3488,6 +3488,1194 @@
         }
       }
     },
+    "/api/acceptances": {
+      "get": {
+        "tags": [
+          "Acceptances"
+        ],
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SortBy",
+            "in": "query",
+            "description": "Property name to sort by (whitelisted per endpoint).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SortDesc",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "ForExport",
+            "in": "query",
+            "description": "Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows).",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "SafePage",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "SafePageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/PaymentRecordStatus"
+            }
+          },
+          {
+            "name": "ContractId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "SupplierId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Available",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResultOfAcceptanceListItemDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Acceptances"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveAcceptanceRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveAcceptanceRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveAcceptanceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/acceptances/{id}": {
+      "get": {
+        "tags": [
+          "Acceptances"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AcceptanceDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Acceptances"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveAcceptanceRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveAcceptanceRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveAcceptanceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    },
+    "/api/acceptances/candidates": {
+      "get": {
+        "tags": [
+          "Acceptances"
+        ],
+        "summary": "Phiếu nhập kho đã ký đủ, chưa nghiệm thu của hợp đồng.",
+        "parameters": [
+          {
+            "name": "contractId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "acceptanceId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AcceptanceReceiptDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/acceptances/{id}/submit": {
+      "post": {
+        "tags": [
+          "Acceptances"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    },
+    "/api/acceptances/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Acceptances"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    },
+    "/api/acceptances/generate": {
+      "post": {
+        "tags": [
+          "Acceptances"
+        ],
+        "summary": "Chạy ngay việc lập nghiệm thu tháng trước (bình thường do job ngày 1 hằng tháng thực hiện).",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerateAcceptancesResultDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/valuations": {
+      "get": {
+        "tags": [
+          "Valuations"
+        ],
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SortBy",
+            "in": "query",
+            "description": "Property name to sort by (whitelisted per endpoint).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SortDesc",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "ForExport",
+            "in": "query",
+            "description": "Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows).",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "SafePage",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "SafePageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/PaymentRecordStatus"
+            }
+          },
+          {
+            "name": "PaymentStatus",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/PaymentStatus"
+            }
+          },
+          {
+            "name": "ContractId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "SupplierId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResultOfValuationListItemDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Valuations"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveValuationRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveValuationRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveValuationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValuationDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/valuations/{id}": {
+      "get": {
+        "tags": [
+          "Valuations"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValuationDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Valuations"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveValuationRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveValuationRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveValuationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    },
+    "/api/valuations/{id}/submit": {
+      "post": {
+        "tags": [
+          "Valuations"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    },
+    "/api/valuations/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Valuations"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    },
+    "/api/valuations/{id}/payment-orders": {
+      "post": {
+        "tags": [
+          "Valuations"
+        ],
+        "summary": "Đính kèm Ủy nhiệm chi (form: number, date, amount, file tùy chọn).",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "allOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "Number": {
+                        "type": "string"
+                      },
+                      "Date": {
+                        "type": "string",
+                        "format": "date"
+                      },
+                      "Amount": {
+                        "type": "number",
+                        "format": "double"
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "file": {
+                        "$ref": "#/components/schemas/IFormFile"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValuationDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/valuations/{id}/payment-orders/{orderId}": {
+      "delete": {
+        "tags": [
+          "Valuations"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValuationDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/valuations/{id}/payment-orders/{orderId}/file": {
+      "get": {
+        "tags": [
+          "Valuations"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileLinkDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/liquidations": {
+      "get": {
+        "tags": [
+          "Liquidations"
+        ],
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SortBy",
+            "in": "query",
+            "description": "Property name to sort by (whitelisted per endpoint).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SortDesc",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "ForExport",
+            "in": "query",
+            "description": "Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows).",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "SafePage",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "SafePageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/PaymentRecordStatus"
+            }
+          },
+          {
+            "name": "ContractId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "SupplierId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResultOfLiquidationListItemDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Liquidations"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveLiquidationRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveLiquidationRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveLiquidationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/liquidations/preview": {
+      "get": {
+        "tags": [
+          "Liquidations"
+        ],
+        "summary": "Bảng đối chiếu giá trị HĐ / thực hiện / đã thanh toán / còn lại trước khi lập biên bản.",
+        "parameters": [
+          {
+            "name": "contractId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LiquidationPreviewDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/liquidations/{id}": {
+      "get": {
+        "tags": [
+          "Liquidations"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LiquidationDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Liquidations"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveLiquidationRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveLiquidationRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveLiquidationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    },
+    "/api/liquidations/{id}/settlements": {
+      "post": {
+        "tags": [
+          "Liquidations"
+        ],
+        "summary": "Đánh dấu khoản chưa thanh toán là \"đã thanh toán\" (form: valuationId, description, amount, voucherNumber, voucherDate, file).",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "allOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "ValuationId": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "Description": {
+                        "type": "string"
+                      },
+                      "Amount": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "VoucherNumber": {
+                        "type": "string"
+                      },
+                      "VoucherDate": {
+                        "type": "string",
+                        "format": "date"
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "file": {
+                        "$ref": "#/components/schemas/IFormFile"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LiquidationDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/liquidations/{id}/settlements/{settlementId}": {
+      "delete": {
+        "tags": [
+          "Liquidations"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "settlementId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LiquidationDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/liquidations/{id}/submit": {
+      "post": {
+        "tags": [
+          "Liquidations"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    },
+    "/api/liquidations/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Liquidations"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    },
     "/api/items/categories": {
       "get": {
         "tags": [
@@ -8685,6 +9873,304 @@
   },
   "components": {
     "schemas": {
+      "AcceptanceDto": {
+        "required": [
+          "id",
+          "number",
+          "contractId",
+          "contractNumber",
+          "contractName",
+          "supplierId",
+          "supplierName",
+          "periodFrom",
+          "periodTo",
+          "periodText",
+          "conclusion",
+          "isAutoGenerated",
+          "totalAmount",
+          "status",
+          "documentId",
+          "lastReturnReason",
+          "completedAt",
+          "valuationId",
+          "valuationNumber",
+          "isIncludedInValuation",
+          "receipts",
+          "items",
+          "canEdit",
+          "canSubmit",
+          "canCancel"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "contractId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "contractNumber": {
+            "type": "string"
+          },
+          "contractName": {
+            "type": "string"
+          },
+          "supplierId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "supplierName": {
+            "type": "string"
+          },
+          "periodFrom": {
+            "type": "string",
+            "format": "date"
+          },
+          "periodTo": {
+            "type": "string",
+            "format": "date"
+          },
+          "periodText": {
+            "type": "string"
+          },
+          "conclusion": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isAutoGenerated": {
+            "type": "boolean"
+          },
+          "totalAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PaymentRecordStatus"
+          },
+          "documentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "lastReturnReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "completedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "valuationId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "valuationNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isIncludedInValuation": {
+            "type": "boolean"
+          },
+          "receipts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AcceptanceReceiptDto"
+            }
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AcceptanceItemDto"
+            }
+          },
+          "canEdit": {
+            "type": "boolean"
+          },
+          "canSubmit": {
+            "type": "boolean"
+          },
+          "canCancel": {
+            "type": "boolean"
+          }
+        }
+      },
+      "AcceptanceItemDto": {
+        "required": [
+          "contractItemId",
+          "itemCode",
+          "itemName",
+          "unit",
+          "quantity",
+          "unitPrice",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "contractItemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "AcceptanceListItemDto": {
+        "required": [
+          "id",
+          "number",
+          "contractId",
+          "contractNumber",
+          "supplierId",
+          "supplierName",
+          "periodText",
+          "periodFrom",
+          "periodTo",
+          "totalAmount",
+          "receiptCount",
+          "status",
+          "isAutoGenerated",
+          "isIncludedInValuation",
+          "valuationNumber",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "contractId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "contractNumber": {
+            "type": "string"
+          },
+          "supplierId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "supplierName": {
+            "type": "string"
+          },
+          "periodText": {
+            "type": "string"
+          },
+          "periodFrom": {
+            "type": "string",
+            "format": "date"
+          },
+          "periodTo": {
+            "type": "string",
+            "format": "date"
+          },
+          "totalAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "receiptCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PaymentRecordStatus"
+          },
+          "isAutoGenerated": {
+            "type": "boolean"
+          },
+          "isIncludedInValuation": {
+            "type": "boolean"
+          },
+          "valuationNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "AcceptanceReceiptDto": {
+        "required": [
+          "receiptId",
+          "number",
+          "date",
+          "type",
+          "invoiceNumber",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "receiptId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ReceiptType"
+          },
+          "invoiceNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
       "AppendixLineDto": {
         "required": [
           "contractItemId",
@@ -11335,6 +12821,29 @@
           }
         }
       },
+      "GenerateAcceptancesResultDto": {
+        "required": [
+          "created",
+          "numbers",
+          "periodText"
+        ],
+        "type": "object",
+        "properties": {
+          "created": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "numbers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "periodText": {
+            "type": "string"
+          }
+        }
+      },
       "HisContractDto": {
         "required": [
           "contractNumber",
@@ -12827,6 +14336,397 @@
       "JsonObject": {
         "type": "object"
       },
+      "LiquidationDto": {
+        "required": [
+          "id",
+          "number",
+          "contractId",
+          "contractNumber",
+          "contractName",
+          "supplierId",
+          "supplierName",
+          "contractValue",
+          "executedValue",
+          "paidAmount",
+          "settledAmount",
+          "remainingAmount",
+          "reductionAmount",
+          "notes",
+          "status",
+          "documentId",
+          "lastReturnReason",
+          "completedAt",
+          "valuations",
+          "settlements",
+          "canEdit",
+          "canSubmit",
+          "canCancel"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "contractId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "contractNumber": {
+            "type": "string"
+          },
+          "contractName": {
+            "type": "string"
+          },
+          "supplierId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "supplierName": {
+            "type": "string"
+          },
+          "contractValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "executedValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "paidAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "settledAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "remainingAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "reductionAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/PaymentRecordStatus"
+          },
+          "documentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "lastReturnReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "completedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "valuations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LiquidationValuationDto"
+            }
+          },
+          "settlements": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LiquidationSettlementDto"
+            }
+          },
+          "canEdit": {
+            "type": "boolean"
+          },
+          "canSubmit": {
+            "type": "boolean"
+          },
+          "canCancel": {
+            "type": "boolean"
+          }
+        }
+      },
+      "LiquidationListItemDto": {
+        "required": [
+          "id",
+          "number",
+          "contractId",
+          "contractNumber",
+          "supplierId",
+          "supplierName",
+          "contractValue",
+          "executedValue",
+          "paidAmount",
+          "settledAmount",
+          "remainingAmount",
+          "status",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "contractId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "contractNumber": {
+            "type": "string"
+          },
+          "supplierId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "supplierName": {
+            "type": "string"
+          },
+          "contractValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "executedValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "paidAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "settledAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "remainingAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PaymentRecordStatus"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "LiquidationPreviewDto": {
+        "required": [
+          "contractId",
+          "contractNumber",
+          "contractName",
+          "supplierName",
+          "contractValue",
+          "executedValue",
+          "paidAmount",
+          "remainingAmount",
+          "reductionAmount",
+          "valuations",
+          "warnings",
+          "blockingCode",
+          "blockingMessage",
+          "existingLiquidationId"
+        ],
+        "type": "object",
+        "properties": {
+          "contractId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "contractNumber": {
+            "type": "string"
+          },
+          "contractName": {
+            "type": "string"
+          },
+          "supplierName": {
+            "type": "string"
+          },
+          "contractValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "executedValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "paidAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "remainingAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "reductionAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "valuations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LiquidationValuationDto"
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "blockingCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "blockingMessage": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "existingLiquidationId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "LiquidationSettlementDto": {
+        "required": [
+          "id",
+          "valuationId",
+          "description",
+          "amount",
+          "voucherNumber",
+          "voucherDate",
+          "hasFile",
+          "fileName",
+          "markedByName",
+          "markedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "valuationId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "description": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "voucherNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "voucherDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "hasFile": {
+            "type": "boolean"
+          },
+          "fileName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "markedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "markedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "LiquidationValuationDto": {
+        "required": [
+          "valuationId",
+          "number",
+          "date",
+          "amount",
+          "paidAmount",
+          "openAmount",
+          "paymentOrderNumbers"
+        ],
+        "type": "object",
+        "properties": {
+          "valuationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "paidAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "openAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "paymentOrderNumbers": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "LoginRequest": {
         "required": [
           "userName",
@@ -13114,6 +15014,35 @@
           }
         }
       },
+      "PagedResultOfAcceptanceListItemDto": {
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AcceptanceListItemDto"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "PagedResultOfAuditLogDto": {
         "required": [
           "items",
@@ -13375,6 +15304,35 @@
           }
         }
       },
+      "PagedResultOfLiquidationListItemDto": {
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LiquidationListItemDto"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "PagedResultOfProposalListItemDto": {
         "required": [
           "items",
@@ -13520,6 +15478,35 @@
           }
         }
       },
+      "PagedResultOfValuationListItemDto": {
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ValuationListItemDto"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "PagedResultOfWarehouseDto": {
         "required": [
           "items",
@@ -13581,6 +15568,71 @@
           }
         },
         "description": "Kết quả đọc file XML hóa đơn điện tử (điền sẵn form)."
+      },
+      "PaymentOrderDto": {
+        "required": [
+          "id",
+          "number",
+          "date",
+          "amount",
+          "hasFile",
+          "fileName",
+          "addedByName",
+          "addedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "hasFile": {
+            "type": "boolean"
+          },
+          "fileName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "addedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "addedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PaymentRecordStatus": {
+        "enum": [
+          "Draft",
+          "Signing",
+          "Returned",
+          "Completed",
+          "Cancelled"
+        ],
+        "description": "Trạng thái chung của biên bản nghiệm thu / 08a / thanh lý (theo luồng ký)."
+      },
+      "PaymentStatus": {
+        "enum": [
+          "Unpaid",
+          "Paid"
+        ]
       },
       "PdfSignatureInfo": {
         "required": [
@@ -14874,6 +16926,50 @@
           }
         }
       },
+      "SaveAcceptanceRequest": {
+        "required": [
+          "contractId",
+          "periodFrom",
+          "periodTo",
+          "periodText",
+          "conclusion",
+          "receiptIds"
+        ],
+        "type": "object",
+        "properties": {
+          "contractId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "periodFrom": {
+            "type": "string",
+            "format": "date"
+          },
+          "periodTo": {
+            "type": "string",
+            "format": "date"
+          },
+          "periodText": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "conclusion": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "receiptIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        }
+      },
       "SaveAppendixRequest": {
         "required": [
           "number",
@@ -15324,6 +17420,25 @@
           }
         }
       },
+      "SaveLiquidationRequest": {
+        "required": [
+          "contractId",
+          "notes"
+        ],
+        "type": "object",
+        "properties": {
+          "contractId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "SaveProposalRequest": {
         "required": [
           "departmentId",
@@ -15621,6 +17736,43 @@
                 "$ref": "#/components/schemas/SupplierAccountRequest"
               }
             ]
+          }
+        }
+      },
+      "SaveValuationRequest": {
+        "required": [
+          "contractId",
+          "acceptanceIds",
+          "periodText",
+          "advanceAmount",
+          "advanceRecovered"
+        ],
+        "type": "object",
+        "properties": {
+          "contractId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "acceptanceIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "periodText": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "advanceAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "advanceRecovered": {
+            "type": "number",
+            "format": "double"
           }
         }
       },
@@ -17417,6 +19569,365 @@
           "Supplier"
         ]
       },
+      "ValuationAcceptanceDto": {
+        "required": [
+          "acceptanceId",
+          "number",
+          "periodText",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "acceptanceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "periodText": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "ValuationDto": {
+        "required": [
+          "id",
+          "number",
+          "paymentRequestNumber",
+          "contractId",
+          "contractNumber",
+          "contractName",
+          "supplierId",
+          "supplierName",
+          "paymentSequence",
+          "periodText",
+          "contractValue",
+          "advanceAmount",
+          "previousCumulative",
+          "currentPeriodValue",
+          "cumulativeToDate",
+          "completionPercent",
+          "advanceRecovered",
+          "requestedAmount",
+          "paidAmount",
+          "paymentStatus",
+          "settledByLiquidation",
+          "status",
+          "paymentRequestStatus",
+          "documentId",
+          "paymentRequestDocumentId",
+          "lastReturnReason",
+          "completedAt",
+          "acceptances",
+          "items",
+          "paymentOrders",
+          "canEdit",
+          "canSubmit",
+          "canCancel",
+          "canManagePaymentOrders"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "paymentRequestNumber": {
+            "type": "string"
+          },
+          "contractId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "contractNumber": {
+            "type": "string"
+          },
+          "contractName": {
+            "type": "string"
+          },
+          "supplierId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "supplierName": {
+            "type": "string"
+          },
+          "paymentSequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "periodText": {
+            "type": "string"
+          },
+          "contractValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "advanceAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "previousCumulative": {
+            "type": "number",
+            "format": "double"
+          },
+          "currentPeriodValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "cumulativeToDate": {
+            "type": "number",
+            "format": "double"
+          },
+          "completionPercent": {
+            "type": "number",
+            "format": "double"
+          },
+          "advanceRecovered": {
+            "type": "number",
+            "format": "double"
+          },
+          "requestedAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "paidAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "paymentStatus": {
+            "$ref": "#/components/schemas/PaymentStatus"
+          },
+          "settledByLiquidation": {
+            "type": "boolean"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PaymentRecordStatus"
+          },
+          "paymentRequestStatus": {
+            "$ref": "#/components/schemas/PaymentRecordStatus"
+          },
+          "documentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "paymentRequestDocumentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "lastReturnReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "completedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "acceptances": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ValuationAcceptanceDto"
+            }
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ValuationItemDto"
+            }
+          },
+          "paymentOrders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PaymentOrderDto"
+            }
+          },
+          "canEdit": {
+            "type": "boolean"
+          },
+          "canSubmit": {
+            "type": "boolean"
+          },
+          "canCancel": {
+            "type": "boolean"
+          },
+          "canManagePaymentOrders": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ValuationItemDto": {
+        "required": [
+          "contractItemId",
+          "itemName",
+          "unit",
+          "contractQuantity",
+          "unitPrice",
+          "previousQuantity",
+          "currentQuantity",
+          "cumulativeQuantity",
+          "contractAmount",
+          "previousAmount",
+          "currentAmount",
+          "cumulativeAmount"
+        ],
+        "type": "object",
+        "properties": {
+          "contractItemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "contractQuantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "previousQuantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "currentQuantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "cumulativeQuantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "contractAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "previousAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "currentAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "cumulativeAmount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "ValuationListItemDto": {
+        "required": [
+          "id",
+          "number",
+          "paymentRequestNumber",
+          "contractId",
+          "contractNumber",
+          "supplierId",
+          "supplierName",
+          "paymentSequence",
+          "periodText",
+          "currentPeriodValue",
+          "cumulativeToDate",
+          "completionPercent",
+          "requestedAmount",
+          "paidAmount",
+          "paymentStatus",
+          "status",
+          "paymentRequestStatus",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "paymentRequestNumber": {
+            "type": "string"
+          },
+          "contractId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "contractNumber": {
+            "type": "string"
+          },
+          "supplierId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "supplierName": {
+            "type": "string"
+          },
+          "paymentSequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "periodText": {
+            "type": "string"
+          },
+          "currentPeriodValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "cumulativeToDate": {
+            "type": "number",
+            "format": "double"
+          },
+          "completionPercent": {
+            "type": "number",
+            "format": "double"
+          },
+          "requestedAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "paidAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "paymentStatus": {
+            "$ref": "#/components/schemas/PaymentStatus"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PaymentRecordStatus"
+          },
+          "paymentRequestStatus": {
+            "$ref": "#/components/schemas/PaymentRecordStatus"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "VerifyResultDto": {
         "required": [
           "signatureCount",
@@ -18000,6 +20511,15 @@
     },
     {
       "name": "Documents"
+    },
+    {
+      "name": "Acceptances"
+    },
+    {
+      "name": "Valuations"
+    },
+    {
+      "name": "Liquidations"
     },
     {
       "name": "Items"

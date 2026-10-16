@@ -40,6 +40,7 @@ import {
 } from '../../api/procurement';
 import { useDocumentWorkflow, useInvalidateWorkflow } from '../../api/signing';
 import { useAuth } from '../../auth/useAuth';
+import { P } from '../../auth/permissions';
 import { DocEditor } from '../../components/DocEditor';
 import { PdfViewer } from '../../components/PdfViewer';
 import { StatusTag } from '../../components/StatusTag';
@@ -47,6 +48,7 @@ import { PageHeader, useApiError } from '../../components/common';
 import { formatDate, formatDateTime, formatMoney, formatQuantity } from '../../utils/format';
 import { WorkflowCard, WorkflowHistory } from '../signing/WorkflowPanel';
 import { ContractReceipts } from '../receipts/ContractReceipts';
+import { ContractPayments } from '../payments/ContractPayments';
 import { AppendixDialog } from './AppendixDialog';
 import { AccountantReviewPanel, SupplierReviewPanel } from './ContractReviewPanels';
 
@@ -92,7 +94,7 @@ export function ContractDetailPage() {
   const c = contract.data;
   const workflow = useDocumentWorkflow(c?.documentId ?? undefined);
   const navigate = useNavigate();
-  const { isSupplier } = useAuth();
+  const { isSupplier, can } = useAuth();
   const base = isSupplier ? '/ncc' : '';
   const { message } = App.useApp();
   const onError = useApiError();
@@ -515,6 +517,17 @@ export function ContractDetailPage() {
               key: 'receipts',
               label: 'Nhập kho',
               children: <ContractReceipts contractId={c.id} base={base} />,
+            },
+            {
+              key: 'payments',
+              label: 'Thanh toán',
+              children: (
+                <ContractPayments
+                  contractId={c.id}
+                  base={base}
+                  canManage={!isSupplier && can(P.PaymentManage)}
+                />
+              ),
             },
             {
               key: 'history',

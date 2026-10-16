@@ -2950,6 +2950,976 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/acceptances": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    Page?: number;
+                    PageSize?: number;
+                    Search?: string;
+                    /** @description Property name to sort by (whitelisted per endpoint). */
+                    SortBy?: string;
+                    SortDesc?: boolean;
+                    /** @description Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows). */
+                    ForExport?: boolean;
+                    SafePage?: number;
+                    SafePageSize?: number;
+                    Status?: components["schemas"]["PaymentRecordStatus"];
+                    ContractId?: string;
+                    SupplierId?: string;
+                    Available?: boolean;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PagedResultOfAcceptanceListItemDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SaveAcceptanceRequest"];
+                    "text/json": components["schemas"]["SaveAcceptanceRequest"];
+                    "application/*+json": components["schemas"]["SaveAcceptanceRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": string;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/acceptances/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AcceptanceDto"];
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SaveAcceptanceRequest"];
+                    "text/json": components["schemas"]["SaveAcceptanceRequest"];
+                    "application/*+json": components["schemas"]["SaveAcceptanceRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/acceptances/candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Phiếu nhập kho đã ký đủ, chưa nghiệm thu của hợp đồng. */
+        get: {
+            parameters: {
+                query?: {
+                    contractId?: string;
+                    from?: string;
+                    to?: string;
+                    acceptanceId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AcceptanceReceiptDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/acceptances/{id}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/acceptances/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/acceptances/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Chạy ngay việc lập nghiệm thu tháng trước (bình thường do job ngày 1 hằng tháng thực hiện). */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["GenerateAcceptancesResultDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/valuations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    Page?: number;
+                    PageSize?: number;
+                    Search?: string;
+                    /** @description Property name to sort by (whitelisted per endpoint). */
+                    SortBy?: string;
+                    SortDesc?: boolean;
+                    /** @description Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows). */
+                    ForExport?: boolean;
+                    SafePage?: number;
+                    SafePageSize?: number;
+                    Status?: components["schemas"]["PaymentRecordStatus"];
+                    PaymentStatus?: components["schemas"]["PaymentStatus"];
+                    ContractId?: string;
+                    SupplierId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PagedResultOfValuationListItemDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SaveValuationRequest"];
+                    "text/json": components["schemas"]["SaveValuationRequest"];
+                    "application/*+json": components["schemas"]["SaveValuationRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ValuationDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/valuations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ValuationDto"];
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SaveValuationRequest"];
+                    "text/json": components["schemas"]["SaveValuationRequest"];
+                    "application/*+json": components["schemas"]["SaveValuationRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/valuations/{id}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/valuations/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/valuations/{id}/payment-orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Đính kèm Ủy nhiệm chi (form: number, date, amount, file tùy chọn). */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "multipart/form-data": {
+                        Number?: string;
+                        /** Format: date */
+                        Date?: string;
+                        /** Format: double */
+                        Amount?: number;
+                    } & {
+                        file?: components["schemas"]["IFormFile"];
+                    };
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ValuationDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/valuations/{id}/payment-orders/{orderId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    orderId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ValuationDto"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/valuations/{id}/payment-orders/{orderId}/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    orderId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["FileLinkDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/liquidations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    Page?: number;
+                    PageSize?: number;
+                    Search?: string;
+                    /** @description Property name to sort by (whitelisted per endpoint). */
+                    SortBy?: string;
+                    SortDesc?: boolean;
+                    /** @description Set server-side by export endpoints to lift the page-size cap (up to int PageQuery.MaxExportRows). */
+                    ForExport?: boolean;
+                    SafePage?: number;
+                    SafePageSize?: number;
+                    Status?: components["schemas"]["PaymentRecordStatus"];
+                    ContractId?: string;
+                    SupplierId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PagedResultOfLiquidationListItemDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SaveLiquidationRequest"];
+                    "text/json": components["schemas"]["SaveLiquidationRequest"];
+                    "application/*+json": components["schemas"]["SaveLiquidationRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": string;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/liquidations/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Bảng đối chiếu giá trị HĐ / thực hiện / đã thanh toán / còn lại trước khi lập biên bản. */
+        get: {
+            parameters: {
+                query?: {
+                    contractId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LiquidationPreviewDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/liquidations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LiquidationDto"];
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SaveLiquidationRequest"];
+                    "text/json": components["schemas"]["SaveLiquidationRequest"];
+                    "application/*+json": components["schemas"]["SaveLiquidationRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/liquidations/{id}/settlements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Đánh dấu khoản chưa thanh toán là "đã thanh toán" (form: valuationId, description, amount, voucherNumber, voucherDate, file). */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "multipart/form-data": {
+                        /** Format: uuid */
+                        ValuationId?: string;
+                        Description?: string;
+                        /** Format: double */
+                        Amount?: number;
+                        VoucherNumber?: string;
+                        /** Format: date */
+                        VoucherDate?: string;
+                    } & {
+                        file?: components["schemas"]["IFormFile"];
+                    };
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LiquidationDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/liquidations/{id}/settlements/{settlementId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    settlementId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LiquidationDto"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/liquidations/{id}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/liquidations/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/items/categories": {
         parameters: {
             query?: never;
@@ -7152,6 +8122,92 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AcceptanceDto: {
+            /** Format: uuid */
+            id: string;
+            number: string;
+            /** Format: uuid */
+            contractId: string;
+            contractNumber: string;
+            contractName: string;
+            /** Format: uuid */
+            supplierId: string;
+            supplierName: string;
+            /** Format: date */
+            periodFrom: string;
+            /** Format: date */
+            periodTo: string;
+            periodText: string;
+            conclusion: null | string;
+            isAutoGenerated: boolean;
+            /** Format: double */
+            totalAmount: number;
+            status: components["schemas"]["PaymentRecordStatus"];
+            /** Format: uuid */
+            documentId: null | string;
+            lastReturnReason: null | string;
+            /** Format: date-time */
+            completedAt: null | string;
+            /** Format: uuid */
+            valuationId: null | string;
+            valuationNumber: null | string;
+            isIncludedInValuation: boolean;
+            receipts: components["schemas"]["AcceptanceReceiptDto"][];
+            items: components["schemas"]["AcceptanceItemDto"][];
+            canEdit: boolean;
+            canSubmit: boolean;
+            canCancel: boolean;
+        };
+        AcceptanceItemDto: {
+            /** Format: uuid */
+            contractItemId: string;
+            itemCode: string;
+            itemName: string;
+            unit: string;
+            /** Format: double */
+            quantity: number;
+            /** Format: double */
+            unitPrice: number;
+            /** Format: double */
+            amount: number;
+        };
+        AcceptanceListItemDto: {
+            /** Format: uuid */
+            id: string;
+            number: string;
+            /** Format: uuid */
+            contractId: string;
+            contractNumber: string;
+            /** Format: uuid */
+            supplierId: string;
+            supplierName: string;
+            periodText: string;
+            /** Format: date */
+            periodFrom: string;
+            /** Format: date */
+            periodTo: string;
+            /** Format: double */
+            totalAmount: number;
+            /** Format: int32 */
+            receiptCount: number;
+            status: components["schemas"]["PaymentRecordStatus"];
+            isAutoGenerated: boolean;
+            isIncludedInValuation: boolean;
+            valuationNumber: null | string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        AcceptanceReceiptDto: {
+            /** Format: uuid */
+            receiptId: string;
+            number: string;
+            /** Format: date */
+            date: string;
+            type: components["schemas"]["ReceiptType"];
+            invoiceNumber: null | string;
+            /** Format: double */
+            amount: number;
+        };
         AppendixLineDto: {
             /** Format: uuid */
             contractItemId: string;
@@ -7843,6 +8899,12 @@ export interface components {
             /** Format: date-time */
             expiresAt: string;
         };
+        GenerateAcceptancesResultDto: {
+            /** Format: int32 */
+            created: number;
+            numbers: string[];
+            periodText: string;
+        };
         HisContractDto: {
             contractNumber: string;
             name: string;
@@ -8221,6 +9283,120 @@ export interface components {
          */
         ItemSource: "His" | "Import" | "Manual";
         JsonObject: Record<string, never>;
+        LiquidationDto: {
+            /** Format: uuid */
+            id: string;
+            number: string;
+            /** Format: uuid */
+            contractId: string;
+            contractNumber: string;
+            contractName: string;
+            /** Format: uuid */
+            supplierId: string;
+            supplierName: string;
+            /** Format: double */
+            contractValue: number;
+            /** Format: double */
+            executedValue: number;
+            /** Format: double */
+            paidAmount: number;
+            /** Format: double */
+            settledAmount: number;
+            /** Format: double */
+            remainingAmount: number;
+            /** Format: double */
+            reductionAmount: number;
+            notes: null | string;
+            status: components["schemas"]["PaymentRecordStatus"];
+            /** Format: uuid */
+            documentId: null | string;
+            lastReturnReason: null | string;
+            /** Format: date-time */
+            completedAt: null | string;
+            valuations: components["schemas"]["LiquidationValuationDto"][];
+            settlements: components["schemas"]["LiquidationSettlementDto"][];
+            canEdit: boolean;
+            canSubmit: boolean;
+            canCancel: boolean;
+        };
+        LiquidationListItemDto: {
+            /** Format: uuid */
+            id: string;
+            number: string;
+            /** Format: uuid */
+            contractId: string;
+            contractNumber: string;
+            /** Format: uuid */
+            supplierId: string;
+            supplierName: string;
+            /** Format: double */
+            contractValue: number;
+            /** Format: double */
+            executedValue: number;
+            /** Format: double */
+            paidAmount: number;
+            /** Format: double */
+            settledAmount: number;
+            /** Format: double */
+            remainingAmount: number;
+            status: components["schemas"]["PaymentRecordStatus"];
+            /** Format: date-time */
+            createdAt: string;
+        };
+        LiquidationPreviewDto: {
+            /** Format: uuid */
+            contractId: string;
+            contractNumber: string;
+            contractName: string;
+            supplierName: string;
+            /** Format: double */
+            contractValue: number;
+            /** Format: double */
+            executedValue: number;
+            /** Format: double */
+            paidAmount: number;
+            /** Format: double */
+            remainingAmount: number;
+            /** Format: double */
+            reductionAmount: number;
+            valuations: components["schemas"]["LiquidationValuationDto"][];
+            warnings: string[];
+            blockingCode: null | string;
+            blockingMessage: null | string;
+            /** Format: uuid */
+            existingLiquidationId: null | string;
+        };
+        LiquidationSettlementDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            valuationId: null | string;
+            description: string;
+            /** Format: double */
+            amount: number;
+            voucherNumber: null | string;
+            /** Format: date */
+            voucherDate: null | string;
+            hasFile: boolean;
+            fileName: null | string;
+            markedByName: null | string;
+            /** Format: date-time */
+            markedAt: string;
+        };
+        LiquidationValuationDto: {
+            /** Format: uuid */
+            valuationId: string;
+            number: string;
+            /** Format: date */
+            date: string;
+            /** Format: double */
+            amount: number;
+            /** Format: double */
+            paidAmount: number;
+            /** Format: double */
+            openAmount: number;
+            paymentOrderNumbers: null | string;
+        };
         LoginRequest: {
             userName: string;
             password: string;
@@ -8283,6 +9459,15 @@ export interface components {
             treasuryName: null | string;
             hasLogo: boolean;
             hasSealImage: boolean;
+        };
+        PagedResultOfAcceptanceListItemDto: {
+            items: components["schemas"]["AcceptanceListItemDto"][];
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
         };
         PagedResultOfAuditLogDto: {
             items: components["schemas"]["AuditLogDto"][];
@@ -8365,6 +9550,15 @@ export interface components {
             /** Format: int32 */
             pageSize: number;
         };
+        PagedResultOfLiquidationListItemDto: {
+            items: components["schemas"]["LiquidationListItemDto"][];
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+        };
         PagedResultOfProposalListItemDto: {
             items: components["schemas"]["ProposalListItemDto"][];
             /** Format: int32 */
@@ -8410,6 +9604,15 @@ export interface components {
             /** Format: int32 */
             pageSize: number;
         };
+        PagedResultOfValuationListItemDto: {
+            items: components["schemas"]["ValuationListItemDto"][];
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+        };
         PagedResultOfWarehouseDto: {
             items: components["schemas"]["WarehouseDto"][];
             /** Format: int32 */
@@ -8426,6 +9629,27 @@ export interface components {
             buyerTaxCode: null | string;
             buyerName: null | string;
         };
+        PaymentOrderDto: {
+            /** Format: uuid */
+            id: string;
+            number: string;
+            /** Format: date */
+            date: string;
+            /** Format: double */
+            amount: number;
+            hasFile: boolean;
+            fileName: null | string;
+            addedByName: null | string;
+            /** Format: date-time */
+            addedAt: string;
+        };
+        /**
+         * @description Trạng thái chung của biên bản nghiệm thu / 08a / thanh lý (theo luồng ký).
+         * @enum {unknown}
+         */
+        PaymentRecordStatus: "Draft" | "Signing" | "Returned" | "Completed" | "Cancelled";
+        /** @enum {unknown} */
+        PaymentStatus: "Unpaid" | "Paid";
         PdfSignatureInfo: {
             fieldName: string;
             /** Format: int32 */
@@ -8776,6 +10000,17 @@ export interface components {
             userCount: number;
             permissions: string[];
         };
+        SaveAcceptanceRequest: {
+            /** Format: uuid */
+            contractId: string;
+            /** Format: date */
+            periodFrom: string;
+            /** Format: date */
+            periodTo: string;
+            periodText: null | string;
+            conclusion: null | string;
+            receiptIds: string[];
+        };
         SaveAppendixRequest: {
             number: null | string;
             type: components["schemas"]["AppendixType"];
@@ -8878,6 +10113,11 @@ export interface components {
             /** @default true */
             isActive: boolean;
         };
+        SaveLiquidationRequest: {
+            /** Format: uuid */
+            contractId: string;
+            notes: null | string;
+        };
         SaveProposalRequest: {
             /** Format: uuid */
             departmentId: string;
@@ -8946,6 +10186,16 @@ export interface components {
             /** @default true */
             isActive: boolean;
             adminAccount?: null | components["schemas"]["SupplierAccountRequest"];
+        };
+        SaveValuationRequest: {
+            /** Format: uuid */
+            contractId: string;
+            acceptanceIds: string[];
+            periodText: null | string;
+            /** Format: double */
+            advanceAmount: number;
+            /** Format: double */
+            advanceRecovered: number;
         };
         SaveWarehouseRequest: {
             code: string;
@@ -9399,6 +10649,120 @@ export interface components {
         UserStatus: "Active" | "Inactive" | "PendingActivation";
         /** @enum {unknown} */
         UserType: "Internal" | "Supplier";
+        ValuationAcceptanceDto: {
+            /** Format: uuid */
+            acceptanceId: string;
+            number: string;
+            periodText: string;
+            /** Format: double */
+            amount: number;
+        };
+        ValuationDto: {
+            /** Format: uuid */
+            id: string;
+            number: string;
+            paymentRequestNumber: string;
+            /** Format: uuid */
+            contractId: string;
+            contractNumber: string;
+            contractName: string;
+            /** Format: uuid */
+            supplierId: string;
+            supplierName: string;
+            /** Format: int32 */
+            paymentSequence: number;
+            periodText: string;
+            /** Format: double */
+            contractValue: number;
+            /** Format: double */
+            advanceAmount: number;
+            /** Format: double */
+            previousCumulative: number;
+            /** Format: double */
+            currentPeriodValue: number;
+            /** Format: double */
+            cumulativeToDate: number;
+            /** Format: double */
+            completionPercent: number;
+            /** Format: double */
+            advanceRecovered: number;
+            /** Format: double */
+            requestedAmount: number;
+            /** Format: double */
+            paidAmount: number;
+            paymentStatus: components["schemas"]["PaymentStatus"];
+            settledByLiquidation: boolean;
+            status: components["schemas"]["PaymentRecordStatus"];
+            paymentRequestStatus: components["schemas"]["PaymentRecordStatus"];
+            /** Format: uuid */
+            documentId: null | string;
+            /** Format: uuid */
+            paymentRequestDocumentId: null | string;
+            lastReturnReason: null | string;
+            /** Format: date-time */
+            completedAt: null | string;
+            acceptances: components["schemas"]["ValuationAcceptanceDto"][];
+            items: components["schemas"]["ValuationItemDto"][];
+            paymentOrders: components["schemas"]["PaymentOrderDto"][];
+            canEdit: boolean;
+            canSubmit: boolean;
+            canCancel: boolean;
+            canManagePaymentOrders: boolean;
+        };
+        ValuationItemDto: {
+            /** Format: uuid */
+            contractItemId: string;
+            itemName: string;
+            unit: string;
+            /** Format: double */
+            contractQuantity: number;
+            /** Format: double */
+            unitPrice: number;
+            /** Format: double */
+            previousQuantity: number;
+            /** Format: double */
+            currentQuantity: number;
+            /** Format: double */
+            cumulativeQuantity: number;
+            /** Format: double */
+            contractAmount: number;
+            /** Format: double */
+            previousAmount: number;
+            /** Format: double */
+            currentAmount: number;
+            /** Format: double */
+            cumulativeAmount: number;
+        };
+        ValuationListItemDto: {
+            /** Format: uuid */
+            id: string;
+            number: string;
+            paymentRequestNumber: string;
+            /** Format: uuid */
+            contractId: string;
+            contractNumber: string;
+            /** Format: uuid */
+            supplierId: string;
+            supplierName: string;
+            /** Format: int32 */
+            paymentSequence: number;
+            periodText: string;
+            /** Format: double */
+            currentPeriodValue: number;
+            /** Format: double */
+            cumulativeToDate: number;
+            /** Format: double */
+            completionPercent: number;
+            /** Format: double */
+            requestedAmount: number;
+            /** Format: double */
+            paidAmount: number;
+            paymentStatus: components["schemas"]["PaymentStatus"];
+            status: components["schemas"]["PaymentRecordStatus"];
+            paymentRequestStatus: components["schemas"]["PaymentRecordStatus"];
+            /** Format: date-time */
+            createdAt: string;
+        };
         VerifyResultDto: {
             /** Format: int32 */
             signatureCount: number;

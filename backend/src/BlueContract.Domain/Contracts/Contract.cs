@@ -290,6 +290,25 @@ public sealed class Contract : Entity, ISupplierScoped
         CancelledAt = now;
     }
 
+    public DateTimeOffset? LiquidatedAt { get; private set; }
+
+    /// <summary>Biên bản thanh lý đã ký xong: the contract is closed and no new business may arise (spec §5.6).</summary>
+    public void Liquidate(DateTimeOffset now)
+    {
+        if (Status == ContractStatus.Liquidated)
+        {
+            return;
+        }
+
+        if (Status != ContractStatus.Effective)
+        {
+            throw new DomainException("CONTRACT_NOT_EFFECTIVE");
+        }
+
+        Status = ContractStatus.Liquidated;
+        LiquidatedAt = now;
+    }
+
     /// <summary>Applies an effective appendix: quantities, prices or expiry change (spec §5.3).</summary>
     public void ApplyAppendix(ContractAppendix appendix)
     {

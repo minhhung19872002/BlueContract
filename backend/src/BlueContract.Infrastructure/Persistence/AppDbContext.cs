@@ -8,6 +8,7 @@ using BlueContract.Domain.Documents;
 using BlueContract.Domain.Identity;
 using BlueContract.Domain.Integration;
 using BlueContract.Domain.Organizations;
+using BlueContract.Domain.Payments;
 using BlueContract.Domain.Proposals;
 using BlueContract.Domain.Receipts;
 using BlueContract.Domain.Settings;
@@ -115,6 +116,12 @@ public sealed class AppDbContext : DbContext, IAppDbContext, IDataProtectionKeyC
     public DbSet<WarehouseReceipt> WarehouseReceipts => Set<WarehouseReceipt>();
 
     public DbSet<IntegrationLog> IntegrationLogs => Set<IntegrationLog>();
+
+    public DbSet<AcceptanceRecord> AcceptanceRecords => Set<AcceptanceRecord>();
+
+    public DbSet<ValuationRecord> ValuationRecords => Set<ValuationRecord>();
+
+    public DbSet<LiquidationRecord> LiquidationRecords => Set<LiquidationRecord>();
 
     public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
 

@@ -6,6 +6,7 @@ using BlueContract.Domain.Documents;
 using BlueContract.Domain.Identity;
 using BlueContract.Domain.Integration;
 using BlueContract.Domain.Organizations;
+using BlueContract.Domain.Payments;
 using BlueContract.Domain.Proposals;
 using BlueContract.Domain.Receipts;
 using BlueContract.Domain.Settings;
@@ -96,6 +97,12 @@ public interface IAppDbContext
     DbSet<WarehouseReceipt> WarehouseReceipts { get; }
 
     DbSet<IntegrationLog> IntegrationLogs { get; }
+
+    DbSet<AcceptanceRecord> AcceptanceRecords { get; }
+
+    DbSet<ValuationRecord> ValuationRecords { get; }
+
+    DbSet<LiquidationRecord> LiquidationRecords { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

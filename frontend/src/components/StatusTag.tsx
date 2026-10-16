@@ -219,6 +219,17 @@ const STATUS: Record<string, Record<string, { label: string; color: string }>> =
     Duplicate: { label: 'Gửi trùng', color: 'default' },
     Rejected: { label: 'Bị từ chối', color: 'volcano' },
   },
+  paymentRecordStatus: {
+    Draft: { label: 'Bản nháp', color: 'default' },
+    Signing: { label: 'Đang trình ký', color: 'processing' },
+    Returned: { label: 'Bị trả lại', color: 'red' },
+    Completed: { label: 'Đã ký xong', color: 'green' },
+    Cancelled: { label: 'Đã hủy', color: 'default' },
+  },
+  paymentStatus: {
+    Unpaid: { label: 'Chưa thanh toán đủ', color: 'orange' },
+    Paid: { label: 'Đã thanh toán', color: 'green' },
+  },
   integrationDirection: {
     Inbound: { label: 'HIS → Cổng', color: 'blue' },
     Outbound: { label: 'Cổng → HIS', color: 'purple' },
