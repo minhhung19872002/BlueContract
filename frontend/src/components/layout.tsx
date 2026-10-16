@@ -25,7 +25,7 @@ export function DocHeader({
   sub?: ReactNode;
   actions?: ReactNode;
   /** Path (or -1 for history back) and label of the back link. */
-  back?: { to: string | -1; label: string };
+  back?: { to: string | -1; label: string; onClick?: () => void };
 }) {
   const navigate = useNavigate();
   return (
@@ -34,7 +34,7 @@ export function DocHeader({
         <button
           type="button"
           className="doc-header__back"
-          onClick={() => (back.to === -1 ? navigate(-1) : navigate(back.to))}
+          onClick={() => (back.onClick ? back.onClick() : back.to === -1 ? navigate(-1) : navigate(back.to))}
         >
           <ArrowLeft size={15} aria-hidden />
           {back.label}

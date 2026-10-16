@@ -1,23 +1,6 @@
-import {
-  Alert,
-  App,
-  Button,
-  Card,
-  Col,
-  Drawer,
-  Form,
-  Input,
-  InputNumber,
-  Row,
-  Select,
-  Space,
-  Switch,
-  Table,
-  Tag,
-  Tooltip,
-  Typography,
-} from 'antd';
-import { DeleteOutlined, EditOutlined, HolderOutlined, PlusOutlined } from '@ant-design/icons';
+import { App, Button, Input, InputNumber, Select, Space, Switch, Table, Tag, Tooltip } from 'antd';
+import { EditOutlined, PlusOutlined } from '@ant-design/icons';
+import { ArrowUp, ChevronRight, GripVertical, Info, Plus, Save, Trash2 } from 'lucide-react';
 import {
   DndContext,
   KeyboardSensor,
@@ -47,6 +30,8 @@ import {
 } from '../../api/signing';
 import { StatusTag, statusLabel, statusOptions } from '../../components/StatusTag';
 import { PageHeader, useApiError } from '../../components/common';
+import { Banner, DocHeader, Panel } from '../../components/layout';
+import './workflowBuilder.css';
 
 const CREATOR = '__creator';
 
@@ -118,6 +103,7 @@ function SortableStep({
   users,
   onChange,
   onRemove,
+  onUp,
 }: {
   step: StepDraft;
   index: number;
@@ -126,115 +112,93 @@ function SortableStep({
   users: { value: string; label: string }[];
   onChange: (patch: Partial<StepDraft>) => void;
   onRemove: () => void;
+  onUp?: () => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: step.key,
   });
   return (
-    <Card
+    <div
       ref={setNodeRef}
-      size="small"
-      style={{
-        transform: CSS.Transform.toString(transform),
-        transition,
-        opacity: isDragging ? 0.6 : 1,
-        marginBottom: 8,
-      }}
-      title={
-        <Space>
-          <Button
-            type="text"
-            size="small"
-            icon={<HolderOutlined />}
-            {...attributes}
-            {...listeners}
-            aria-label="Kéo để đổi thứ tự"
-            style={{ cursor: 'grab' }}
-          />
-          <Typography.Text strong>Bước {index + 1}</Typography.Text>
-          <StatusTag domain="workflowAction" value={step.actionType} />
-        </Space>
-      }
-      extra={
-        <Button
-          type="text"
-          danger
-          size="small"
-          icon={<DeleteOutlined />}
-          onClick={onRemove}
-          aria-label="Xóa bước"
-        />
-      }
+      className={`wfb-step${isDragging ? ' is-dragging' : ''}`}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
     >
-      <Row gutter={[8, 8]}>
-        <Col xs={24} md={8}>
+      <div className="wfb-step__handle">
+        <button
+          type="button"
+          className="wfb-step__grip"
+          {...attributes}
+          {...listeners}
+          aria-label={`Kéo để đổi thứ tự bước ${index + 1}`}
+        >
+          <GripVertical size={18} aria-hidden />
+        </button>
+        <span className="wfb-step__number">{index + 1}</span>
+      </div>
+      <div className="wfb-step__fields">
+        <label className="wfb-field wfb-field--wide">
+          <span className="wfb-field__label">Tên bước</span>
+          <Input value={step.name} onChange={(e) => onChange({ name: e.target.value })} />
+        </label>
+        <label className="wfb-field">
+          <span className="wfb-field__label">Mã bước</span>
           <Input
-            addonBefore="Mã"
+            className="mono"
             value={step.code}
             onChange={(e) => onChange({ code: e.target.value.toUpperCase() })}
           />
-        </Col>
-        <Col xs={24} md={16}>
-          <Input
-            addonBefore="Tên bước"
-            value={step.name}
-            onChange={(e) => onChange({ name: e.target.value })}
-          />
-        </Col>
-        <Col xs={24} md={8}>
+        </label>
+        <div className="wfb-field">
+          <span className="wfb-field__label">Kiểu bước</span>
           <Select
-            style={{ width: '100%' }}
+            aria-label="Kiểu bước"
             value={step.actionType}
-            options={statusOptions('workflowAction')}
+            options={statusOptions('workflowAction').map((o) => ({
+              ...o,
+              label: <StatusTag domain="workflowAction" value={o.value} />,
+            }))}
             onChange={(v) => onChange({ actionType: v as WorkflowActionType })}
           />
-        </Col>
-        <Col xs={24} md={8}>
+        </div>
+        <div className="wfb-field">
+          <span className="wfb-field__label">Người được giao</span>
           <Select
-            style={{ width: '100%' }}
+            aria-label="Cách giao"
             value={step.assigneeType}
             options={statusOptions('assigneeType')}
             onChange={(v) => onChange({ assigneeType: v as AssigneeType, roleCode: null, userId: null })}
           />
-        </Col>
-        <Col xs={24} md={8}>
-          {step.assigneeType === 'Role' && (
+        </div>
+        {step.assigneeType === 'Role' && (
+          <div className="wfb-field">
+            <span className="wfb-field__label">Vai trò</span>
             <Select
-              style={{ width: '100%' }}
-              placeholder="Vai trò"
+              aria-label="Vai trò"
+              placeholder="Chọn vai trò"
               showSearch
               optionFilterProp="label"
               value={step.roleCode ?? undefined}
               options={roles}
               onChange={(v) => onChange({ roleCode: v })}
             />
-          )}
-          {step.assigneeType === 'User' && (
+          </div>
+        )}
+        {step.assigneeType === 'User' && (
+          <div className="wfb-field">
+            <span className="wfb-field__label">Người thực hiện</span>
             <Select
-              style={{ width: '100%' }}
-              placeholder="Người thực hiện"
+              aria-label="Người thực hiện"
+              placeholder="Chọn người"
               showSearch
               optionFilterProp="label"
               value={step.userId ?? undefined}
               options={users}
               onChange={(v) => onChange({ userId: v })}
             />
-          )}
-        </Col>
-        <Col xs={24} md={12}>
-          <Select
-            mode="multiple"
-            style={{ width: '100%' }}
-            placeholder="Được trả về bước"
-            value={step.returnTo}
-            options={[
-              { value: CREATOR, label: 'Người lập (bản nháp)' },
-              ...previous.map((p, i) => ({ value: p.key, label: `${i + 1}. ${p.name || p.code}` })),
-            ]}
-            onChange={(v) => onChange({ returnTo: v })}
-          />
-        </Col>
-        <Col xs={12} md={6}>
+          </div>
+        )}
+        <label className="wfb-field">
+          <span className="wfb-field__label">Thời hạn</span>
           <InputNumber
             style={{ width: '100%' }}
             min={1}
@@ -243,24 +207,70 @@ function SortableStep({
             value={step.slaHours ?? undefined}
             onChange={(v) => onChange({ slaHours: v ?? null })}
           />
-        </Col>
-        <Col xs={12} md={6}>
-          <Tooltip title="Vị trí đặt chữ ký: tên thẻ {{SIG_...}} trong mẫu; để trống = theo mã bước">
-            <Input
-              placeholder="Neo chữ ký"
-              value={step.signatureAnchor ?? undefined}
-              onChange={(e) => onChange({ signatureAnchor: e.target.value || null })}
-            />
-          </Tooltip>
-        </Col>
-        <Col span={24}>
-          <Space wrap>
-            <Switch checked={step.allowEdit} onChange={(v) => onChange({ allowEdit: v })} /> Được sửa tài liệu
-            <Switch checked={step.isOptional} onChange={(v) => onChange({ isOptional: v })} /> Bước tùy chọn
-          </Space>
-        </Col>
-      </Row>
-    </Card>
+        </label>
+        <div className="wfb-field wfb-field--wide">
+          <span className="wfb-field__label">Được trả về bước</span>
+          <Select
+            mode="multiple"
+            aria-label="Được trả về bước"
+            placeholder="Không cho trả lại"
+            value={step.returnTo}
+            options={[
+              { value: CREATOR, label: 'Người lập (bản nháp)' },
+              ...previous.map((p, i) => ({ value: p.key, label: `${i + 1}. ${p.name || p.code}` })),
+            ]}
+            onChange={(v) => onChange({ returnTo: v })}
+          />
+        </div>
+        <label className="wfb-field">
+          <span className="wfb-field__label">
+            Neo chữ ký{' '}
+            <Tooltip title="Tên thẻ {{SIG_...}} trong mẫu tài liệu; để trống = theo mã bước">
+              <Info size={12} aria-hidden />
+            </Tooltip>
+          </span>
+          <Input
+            className="mono"
+            placeholder={`SIG_${step.code}`}
+            value={step.signatureAnchor ?? undefined}
+            onChange={(e) => onChange({ signatureAnchor: e.target.value || null })}
+          />
+        </label>
+        <div className="wfb-field wfb-field--switches">
+          <label className="wfb-switch">
+            <Switch size="small" checked={!step.isOptional} onChange={(v) => onChange({ isOptional: !v })} />
+            {step.isOptional ? 'Tùy chọn' : 'Bắt buộc'}
+          </label>
+          <label className="wfb-switch">
+            <Switch size="small" checked={step.allowEdit} onChange={(v) => onChange({ allowEdit: v })} />
+            Được sửa tài liệu
+          </label>
+        </div>
+      </div>
+      <div className="wfb-step__tools">
+        <Tooltip title="Lên trên">
+          <button
+            type="button"
+            className="wfb-step__tool"
+            aria-label={`Đưa bước ${index + 1} lên trên`}
+            disabled={!onUp}
+            onClick={onUp}
+          >
+            <ArrowUp size={15} aria-hidden />
+          </button>
+        </Tooltip>
+        <Tooltip title="Xóa bước">
+          <button
+            type="button"
+            className="wfb-step__tool wfb-step__tool--danger"
+            aria-label={`Xóa bước ${index + 1}`}
+            onClick={onRemove}
+          >
+            <Trash2 size={15} aria-hidden />
+          </button>
+        </Tooltip>
+      </div>
+    </div>
   );
 }
 
@@ -290,12 +300,9 @@ export function WorkflowTemplatesPage() {
   const updateStep = (key: string, patch: Partial<StepDraft>) =>
     setDraft((d) => d && { ...d, steps: d.steps.map((s) => (s.key === key ? { ...s, ...patch } : s)) });
 
-  const onDragEnd = ({ active, over }: DragEndEvent) => {
-    if (!over || active.id === over.id) return;
+  const move = (from: number, to: number) =>
     setDraft((d) => {
       if (!d) return d;
-      const from = d.steps.findIndex((s) => s.key === active.id);
-      const to = d.steps.findIndex((s) => s.key === over.id);
       const steps = arrayMove(d.steps, from, to);
       // A step can only return to an earlier step: drop targets that are now after it.
       return {
@@ -306,6 +313,13 @@ export function WorkflowTemplatesPage() {
         })),
       };
     });
+
+  const onDragEnd = ({ active, over }: DragEndEvent) => {
+    if (!draft || !over || active.id === over.id) return;
+    move(
+      draft.steps.findIndex((s) => s.key === active.id),
+      draft.steps.findIndex((s) => s.key === over.id),
+    );
   };
 
   const submit = async () => {
@@ -343,6 +357,160 @@ export function WorkflowTemplatesPage() {
     }
   };
 
+  if (draft) {
+    const addStep = () =>
+      setDraft({
+        ...draft,
+        steps: [
+          ...draft.steps,
+          {
+            key: newKey(),
+            code: `STEP${draft.steps.length + 1}`,
+            name: '',
+            actionType: 'Sign',
+            assigneeType: 'Role',
+            allowEdit: false,
+            isOptional: false,
+            returnTo: [CREATOR],
+            slaHours: 24,
+          },
+        ],
+      });
+    return (
+      <div className="wfb-builder">
+        <DocHeader
+          back={{ to: '/quan-tri/luong-ky', label: 'Cấu hình luồng ký', onClick: () => setDraft(null) }}
+          plain
+          code={draft.id ? 'Sửa luồng ký' : 'Thêm luồng ký'}
+          sub={
+            <>
+              {draft.code && <span className="mono">{draft.code}</span>}
+              {draft.code && ' · '}
+              {draft.name || 'Chưa đặt tên'} · {draft.steps.length} bước · áp dụng cho tài liệu gửi ký sau khi
+              lưu
+            </>
+          }
+          actions={
+            <>
+              <Button onClick={() => setDraft(null)}>Hủy</Button>
+              <Button
+                type="primary"
+                icon={<Save size={16} aria-hidden />}
+                loading={save.isPending}
+                onClick={submit}
+              >
+                Lưu luồng
+              </Button>
+            </>
+          }
+        />
+        <section className="wfb-config">
+          <label className="wfb-field">
+            <span className="wfb-field__label">Mã luồng</span>
+            <Input
+              className="mono"
+              value={draft.code}
+              disabled={!!draft.id}
+              onChange={(e) => setDraft({ ...draft, code: e.target.value.toUpperCase() })}
+            />
+          </label>
+          <label className="wfb-field">
+            <span className="wfb-field__label">Tên luồng</span>
+            <Input value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
+          </label>
+          <div className="wfb-field">
+            <span className="wfb-field__label">Loại tài liệu</span>
+            <Select
+              aria-label="Loại tài liệu"
+              value={draft.documentType}
+              disabled={!!draft.id}
+              options={statusOptions('documentType')}
+              onChange={(v) => setDraft({ ...draft, documentType: v as DocumentType })}
+            />
+          </div>
+          <label className="wfb-field">
+            <span className="wfb-field__label">
+              Điều kiện áp dụng (tùy chọn){' '}
+              <Tooltip title="Khóa=giá trị; nhiều giá trị cách nhau dấu phẩy. Khóa: Domain (Drug, MedicalSupply, Chemical, Equipment, Administration), Facility (mã cơ sở), ProcurementType (Bidding, NonBidding), ContractKind (UnitPriceCallOff, LumpSum), RequiresWarehouseReceipt (true, false). Luồng khớp nhiều điều kiện nhất được dùng; không khớp thì dùng luồng mặc định.">
+                <Info size={12} aria-hidden />
+              </Tooltip>
+            </span>
+            <Input
+              className="mono"
+              placeholder="VD: ProcurementType=NonBidding; Domain=Drug"
+              value={draft.condition ?? undefined}
+              onChange={(e) => setDraft({ ...draft, condition: e.target.value || null })}
+            />
+          </label>
+          <div className="wfb-field wfb-field--switches">
+            <label className="wfb-switch">
+              <Switch
+                size="small"
+                checked={draft.isDefault}
+                onChange={(v) => setDraft({ ...draft, isDefault: v })}
+              />
+              Mặc định
+            </label>
+            <label className="wfb-switch">
+              <Switch
+                size="small"
+                checked={draft.isActive}
+                onChange={(v) => setDraft({ ...draft, isActive: v })}
+              />
+              Hoạt động
+            </label>
+          </div>
+        </section>
+        <Banner
+          tone="info"
+          title="Thay đổi chỉ áp dụng cho các luồng gửi ký sau khi lưu; luồng đang chạy giữ nguyên các bước cũ."
+        />
+        <div className="wfb-steps">
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+            <SortableContext items={draft.steps.map((s) => s.key)} strategy={verticalListSortingStrategy}>
+              {draft.steps.map((s, i) => (
+                <SortableStep
+                  key={s.key}
+                  step={s}
+                  index={i}
+                  previous={draft.steps.slice(0, i)}
+                  roles={roleOptions}
+                  users={userOptions}
+                  onChange={(patch) => updateStep(s.key, patch)}
+                  onUp={i > 0 ? () => move(i, i - 1) : undefined}
+                  onRemove={() =>
+                    setDraft({
+                      ...draft,
+                      steps: draft.steps
+                        .filter((x) => x.key !== s.key)
+                        .map((x) => ({ ...x, returnTo: x.returnTo.filter((k) => k !== s.key) })),
+                    })
+                  }
+                />
+              ))}
+            </SortableContext>
+          </DndContext>
+          <button type="button" className="wfb-add" onClick={addStep}>
+            <Plus size={16} aria-hidden />
+            Thêm bước ({statusLabel('workflowAction', 'Sign')}, duyệt…)
+          </button>
+        </div>
+        <section className="wfb-preview" aria-label="Xem trước luồng">
+          <span className="wfb-preview__label">Xem trước:</span>
+          {draft.steps.map((s, i) => (
+            <span key={s.key} className="wfb-preview__item">
+              <span className={`wfb-preview__chip${s.isOptional ? ' is-optional' : ''}`}>
+                {i + 1}. {s.name || s.code}
+              </span>
+              <ChevronRight size={13} aria-hidden />
+            </span>
+          ))}
+          <span className="wfb-preview__done">Hoàn tất</span>
+        </section>
+      </div>
+    );
+  }
+
   return (
     <>
       <PageHeader
@@ -354,7 +522,7 @@ export function WorkflowTemplatesPage() {
           </Button>
         }
       />
-      <Card>
+      <Panel title={`Luồng ký (${templates.data?.length ?? 0})`} flush>
         <Table<WorkflowTemplateDto>
           rowKey="id"
           size="middle"
@@ -362,8 +530,9 @@ export function WorkflowTemplatesPage() {
           dataSource={templates.data ?? []}
           pagination={false}
           scroll={{ x: 'max-content' }}
+          onRow={(t) => ({ onClick: () => setDraft(toDraft(t)), style: { cursor: 'pointer' } })}
           columns={[
-            { title: 'Mã', dataIndex: 'code' },
+            { title: 'Mã', dataIndex: 'code', render: (v: string) => <span className="mono">{v}</span> },
             { title: 'Tên luồng', dataIndex: 'name' },
             {
               title: 'Loại tài liệu',
@@ -374,14 +543,23 @@ export function WorkflowTemplatesPage() {
               title: 'Các bước',
               key: 'steps',
               render: (_, t) => (
-                <Typography.Text type="secondary">{t.steps.map((s) => s.name).join(' → ')}</Typography.Text>
+                <span className="wfb-preview wfb-preview--inline">
+                  {t.steps.map((s, i) => (
+                    <span key={s.code} className="wfb-preview__item">
+                      <span className={`wfb-preview__chip${s.isOptional ? ' is-optional' : ''}`}>
+                        {i + 1}. {s.name}
+                      </span>
+                      {i < t.steps.length - 1 && <ChevronRight size={13} aria-hidden />}
+                    </span>
+                  ))}
+                </span>
               ),
             },
             {
               title: 'Trạng thái',
               key: 'status',
               render: (_, t) => (
-                <Space size={4}>
+                <Space size={4} wrap>
                   {t.isDefault && <Tag color="blue">Mặc định</Tag>}
                   <StatusTag domain="active" value={t.isActive} />
                   {t.runningCount > 0 && <Tag color="processing">{t.runningCount} đang chạy</Tag>}
@@ -399,140 +577,7 @@ export function WorkflowTemplatesPage() {
             },
           ]}
         />
-      </Card>
-
-      <Drawer
-        open={!!draft}
-        onClose={() => setDraft(null)}
-        width="min(960px, 100vw)"
-        title={draft?.id ? `Sửa luồng ký — ${draft.code}` : 'Thêm luồng ký'}
-        destroyOnHidden
-        extra={
-          <Button type="primary" loading={save.isPending} onClick={submit}>
-            Lưu
-          </Button>
-        }
-      >
-        {draft && (
-          <>
-            <Alert
-              type="info"
-              showIcon
-              style={{ marginBottom: 12 }}
-              message="Thay đổi chỉ áp dụng cho các luồng gửi ký sau khi lưu; luồng đang chạy giữ nguyên các bước cũ."
-            />
-            <Form layout="vertical">
-              <Row gutter={12}>
-                <Col xs={24} md={8}>
-                  <Form.Item label="Mã luồng" required>
-                    <Input
-                      value={draft.code}
-                      disabled={!!draft.id}
-                      onChange={(e) => setDraft({ ...draft, code: e.target.value.toUpperCase() })}
-                    />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={16}>
-                  <Form.Item label="Tên luồng" required>
-                    <Input
-                      value={draft.name}
-                      onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-                    />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={8}>
-                  <Form.Item label="Loại tài liệu" required>
-                    <Select
-                      value={draft.documentType}
-                      disabled={!!draft.id}
-                      options={statusOptions('documentType')}
-                      onChange={(v) => setDraft({ ...draft, documentType: v as DocumentType })}
-                    />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={8}>
-                  <Form.Item
-                    label="Điều kiện áp dụng (tùy chọn)"
-                    tooltip="Khóa=giá trị; nhiều giá trị cách nhau dấu phẩy. Khóa: Domain (Drug, MedicalSupply, Chemical, Equipment, Administration), Facility (mã cơ sở), ProcurementType (Bidding, NonBidding), ContractKind (UnitPriceCallOff, LumpSum), RequiresWarehouseReceipt (true, false). Luồng khớp nhiều điều kiện nhất được dùng; không khớp thì dùng luồng mặc định."
-                  >
-                    <Input
-                      placeholder="VD: ProcurementType=NonBidding; Domain=Drug"
-                      value={draft.condition ?? undefined}
-                      onChange={(e) => setDraft({ ...draft, condition: e.target.value || null })}
-                    />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={8}>
-                  <Form.Item label=" ">
-                    <Space wrap>
-                      <Switch
-                        checked={draft.isDefault}
-                        onChange={(v) => setDraft({ ...draft, isDefault: v })}
-                      />{' '}
-                      Mặc định
-                      <Switch
-                        checked={draft.isActive}
-                        onChange={(v) => setDraft({ ...draft, isActive: v })}
-                      />{' '}
-                      Hoạt động
-                    </Space>
-                  </Form.Item>
-                </Col>
-              </Row>
-            </Form>
-
-            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
-              <SortableContext items={draft.steps.map((s) => s.key)} strategy={verticalListSortingStrategy}>
-                {draft.steps.map((s, i) => (
-                  <SortableStep
-                    key={s.key}
-                    step={s}
-                    index={i}
-                    previous={draft.steps.slice(0, i)}
-                    roles={roleOptions}
-                    users={userOptions}
-                    onChange={(patch) => updateStep(s.key, patch)}
-                    onRemove={() =>
-                      setDraft({
-                        ...draft,
-                        steps: draft.steps
-                          .filter((x) => x.key !== s.key)
-                          .map((x) => ({ ...x, returnTo: x.returnTo.filter((k) => k !== s.key) })),
-                      })
-                    }
-                  />
-                ))}
-              </SortableContext>
-            </DndContext>
-            <Button
-              block
-              type="dashed"
-              icon={<PlusOutlined />}
-              onClick={() =>
-                setDraft({
-                  ...draft,
-                  steps: [
-                    ...draft.steps,
-                    {
-                      key: newKey(),
-                      code: `STEP${draft.steps.length + 1}`,
-                      name: '',
-                      actionType: 'Sign',
-                      assigneeType: 'Role',
-                      allowEdit: false,
-                      isOptional: false,
-                      returnTo: [CREATOR],
-                      slaHours: 24,
-                    },
-                  ],
-                })
-              }
-            >
-              Thêm bước ({statusLabel('workflowAction', 'Sign')}, duyệt...)
-            </Button>
-          </>
-        )}
-      </Drawer>
+      </Panel>
     </>
   );
 }
