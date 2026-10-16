@@ -138,31 +138,24 @@ Ký nháy (`Initial`) mặc định dùng dấu nháy nội bộ không cần CA
 
 ## 6. Sao lưu và khôi phục
 
-`scripts/backup.sh` (Linux) / `scripts\backup.ps1` (Windows): `pg_dump` dạng custom + đồng bộ toàn bộ bucket tệp vào `backups/<thời điểm>/`, giữ 30 bản gần nhất.
+**Tự động:** container `backup` (cùng `docker compose up`) sao lưu **hằng ngày lúc `BACKUP_TIME`** (giờ Việt Nam, mặc định 01:30). Mỗi lần ghi vào `BACKUP_DIR/<yyyymmdd-HHMMSS>/` gồm `db.dump` (`pg_dump` dạng custom) và `files/` (toàn bộ bucket tệp), giữ `BACKUP_KEEP` bản gần nhất (mặc định 30). Một bản chỉ hiện ra khi đã sao lưu xong (thư mục `.partial` được đổi tên ở bước cuối). Thời điểm thành công gần nhất ghi trong `BACKUP_DIR/last-success`; nhật ký xem bằng `docker compose logs backup`. Đặt `BACKUP_TIME=` (rỗng) để tắt. Thư mục `BACKUP_DIR` cần được chép ra máy / kho lưu trữ khác (rsync, ổ mạng) theo quy trình của bệnh viện.
 
-```cron
-# /etc/cron.d/blueprocure — 01:30 hằng ngày, sau đó chép thư mục backups/ ra máy/kho lưu trữ khác
-30 1 * * * root cd /opt/blueprocure && scripts/backup.sh backups 30 >> /var/log/blueprocure-backup.log 2>&1
-```
+**Sao lưu ngay:** `scripts/backup.sh` / `scriptsackup.ps1`.
 
-**Khôi phục** (dừng API trước để không có ghi mới):
+**Khôi phục:** `scripts/restore.sh <yyyymmdd-HHMMSS>` / `scriptsestore.ps1 -Stamp <yyyymmdd-HHMMSS>`. Script hỏi xác nhận (gõ `KHOI PHUC`, hoặc thêm `--yes` / `-Yes`), rồi:
+1. dừng API;
+2. ngắt kết nối và tạo lại cơ sở dữ liệu từ `db.dump`;
+3. làm bucket **giống hệt** bản sao lưu (`sync --delete`: tệp tạo sau thời điểm sao lưu bị xóa);
+4. chạy lại API.
 
-```bash
-docker compose stop api
-B=backups/20261016-013000
-# 1) Cơ sở dữ liệu
-docker compose exec -T postgres dropdb -U blueprocure --if-exists blueprocure
-docker compose exec -T postgres createdb -U blueprocure blueprocure
-docker compose exec -T postgres pg_restore -U blueprocure -d blueprocure --no-owner < $B/db.dump
-# 2) Kho tệp
-NET=$(docker inspect $(docker compose ps -q postgres) --format '{{range $k, $v := .NetworkSettings.Networks}}{{$k}}{{end}}')
-docker run --rm --network "$NET" -v "$PWD/$B/files:/backup" \
-  -e AWS_ACCESS_KEY_ID=$S3_ACCESS_KEY -e AWS_SECRET_ACCESS_KEY=$S3_SECRET_KEY -e AWS_DEFAULT_REGION=us-east-1 \
-  amazon/aws-cli:2.27.0 s3 sync /backup "s3://$S3_BUCKET" --endpoint-url http://storage:8333
-docker compose start api
-```
+Sau đó vào **Quản trị → Kiểm tra toàn vẹn → Kiểm tra ngay**: mọi tệp phải "khớp" SHA-256.
 
-Sau khi khôi phục, vào **Quản trị → Kiểm tra toàn vẹn → Kiểm tra ngay**: mọi tệp phải "khớp" SHA-256 với cơ sở dữ liệu. Nên diễn tập khôi phục định kỳ (mỗi quý) trên máy thử.
+Diễn tập ngày 17/10/2026 trên bộ dữ liệu demo:
+- Sao lưu 635 MB (83 HĐ, 509 phiên bản tài liệu, 3.455 tệp) mất khoảng 30 giây.
+- Sau thời điểm sao lưu, thêm một cơ sở và một tệp lạ.
+- Khôi phục mất khoảng 2 phút. Kết quả: số liệu trùng khớp, cơ sở và tệp thêm sau đều mất, kiểm tra toàn vẹn 993 tệp không sai, không thiếu.
+
+Nên diễn tập lại mỗi quý trên máy thử.
 
 ## 7. Vận hành
 
