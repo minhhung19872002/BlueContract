@@ -51,7 +51,7 @@ import {
 import { useAuth } from '../../auth/useAuth';
 import { P } from '../../auth/permissions';
 import { WorkflowCard } from '../signing/WorkflowPanel';
-import { SignatureTable } from '../signing/VerifySignaturePage';
+import { SignatureList, VerifyVerdictBanner } from '../signing/VerifySignaturePage';
 import { DocEditor } from '../../components/DocEditor';
 import { PdfViewer } from '../../components/PdfViewer';
 import { StatusTag } from '../../components/StatusTag';
@@ -444,19 +444,10 @@ export function DocumentPage() {
         destroyOnHidden
       >
         {verified && (
-          <>
-            <Alert
-              showIcon
-              style={{ marginBottom: 12 }}
-              type={verified.result.allValid ? 'success' : 'error'}
-              message={
-                verified.result.allValid
-                  ? `Tất cả ${verified.result.signatureCount} chữ ký đều toàn vẹn.`
-                  : 'Có chữ ký không hợp lệ: nội dung đã bị thay đổi sau khi ký.'
-              }
-            />
-            <SignatureTable result={verified.result} />
-          </>
+          <div className="verify">
+            <VerifyVerdictBanner result={verified.result} />
+            {verified.result.signatures.length > 0 && <SignatureList result={verified.result} />}
+          </div>
         )}
       </Modal>
 

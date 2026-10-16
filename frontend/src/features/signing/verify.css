@@ -1,0 +1,241 @@
+/* Xác minh chữ ký số — design/Xac minh.dc.html. */
+.verify {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 1080px;
+}
+
+.verify .page-header {
+  margin-bottom: 0;
+}
+
+.verify-drop.ant-upload-wrapper .ant-upload-drag {
+  border: 1.5px dashed var(--bp-input-bd);
+  border-radius: 14px;
+  background: var(--bp-card);
+}
+
+.verify-drop.ant-upload-wrapper .ant-upload-drag:hover {
+  border-color: var(--bp-primary-solid);
+  background: var(--bp-primary-bg);
+}
+
+.verify-drop .ant-upload-btn {
+  padding: 40px 24px !important;
+}
+
+.verify-drop--compact .ant-upload-btn {
+  padding: 14px 20px !important;
+}
+
+.verify-drop__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+  color: var(--bp-text);
+}
+
+.verify-drop--compact .verify-drop__inner {
+  flex-direction: row;
+  text-align: left;
+}
+
+.verify-drop__icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: var(--bp-primary-bg);
+  color: var(--bp-primary-fg);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.verify-drop__text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.verify-drop__title {
+  font-weight: 600;
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+
+.verify-drop__sub {
+  font-size: 13px;
+  color: var(--bp-caption);
+}
+
+.verify-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--bp-caption);
+}
+
+.verify-verdict {
+  display: flex;
+  gap: 14px;
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid;
+}
+
+.verify-verdict__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.verify-verdict__text {
+  min-width: 0;
+}
+
+.verify-verdict__title {
+  font-weight: 600;
+  font-size: 17px;
+}
+
+.verify-verdict__body {
+  font-size: 13.5px;
+  color: var(--bp-text);
+}
+
+.verify-verdict__meta {
+  margin-top: 4px;
+  font-size: 12.5px;
+  color: var(--bp-text-2);
+  font-family: 'JetBrains Mono', monospace;
+  overflow-wrap: anywhere;
+}
+
+.verify-sigs {
+  background: var(--bp-card);
+  border: 1px solid var(--bp-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.verify-sigs__head {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--bp-border);
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.verify-sig {
+  border-bottom: 1px solid var(--bp-border);
+}
+
+.verify-sig:last-child {
+  border-bottom: 0;
+}
+
+.verify-sig__row {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 0;
+  background: transparent;
+  color: var(--bp-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.verify-sig__row:hover {
+  background: var(--bp-hover);
+}
+
+.verify-sig__row:focus-visible {
+  outline: 2px solid var(--bp-primary-solid);
+  outline-offset: -2px;
+}
+
+.verify-sig__icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.verify-sig__who {
+  flex: 1 1 220px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.verify-sig__name {
+  font-weight: 600;
+}
+
+.verify-sig__sub {
+  font-size: 12.5px;
+  color: var(--bp-text-2);
+  overflow-wrap: anywhere;
+}
+
+.verify-sig__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 6px;
+  border: 1px solid;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.verify-sig__status > span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.verify-sig__details {
+  margin: 0;
+  padding: 4px 16px 16px 60px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px 24px;
+}
+
+.verify-sig__details dt {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--bp-caption);
+}
+
+.verify-sig__details dd {
+  margin: 0;
+  font-size: 13.5px;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 560px) {
+  .verify-sig__details {
+    padding-left: 16px;
+  }
+}
