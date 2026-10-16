@@ -1,0 +1,220 @@
+/* Dashboards — design/Tong quan.dc.html. */
+.home {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.home .kpi-strip {
+  margin-bottom: 0;
+}
+
+.home-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 1200px) {
+  .home-grid--side {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  }
+
+  .home-grid--halves {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.home-panel {
+  background: var(--bp-card);
+  border: 1px solid var(--bp-border);
+  border-radius: 12px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.home-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--bp-border);
+}
+
+.home-panel__title {
+  margin: 0;
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 600;
+}
+
+.home-panel__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.home-panel__meta {
+  font-size: 12.5px;
+  color: var(--bp-text-2);
+  white-space: nowrap;
+}
+
+.home-panel__meta strong {
+  color: var(--bp-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.home-panel__body {
+  padding: 16px;
+  flex: 1;
+}
+
+.home-panel__body--flush {
+  padding: 0;
+}
+
+.home-panel__body--flush .ant-table-wrapper .ant-table {
+  border-radius: 0 0 12px 12px;
+}
+
+.home-empty {
+  padding: 24px 0;
+}
+
+.home-queue {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.home-queue li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--bp-border);
+}
+
+.home-queue li:last-child {
+  border-bottom: 0;
+}
+
+.home-queue__icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bp-primary-bg);
+  color: var(--bp-primary-fg);
+}
+
+.home-queue__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.home-queue__count {
+  font-size: 12.5px;
+  color: var(--bp-text-2);
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.home-queue__overdue {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--bp-danger-fg);
+  font-weight: 500;
+}
+
+.home-remaining {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.home-remaining__bar {
+  display: block;
+  width: 120px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--bp-hover);
+  overflow: hidden;
+}
+
+.home-remaining__bar > span {
+  display: block;
+  height: 100%;
+}
+
+.home-services {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.home-services li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.home-services__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.home-services__name {
+  flex: 1;
+}
+
+.home-debt {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.home-debt li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.home-debt__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--bp-text-2);
+}
+
+.home-debt__value {
+  font-size: 20px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}

@@ -1,18 +1,17 @@
+import { Alert, Button, Card, Empty, Spin, Table, Typography } from 'antd';
 import {
-  Alert,
-  Card,
-  Col,
-  Descriptions,
-  Empty,
-  List,
-  Row,
-  Space,
-  Spin,
-  Statistic,
-  Table,
-  Tag,
-  Typography,
-} from 'antd';
+  ArrowRight,
+  Building2,
+  CircleAlert,
+  FileClock,
+  FileSignature,
+  FileWarning,
+  PackageCheck,
+  Receipt,
+  Truck,
+  Wallet,
+} from 'lucide-react';
+import type { ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useReadiness, useSystemInfo } from '../api/system';
 import { useInternalDashboard, useSupplierDashboard } from '../api/reports';
@@ -22,7 +21,10 @@ import { P } from '../auth/permissions';
 import { BarChart } from '../components/BarChart';
 import { StatusTag } from '../components/StatusTag';
 import { PageHeader } from '../components/common';
+import { InfoGrid } from '../components/layout';
+import { KpiCard, KpiStrip } from '../components/patterns';
 import { formatDate, formatDateTime, formatMoney, formatQuantity } from '../utils/format';
+import './home.css';
 
 const SERVICE_LABELS: Record<string, string> = {
   postgres: 'Cơ sở dữ liệu (PostgreSQL)',
@@ -31,93 +33,126 @@ const SERVICE_LABELS: Record<string, string> = {
 };
 
 const PAYMENT_SERIES = [
-  { key: 'paid', label: 'Đã thanh toán', color: '#52c41a' },
-  { key: 'unpaid', label: 'Chưa thanh toán', color: '#fa8c16' },
+  { key: 'paid', label: 'Đã thanh toán', color: 'var(--bp-success-solid)' },
+  { key: 'unpaid', label: 'Chưa thanh toán', color: 'var(--bp-orange-solid)' },
 ];
+
+const ICON = { size: 20, strokeWidth: 1.75, 'aria-hidden': true } as const;
+
+/** Card of the dashboard (design "card" with a 15/600 title and an optional action on the right). */
+function Panel({
+  title,
+  extra,
+  children,
+  flush,
+}: {
+  title: ReactNode;
+  extra?: ReactNode;
+  children: ReactNode;
+  /** No body padding (tables, lists). */
+  flush?: boolean;
+}) {
+  return (
+    <section className="home-panel">
+      <header className="home-panel__head">
+        <h2 className="home-panel__title">{title}</h2>
+        {extra}
+      </header>
+      <div className={flush ? 'home-panel__body home-panel__body--flush' : 'home-panel__body'}>
+        {children}
+      </div>
+    </section>
+  );
+}
+
+function SeeAll({ to }: { to: string }) {
+  return (
+    <Link to={to} className="home-panel__link">
+      Xem tất cả
+      <ArrowRight size={14} aria-hidden />
+    </Link>
+  );
+}
 
 function SystemStatus() {
   const info = useSystemInfo();
   const ready = useReadiness();
   return (
-    <Row gutter={[16, 16]}>
-      <Col xs={24} lg={12}>
-        <Card title="Thông tin hệ thống">
-          {info.isPending && <Spin />}
-          {info.isError && (
-            <Alert type="error" showIcon message={(info.error as unknown as ApiProblem).title} />
-          )}
-          {info.data && (
-            <Descriptions column={1} size="small">
-              <Descriptions.Item label="Phiên bản">{info.data.version}</Descriptions.Item>
-              <Descriptions.Item label="Môi trường">{info.data.environment}</Descriptions.Item>
-              <Descriptions.Item label="Ngày làm việc">{formatDate(info.data.todayLocal)}</Descriptions.Item>
-              <Descriptions.Item label="Giờ máy chủ">
-                {formatDateTime(info.data.serverTimeUtc)}
-              </Descriptions.Item>
-            </Descriptions>
-          )}
-        </Card>
-      </Col>
-      <Col xs={24} lg={12}>
-        <Card title="Tình trạng dịch vụ">
-          {ready.isPending && <Spin />}
-          {ready.data && (
-            <Space direction="vertical">
-              {Object.entries(ready.data.checks).map(([name, check]) => (
-                <Space key={name}>
-                  <Tag
-                    color={
-                      check.status === 'Healthy' ? 'green' : check.status === 'Degraded' ? 'orange' : 'red'
-                    }
-                  >
+    <div className="home-grid home-grid--halves">
+      <Panel title="Thông tin hệ thống">
+        {info.isPending && <Spin />}
+        {info.isError && (
+          <Alert type="error" showIcon message={(info.error as unknown as ApiProblem).title} />
+        )}
+        {info.data && (
+          <InfoGrid
+            minColumn={160}
+            items={[
+              { label: 'Phiên bản', value: info.data.version, mono: true },
+              { label: 'Môi trường', value: info.data.environment },
+              { label: 'Ngày làm việc', value: formatDate(info.data.todayLocal) },
+              { label: 'Giờ máy chủ', value: formatDateTime(info.data.serverTimeUtc) },
+            ]}
+          />
+        )}
+      </Panel>
+      <Panel title="Tình trạng dịch vụ">
+        {ready.isPending && <Spin />}
+        {ready.data && (
+          <ul className="home-services">
+            {Object.entries(ready.data.checks).map(([name, check]) => {
+              const tone =
+                check.status === 'Healthy' ? 'success' : check.status === 'Degraded' ? 'warning' : 'danger';
+              return (
+                <li key={name}>
+                  <span className="home-services__dot" style={{ background: `var(--bp-${tone}-solid)` }} />
+                  <span className="home-services__name">{SERVICE_LABELS[name] ?? name}</span>
+                  <span style={{ color: `var(--bp-${tone}-fg)` }}>
                     {check.status === 'Healthy'
                       ? 'Hoạt động'
                       : check.status === 'Degraded'
                         ? 'Suy giảm'
                         : 'Lỗi'}
-                  </Tag>
-                  <span>{SERVICE_LABELS[name] ?? name}</span>
-                </Space>
-              ))}
-            </Space>
-          )}
-        </Card>
-      </Col>
-    </Row>
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </Panel>
+    </div>
   );
 }
 
-function StatCard({
+function PaymentPanel({
+  data,
   title,
-  value,
-  suffix,
-  to,
-  danger,
 }: {
+  data: { month: string; paid: number; unpaid: number }[];
   title: string;
-  value: number | string;
-  suffix?: string;
-  to?: string;
-  danger?: boolean;
 }) {
-  const navigate = useNavigate();
+  const total = data.reduce((s, d) => s + d.paid + d.unpaid, 0);
   return (
-    <Card hoverable={!!to} onClick={to ? () => navigate(to) : undefined} style={{ height: '100%' }}>
-      <Statistic
-        title={title}
-        value={value}
-        suffix={suffix}
-        valueStyle={danger ? { color: '#cf1322' } : undefined}
-      />
-    </Card>
+    <Panel
+      title={title}
+      extra={
+        <span className="home-panel__meta">
+          Tổng: <strong>{formatMoney(total)}</strong>
+        </span>
+      }
+    >
+      <BarChart data={data} category="month" series={PAYMENT_SERIES} stacked label={title} />
+    </Panel>
   );
 }
 
-/** Tổng quan nội bộ (spec §9.1-1). */
+/** Tổng quan nội bộ (spec §9.1-1, design/Tong quan.dc.html). */
 export function HomePage() {
   const { user, can } = useAuth();
+  const navigate = useNavigate();
   const dashboard = useInternalDashboard();
   const d = dashboard.data;
+  const debt = d ? d.paidTotal + d.unpaidTotal : 0;
   return (
     <>
       <PageHeader
@@ -127,135 +162,174 @@ export function HomePage() {
       {!d ? (
         <Card loading={dashboard.isLoading} />
       ) : (
-        <Space direction="vertical" size={16} style={{ width: '100%' }}>
-          <Row gutter={[16, 16]}>
-            <Col xs={12} lg={6}>
-              <StatCard
-                title="Tài liệu chờ tôi xử lý"
-                value={d.pendingTotal}
-                suffix={d.pendingOverdue > 0 ? `(${d.pendingOverdue} quá hạn)` : undefined}
-                to="/trinh-ky"
-                danger={d.pendingOverdue > 0}
-              />
-            </Col>
-            <Col xs={12} lg={6}>
-              <StatCard
-                title="Phiếu nhập kho cảnh báo / không hợp lệ"
-                value={`${d.warningReceipts} / ${d.invalidReceipts}`}
-                to="/nhap-kho?validation=Warning"
-                danger={d.invalidReceipts > 0}
-              />
-            </Col>
-            <Col xs={12} lg={6}>
-              <StatCard
-                title="Gọi hàng chờ NCC xác nhận (quá hạn)"
-                value={`${d.pendingCallOrders} (${d.overdueCallOrders})`}
-                to="/goi-hang?overdue=true"
-                danger={d.overdueCallOrders > 0}
-              />
-            </Col>
-            <Col xs={12} lg={6}>
-              <StatCard
-                title="Đã thanh toán / còn phải trả"
-                value={`${formatMoney(d.paidTotal)} / ${formatMoney(d.unpaidTotal)}`}
-                to="/thanh-toan?tab=valuation"
-              />
-            </Col>
-          </Row>
-          <Row gutter={[16, 16]}>
-            <Col xs={24} xl={8}>
-              <Card title="Chờ tôi xử lý theo loại" style={{ height: '100%' }}>
-                {d.pendingByType.length === 0 ? (
-                  <Empty description="Không có tài liệu chờ xử lý" />
-                ) : (
-                  <List
-                    dataSource={d.pendingByType}
-                    renderItem={(p) => (
-                      <List.Item
-                        actions={[
-                          <Link key="go" to="/trinh-ky">
-                            {p.count} tài liệu
-                          </Link>,
-                        ]}
-                      >
-                        <Space>
-                          <StatusTag domain="documentType" value={p.type} />
+        <div className="home">
+          <KpiStrip>
+            <KpiCard
+              icon={<FileSignature {...ICON} />}
+              label="Tài liệu chờ tôi xử lý"
+              value={d.pendingTotal}
+              tone={d.pendingOverdue > 0 ? 'danger' : 'primary'}
+              sub={
+                d.pendingOverdue > 0 ? `${d.pendingOverdue} tài liệu quá hạn` : 'Không có tài liệu quá hạn'
+              }
+              onClick={() => navigate('/trinh-ky')}
+            />
+            <KpiCard
+              icon={<FileWarning {...ICON} />}
+              label="Phiếu nhập kho cảnh báo / không hợp lệ"
+              value={`${d.warningReceipts} / ${d.invalidReceipts}`}
+              tone={d.invalidReceipts > 0 ? 'danger' : d.warningReceipts > 0 ? 'warning' : 'success'}
+              sub="Đối chiếu với hợp đồng và hóa đơn"
+              onClick={() => navigate('/nhap-kho?validation=Warning')}
+            />
+            <KpiCard
+              icon={<Truck {...ICON} />}
+              label="Gọi hàng chờ NCC xác nhận"
+              value={d.pendingCallOrders}
+              tone={d.overdueCallOrders > 0 ? 'orange' : 'teal'}
+              sub={
+                d.overdueCallOrders > 0
+                  ? `${d.overdueCallOrders} đơn quá hạn xác nhận`
+                  : 'Không có đơn quá hạn'
+              }
+              onClick={() => navigate('/goi-hang?overdue=true')}
+            />
+            <KpiCard
+              icon={<Wallet {...ICON} />}
+              label="Còn phải trả nhà cung cấp"
+              value={formatMoney(d.unpaidTotal)}
+              tone="purple"
+              sub={`Đã thanh toán ${formatMoney(d.paidTotal)}`}
+              percent={debt > 0 ? (d.paidTotal / debt) * 100 : 0}
+              onClick={() => navigate('/thanh-toan?tab=valuation')}
+            />
+          </KpiStrip>
+          <div className="home-grid home-grid--side">
+            <Panel title="Chờ tôi xử lý theo loại" extra={<SeeAll to="/trinh-ky" />} flush>
+              {d.pendingByType.length === 0 ? (
+                <Empty
+                  className="home-empty"
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                  description="Không có tài liệu chờ xử lý"
+                />
+              ) : (
+                <ul className="home-queue">
+                  {d.pendingByType.map((p) => (
+                    <li key={p.type}>
+                      <span className="home-queue__icon" aria-hidden>
+                        <FileClock size={18} strokeWidth={1.75} />
+                      </span>
+                      <span className="home-queue__text">
+                        <StatusTag domain="documentType" value={p.type} />
+                        <span className="home-queue__count">
+                          {p.count} tài liệu
                           {p.overdue > 0 && (
-                            <Typography.Text type="danger">{p.overdue} quá hạn</Typography.Text>
+                            <span className="home-queue__overdue">
+                              <CircleAlert size={13} aria-hidden /> {p.overdue} quá hạn
+                            </span>
                           )}
-                        </Space>
-                      </List.Item>
-                    )}
-                  />
-                )}
-              </Card>
-            </Col>
-            <Col xs={24} xl={16}>
-              <Card title="Giá trị thanh toán 12 tháng gần nhất" style={{ height: '100%' }}>
-                <BarChart data={d.payments} category="month" series={PAYMENT_SERIES} />
-              </Card>
-            </Col>
-          </Row>
-          <Row gutter={[16, 16]}>
-            <Col xs={24} xl={12}>
-              <Card title={`Hợp đồng sắp hết hạn (≤ ${d.expiryWarningDays} ngày)`}>
-                <Table
-                  rowKey="id"
-                  size="small"
-                  pagination={false}
-                  dataSource={d.expiringContracts}
-                  locale={{ emptyText: 'Không có' }}
-                  columns={[
-                    {
-                      title: 'Hợp đồng',
-                      dataIndex: 'number',
-                      render: (v: string, r) => <Link to={`/hop-dong/${r.id}`}>{v}</Link>,
-                    },
-                    { title: 'Nhà cung cấp', dataIndex: 'supplierName' },
-                    { title: 'Hết hạn', dataIndex: 'expiryDate', render: (v: string) => formatDate(v) },
-                    {
-                      title: 'Còn',
-                      dataIndex: 'daysLeft',
-                      align: 'right',
-                      render: (v: number) => (
-                        <Typography.Text type={v < 0 ? 'danger' : 'warning'}>
-                          {v < 0 ? 'Đã hết hạn' : `${v} ngày`}
-                        </Typography.Text>
-                      ),
-                    },
-                  ]}
-                />
-              </Card>
-            </Col>
-            <Col xs={24} xl={12}>
-              <Card title={`Mặt hàng sắp hết số lượng hợp đồng (≤ ${d.lowQuantityPercent}%)`}>
-                <Table
-                  rowKey={(r) => `${r.contractId}-${r.itemName}`}
-                  size="small"
-                  pagination={false}
-                  dataSource={d.lowQuantityItems}
-                  locale={{ emptyText: 'Không có' }}
-                  columns={[
-                    {
-                      title: 'Hợp đồng',
-                      dataIndex: 'contractNumber',
-                      render: (v: string, r) => <Link to={`/hop-dong/${r.contractId}`}>{v}</Link>,
-                    },
-                    { title: 'Mặt hàng', dataIndex: 'itemName' },
-                    {
-                      title: 'Còn lại',
-                      key: 'remaining',
-                      align: 'right',
-                      render: (_, r) =>
-                        `${formatQuantity(r.remaining)} / ${formatQuantity(r.quantity)} ${r.unit} (${r.percent}%)`,
-                    },
-                  ]}
-                />
-              </Card>
-            </Col>
-          </Row>
+                        </span>
+                      </span>
+                      <Button size="small" onClick={() => navigate(`/trinh-ky?documentType=${p.type}`)}>
+                        Xử lý
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Panel>
+            <PaymentPanel data={d.payments} title="Giá trị thanh toán 12 tháng gần nhất" />
+          </div>
+          <div className="home-grid home-grid--halves">
+            <Panel
+              title={`Hợp đồng sắp hết hạn (≤ ${d.expiryWarningDays} ngày)`}
+              extra={<SeeAll to="/hop-dong" />}
+              flush
+            >
+              <Table
+                rowKey="id"
+                size="small"
+                pagination={false}
+                scroll={d.expiringContracts.length ? { x: 520 } : undefined}
+                dataSource={d.expiringContracts}
+                locale={{ emptyText: 'Không có hợp đồng sắp hết hạn' }}
+                columns={[
+                  {
+                    title: 'Hợp đồng',
+                    dataIndex: 'number',
+                    render: (v: string, r) => (
+                      <Link to={`/hop-dong/${r.id}`} className="mono">
+                        {v}
+                      </Link>
+                    ),
+                  },
+                  { title: 'Nhà cung cấp', dataIndex: 'supplierName', ellipsis: true },
+                  {
+                    title: 'Hết hạn',
+                    dataIndex: 'expiryDate',
+                    width: 104,
+                    render: (v: string) => formatDate(v),
+                  },
+                  {
+                    title: 'Còn',
+                    dataIndex: 'daysLeft',
+                    align: 'right',
+                    width: 100,
+                    render: (v: number) => (
+                      <Typography.Text type={v <= 7 ? 'danger' : 'warning'} strong>
+                        {v < 0 ? 'Đã hết hạn' : `${v} ngày`}
+                      </Typography.Text>
+                    ),
+                  },
+                ]}
+              />
+            </Panel>
+            <Panel title={`Mặt hàng sắp hết số lượng hợp đồng (≤ ${d.lowQuantityPercent}%)`} flush>
+              <Table
+                rowKey={(r) => `${r.contractId}-${r.itemName}`}
+                size="small"
+                pagination={false}
+                scroll={d.lowQuantityItems.length ? { x: 520 } : undefined}
+                dataSource={d.lowQuantityItems}
+                locale={{ emptyText: 'Không có mặt hàng sắp hết số lượng' }}
+                columns={[
+                  {
+                    title: 'Hợp đồng',
+                    dataIndex: 'contractNumber',
+                    render: (v: string, r) => (
+                      <Link to={`/hop-dong/${r.contractId}`} className="mono">
+                        {v}
+                      </Link>
+                    ),
+                  },
+                  { title: 'Mặt hàng', dataIndex: 'itemName', ellipsis: true },
+                  {
+                    title: 'Còn lại',
+                    key: 'remaining',
+                    align: 'right',
+                    width: 200,
+                    render: (_, r) => (
+                      <span className="home-remaining">
+                        <span>
+                          {formatQuantity(r.remaining)} / {formatQuantity(r.quantity)} {r.unit} ({r.percent}%)
+                        </span>
+                        <span className="home-remaining__bar" aria-hidden>
+                          <span
+                            style={{
+                              width: `${Math.max(0, Math.min(100, r.percent))}%`,
+                              background: `var(--bp-${r.percent <= 10 ? 'danger' : 'warning'}-solid)`,
+                            }}
+                          />
+                        </span>
+                      </span>
+                    ),
+                  },
+                ]}
+              />
+            </Panel>
+          </div>
           {can(P.SettingManage, P.AuditView) && <SystemStatus />}
-        </Space>
+        </div>
       )}
     </>
   );
@@ -264,6 +338,7 @@ export function HomePage() {
 /** Tổng quan Cổng NCC (spec §9.2-1). */
 export function SupplierHomePage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const dashboard = useSupplierDashboard();
   const d = dashboard.data;
   return (
@@ -272,56 +347,68 @@ export function SupplierHomePage() {
       {!d ? (
         <Card loading={dashboard.isLoading} />
       ) : (
-        <Space direction="vertical" size={16} style={{ width: '100%' }}>
-          <Row gutter={[16, 16]}>
-            <Col xs={12} lg={6}>
-              <StatCard title="Tài liệu chờ ký" value={d.pendingSigning} to="/ncc/trinh-ky" />
-            </Col>
-            <Col xs={12} lg={6}>
-              <StatCard
-                title="Đơn gọi hàng chờ xác nhận (quá hạn)"
-                value={`${d.callOrdersAwaiting} (${d.callOrdersOverdue})`}
-                to="/ncc/goi-hang"
-                danger={d.callOrdersOverdue > 0}
-              />
-            </Col>
-            <Col xs={12} lg={6}>
-              <StatCard title="Hợp đồng đang hiệu lực" value={d.effectiveContracts} to="/ncc/hop-dong" />
-            </Col>
-            <Col xs={12} lg={6}>
-              <StatCard
-                title="Phiếu nhập kho cần bổ sung hóa đơn"
-                value={d.receiptsWithoutInvoice}
-                to="/ncc/nhap-kho?hasInvoice=false"
-                danger={d.receiptsWithoutInvoice > 0}
-              />
-            </Col>
-          </Row>
-          <Row gutter={[16, 16]}>
-            <Col xs={24} xl={8}>
-              <Card title="Công nợ bệnh viện còn phải trả" style={{ height: '100%' }}>
-                <Space direction="vertical" size={16}>
-                  <Statistic
-                    title="Đã xác định giá trị (08a), chưa thanh toán"
-                    value={formatMoney(d.valuedUnpaid)}
-                    valueStyle={{ color: '#fa8c16' }}
-                  />
-                  <Statistic title="Đã nghiệm thu, chưa lập 08a" value={formatMoney(d.acceptedNotValued)} />
-                  <Statistic
-                    title="Đã được thanh toán"
-                    value={formatMoney(d.paidTotal)}
-                    valueStyle={{ color: '#389e0d' }}
-                  />
-                </Space>
-              </Card>
-            </Col>
-            <Col xs={24} xl={16}>
-              <Card title="Thanh toán 12 tháng gần nhất" style={{ height: '100%' }}>
-                <BarChart data={d.payments} category="month" series={PAYMENT_SERIES} />
-              </Card>
-            </Col>
-          </Row>
-        </Space>
+        <div className="home">
+          <KpiStrip>
+            <KpiCard
+              icon={<FileSignature {...ICON} />}
+              label="Tài liệu chờ ký"
+              value={d.pendingSigning}
+              sub="Hợp đồng, phụ lục, biên bản cần Quý công ty ký"
+              onClick={() => navigate('/ncc/trinh-ky')}
+            />
+            <KpiCard
+              icon={<Truck {...ICON} />}
+              label="Đơn gọi hàng chờ xác nhận"
+              value={d.callOrdersAwaiting}
+              tone={d.callOrdersOverdue > 0 ? 'orange' : 'teal'}
+              sub={
+                d.callOrdersOverdue > 0
+                  ? `${d.callOrdersOverdue} đơn quá hạn xác nhận`
+                  : 'Không có đơn quá hạn'
+              }
+              onClick={() => navigate('/ncc/goi-hang')}
+            />
+            <KpiCard
+              icon={<Building2 {...ICON} />}
+              label="Hợp đồng đang hiệu lực"
+              value={d.effectiveContracts}
+              tone="success"
+              onClick={() => navigate('/ncc/hop-dong')}
+            />
+            <KpiCard
+              icon={<Receipt {...ICON} />}
+              label="Phiếu nhập kho cần bổ sung hóa đơn"
+              value={d.receiptsWithoutInvoice}
+              tone={d.receiptsWithoutInvoice > 0 ? 'danger' : 'success'}
+              onClick={() => navigate('/ncc/nhap-kho?hasInvoice=false')}
+            />
+          </KpiStrip>
+          <div className="home-grid home-grid--side">
+            <Panel title="Công nợ bệnh viện còn phải trả">
+              <ul className="home-debt">
+                <li>
+                  <span className="home-debt__label">Đã xác định giá trị (08a), chưa thanh toán</span>
+                  <span className="home-debt__value" style={{ color: 'var(--bp-orange-fg)' }}>
+                    {formatMoney(d.valuedUnpaid)}
+                  </span>
+                </li>
+                <li>
+                  <span className="home-debt__label">Đã nghiệm thu, chưa lập 08a</span>
+                  <span className="home-debt__value">{formatMoney(d.acceptedNotValued)}</span>
+                </li>
+                <li>
+                  <span className="home-debt__label">
+                    <PackageCheck size={14} aria-hidden /> Đã được thanh toán
+                  </span>
+                  <span className="home-debt__value" style={{ color: 'var(--bp-success-fg)' }}>
+                    {formatMoney(d.paidTotal)}
+                  </span>
+                </li>
+              </ul>
+            </Panel>
+            <PaymentPanel data={d.payments} title="Thanh toán 12 tháng gần nhất" />
+          </div>
+        </div>
       )}
     </>
   );

@@ -1,0 +1,177 @@
+/* Dashboard bar chart — design/Tong quan.dc.html. */
+.bar-chart {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bar-chart__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 12.5px;
+  color: var(--bp-text-2);
+}
+
+.bar-chart__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bar-chart__swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex: none;
+}
+
+.bar-chart__plot {
+  display: flex;
+  gap: 8px;
+}
+
+.bar-chart__axis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-end;
+  min-width: 44px;
+  font-size: 11px;
+  color: var(--bp-caption);
+  font-variant-numeric: tabular-nums;
+  transform: translateY(-6px);
+}
+
+.bar-chart__axis span {
+  line-height: 12px;
+}
+
+.bar-chart__area {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.bar-chart__grid {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.bar-chart__grid span {
+  border-top: 1px dashed var(--bp-border);
+}
+
+.bar-chart__grid span:last-child {
+  border-top-style: solid;
+}
+
+.bar-chart__columns {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+}
+
+.bar-chart__column {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+  border-radius: 4px;
+  outline: none;
+}
+
+.bar-chart__column:hover,
+.bar-chart__column:focus-visible {
+  background: var(--bp-hover);
+}
+
+.bar-chart__column:focus-visible {
+  box-shadow: 0 0 0 2px var(--bp-primary-solid);
+}
+
+.bar-chart__column--stacked {
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0;
+}
+
+.bar-chart__bar {
+  width: min(28px, 30%);
+  border-radius: 3px 3px 0 0;
+}
+
+.bar-chart__column--stacked .bar-chart__bar {
+  width: min(36px, 64%);
+  border-radius: 0;
+}
+
+.bar-chart__column--stacked .bar-chart__bar:first-child {
+  border-radius: 3px 3px 0 0;
+}
+
+.bar-chart__labels {
+  display: flex;
+  margin-left: 52px;
+  font-size: 11px;
+  color: var(--bp-caption);
+}
+
+.bar-chart__labels span {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bar-chart__tip {
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12.5px;
+}
+
+.bar-chart__tip-title {
+  font-weight: 600;
+}
+
+.bar-chart__tip-row {
+  display: grid;
+  grid-template-columns: 10px 1fr auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.bar-chart__tip-value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+
+.bar-chart__tip-total {
+  border-top: 1px solid var(--bp-border);
+  padding-top: 4px;
+  font-weight: 600;
+}
+
+@media (max-width: 560px) {
+  .bar-chart__labels span {
+    overflow: visible;
+    text-overflow: clip;
+  }
+
+  .bar-chart__labels span:nth-child(even) {
+    visibility: hidden;
+  }
+}

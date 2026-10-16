@@ -263,7 +263,7 @@ function PaymentReport() {
           <BarChart
             data={byPeriod}
             category="period"
-            series={[{ key: 'paid', label: 'Đã thanh toán (UNC)', color: '#1677ff' }]}
+            series={[{ key: 'paid', label: 'Đã thanh toán (UNC)', color: 'var(--bp-primary-solid)' }]}
           />
         </Col>
         <Col xs={24} xl={12}>
