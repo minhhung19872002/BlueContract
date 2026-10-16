@@ -1,0 +1,32 @@
+# Secrets / local env
+.env
+*.local.json
+appsettings.*.local.json
+
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+TestResults/
+coverage/
+**/logs/
+
+# Node / frontend
+node_modules/
+dist/
+frontend/test-results/
+frontend/playwright-report/
+frontend/e2e/.output/
+*.tsbuildinfo
+
+# Backups
+backups/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json

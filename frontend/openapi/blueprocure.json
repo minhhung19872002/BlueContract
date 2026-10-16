@@ -1,0 +1,78 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "BlueProcure API",
+    "description": "Cổng Quản lý & Thanh toán Mua sắm Hàng hóa Trực tuyến",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/system/info": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "summary": "Public build/runtime information, used by the web app to verify API connectivity.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/SystemInfoResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SystemInfoResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SystemInfoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "SystemInfoResponse": {
+        "required": [
+          "name",
+          "version",
+          "environment",
+          "serverTimeUtc",
+          "todayLocal"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "environment": {
+            "type": "string"
+          },
+          "serverTimeUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "todayLocal": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "System"
+    }
+  ]
+}

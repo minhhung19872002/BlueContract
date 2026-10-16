@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# Pre-commit: verify formatting of staged backend/frontend changes (spec §15).
+# Enabled by scripts/dev-up.* via `git config core.hooksPath .githooks`.
+set -euo pipefail
+root="$(git rev-parse --show-toplevel)"
+staged="$(git diff --cached --name-only --diff-filter=ACM)"
+
+if echo "$staged" | grep -qE '^backend/.*\.cs$'; then
+  echo "pre-commit: dotnet format --verify-no-changes"
+  (cd "$root/backend" && dotnet format BlueProcure.sln --verify-no-changes --no-restore) || {
+    echo "Định dạng C# chưa đúng. Chạy: cd backend && dotnet format" >&2; exit 1; }
+fi
+
+if echo "$staged" | grep -qE '^frontend/src/.*\.(ts|tsx|css)$'; then
+  echo "pre-commit: prettier --check + eslint"
+  (cd "$root/frontend" && npx --no-install prettier --check "src/**/*.{ts,tsx,css}" && npx --no-install eslint .) || {
+    echo "Định dạng/lint frontend chưa đạt. Chạy: cd frontend && npm run format && npm run lint" >&2; exit 1; }
+fi

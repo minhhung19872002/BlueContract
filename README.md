@@ -1,0 +1,68 @@
+# BlueProcure
+
+Cổng Quản lý & Thanh toán Mua sắm Hàng hóa Trực tuyến cho bệnh viện. Hệ thống số hóa và ký số toàn bộ vòng đời hợp đồng mua sắm, từ Quyết định thầu đến Thanh lý hợp đồng.
+
+- Đặc tả: [`docs/SPEC.md`](docs/SPEC.md)
+- Tiến độ: [`PROGRESS.md`](PROGRESS.md)
+- Quyết định kiến trúc: [`docs/DECISIONS.md`](docs/DECISIONS.md)
+
+## Chạy nhanh trên Windows
+
+Yêu cầu: **Docker Desktop**, **Git**. PowerShell 5.1 hoặc 7 đều chạy được.
+
+```powershell
+git clone <repo-url> BlueContract
+cd BlueContract
+powershell -ExecutionPolicy Bypass -File scripts\dev-up.ps1
+```
+
+Lần đầu chạy sẽ mất vài phút vì phải tải image (riêng ONLYOFFICE khoảng 3–4 GB). Script tự làm các việc sau: tạo `.env`, build image, khởi động toàn bộ service, chạy migration, seed dữ liệu, tạo bucket MinIO, rồi chờ đến khi `/health/ready` trả về xanh.
+
+| Dịch vụ | URL |
+|---|---|
+| Web | http://localhost:47080 |
+| API docs (Scalar) | http://localhost:47080/docs |
+| Health | http://localhost:47080/health/ready |
+| Mailpit (email dev) | http://localhost:47025 |
+| MinIO console | http://localhost:47901 (`minioadmin` / `minioadmin_dev`) |
+| ONLYOFFICE | http://localhost:47082 |
+| Hangfire dashboard | http://localhost:47080/hangfire *(từ Phase 3)* |
+| Seq (tùy chọn) | http://localhost:47341, chạy bằng `scripts\dev-up.ps1 -Seq` |
+
+Có thể đổi các cổng trong `.env` (xem `.env.example`).
+
+### Tài khoản demo
+Tài khoản demo được seed từ **Phase 1**, mật khẩu chung `Demo@123`: `admin`, `muasam`, `rasoat`, `khoanoi`, `tonghop`, `totruongduoc`, `ketoan`, `ketoantruong`, `ketoankho`, `thukho`, `truongkhoa`, `giamdoc`, `vanthu`, `ncc1`, `ncc1.user`, `ncc2`, `ncc2.user`, `ncc3`, `ncc3.user`.
+
+## Scripts
+
+| Việc | PowerShell | Bash |
+|---|---|---|
+| Khởi động stack | `scripts\dev-up.ps1 [-Seq] [-NoBuild]` | `scripts/dev-up.sh [--seq] [--no-build]` |
+| Migrate + seed lại | `scripts\seed.ps1 [-ResetDemo]` | `scripts/seed.sh [--reset-demo]` |
+| Xóa sạch DB + MinIO | `scripts\reset-db.ps1 [-Force]` | `scripts/reset-db.sh [--force]` |
+| Sao lưu (giữ 30 bản) | `scripts\backup.ps1` | `scripts/backup.sh` |
+
+## Phát triển không qua Docker (tùy chọn)
+
+Cần cài **.NET 10 SDK** và **Node.js 22**. Hạ tầng (Postgres, MinIO, Gotenberg…) vẫn chạy bằng Docker.
+
+```powershell
+docker compose up -d postgres minio gotenberg onlyoffice mailpit
+cd backend;  dotnet run --project src/BlueProcure.Api          # http://localhost:5296
+cd frontend; npm install; npm run dev                           # http://localhost:5173 (proxy /api → 5296)
+```
+
+- Chạy test backend: `cd backend; dotnet test`. Integration test dùng Testcontainers nên cần Docker đang chạy.
+- Chạy kiểm tra frontend: `cd frontend; npm run lint; npm test; npm run build`
+- Sinh lại TS client sau khi đổi API: `cd backend; dotnet build`, rồi `cd frontend; npm run gen:api`
+
+## Cấu trúc
+
+```
+backend/   .NET 10 — Domain / Application / Infrastructure / Api + tests
+frontend/  React 18 + Vite + TypeScript + Ant Design 5
+templates/ Mẫu DOCX/XLSX (Phase 2+)
+scripts/   dev-up, seed, reset-db, backup (.ps1 + .sh)
+docs/      SPEC, DECISIONS, (DEPLOY, USER_GUIDE, HIS_INTEGRATION, API — Phase 9)
+```
