@@ -15,8 +15,11 @@ export function DocHeader({
   sub,
   actions,
   back,
+  plain,
 }: {
   code: ReactNode;
+  /** The heading is a name, not a number: regular font instead of mono. */
+  plain?: boolean;
   tags?: ReactNode;
   title?: ReactNode;
   sub?: ReactNode;
@@ -40,7 +43,9 @@ export function DocHeader({
       <div className="doc-header__row">
         <div className="doc-header__text">
           <div className="doc-header__code-row">
-            <h1 className="doc-header__code">{code}</h1>
+            <h1 className={plain ? 'doc-header__code doc-header__code--plain' : 'doc-header__code'}>
+              {code}
+            </h1>
             {tags}
           </div>
           {title && <div className="doc-header__title">{title}</div>}
@@ -198,5 +203,31 @@ export function StickyActionBar({ summary, children }: { summary?: ReactNode; ch
       <div className="sticky-actions__summary">{summary}</div>
       <div className="sticky-actions__buttons">{children}</div>
     </div>
+  );
+}
+
+/** Card with a 15/600 title and an optional action on the right (design "card"). */
+export function Panel({
+  title,
+  extra,
+  children,
+  flush,
+  className,
+}: {
+  title: ReactNode;
+  extra?: ReactNode;
+  children: ReactNode;
+  /** No body padding (tables, lists). */
+  flush?: boolean;
+  className?: string;
+}) {
+  return (
+    <section className={className ? `panel ${className}` : 'panel'}>
+      <header className="panel__head">
+        <h2 className="panel__title">{title}</h2>
+        {extra}
+      </header>
+      <div className={flush ? 'panel__body panel__body--flush' : 'panel__body'}>{children}</div>
+    </section>
   );
 }

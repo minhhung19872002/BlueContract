@@ -68,6 +68,18 @@ export function flattenNav(groups: NavGroup[]): FlatNavItem[] {
   );
 }
 
+/** Pages reached from links only (no menu entry), for the breadcrumb. */
+const PAGES_OUTSIDE_MENU: { path: string; group: string; label: string }[] = [
+  { path: '/tai-lieu', group: 'Làm việc', label: 'Tài liệu' },
+  { path: '/thong-bao', group: 'Làm việc', label: 'Thông báo' },
+  { path: '/tai-khoan', group: 'Cá nhân', label: 'Tài khoản' },
+];
+
+function pageOutsideMenu(pathname: string) {
+  const path = pathname.replace(/^\/ncc(?=\/)/, '');
+  return PAGES_OUTSIDE_MENU.find((p) => path === p.path || path.startsWith(p.path + '/'));
+}
+
 /** Counters of the menu badges; the dashboard query is shared with the home page (same cache key). */
 function useNavBadges(isSupplier: boolean, canInbox: boolean): Record<NavBadge, number> {
   const inbox = useInboxCount(canInbox);
@@ -167,6 +179,7 @@ export function AppShell({ brand, subtitle, nav }: { brand: string; subtitle: st
         .sort((a, b) => b.key.length - a.key.length)[0],
     [flat, location.pathname],
   );
+  const crumb = current ?? pageOutsideMenu(location.pathname);
   const selected = current ? [current.key] : [];
   const parentOfCurrent = groups
     .flatMap((g) => g.items)
@@ -298,14 +311,14 @@ export function AppShell({ brand, subtitle, nav }: { brand: string; subtitle: st
           )}
           <nav aria-label="Breadcrumb" className="app-header__crumbs">
             <House size={14} strokeWidth={1.75} aria-hidden />
-            {current && screens.md && (
+            {crumb && screens.md && (
               <>
                 <ChevronRight size={14} strokeWidth={1.75} aria-hidden />
-                <span className="app-header__crumb-group">{current.group}</span>
+                <span className="app-header__crumb-group">{crumb.group}</span>
               </>
             )}
             <ChevronRight size={14} strokeWidth={1.75} aria-hidden />
-            <span className="app-header__crumb-page">{current?.label ?? subtitle}</span>
+            <span className="app-header__crumb-page">{crumb?.label ?? subtitle}</span>
           </nav>
           <div style={{ flex: 1 }} />
           {screens.md ? (

@@ -11,7 +11,6 @@ import {
   Truck,
   Wallet,
 } from 'lucide-react';
-import type { ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useReadiness, useSystemInfo } from '../api/system';
 import { useInternalDashboard, useSupplierDashboard } from '../api/reports';
@@ -21,7 +20,7 @@ import { P } from '../auth/permissions';
 import { BarChart } from '../components/BarChart';
 import { StatusTag } from '../components/StatusTag';
 import { PageHeader } from '../components/common';
-import { InfoGrid } from '../components/layout';
+import { InfoGrid, Panel } from '../components/layout';
 import { KpiCard, KpiStrip } from '../components/patterns';
 import { formatDate, formatDateTime, formatMoney, formatQuantity } from '../utils/format';
 import './home.css';
@@ -39,35 +38,9 @@ const PAYMENT_SERIES = [
 
 const ICON = { size: 20, strokeWidth: 1.75, 'aria-hidden': true } as const;
 
-/** Card of the dashboard (design "card" with a 15/600 title and an optional action on the right). */
-function Panel({
-  title,
-  extra,
-  children,
-  flush,
-}: {
-  title: ReactNode;
-  extra?: ReactNode;
-  children: ReactNode;
-  /** No body padding (tables, lists). */
-  flush?: boolean;
-}) {
-  return (
-    <section className="home-panel">
-      <header className="home-panel__head">
-        <h2 className="home-panel__title">{title}</h2>
-        {extra}
-      </header>
-      <div className={flush ? 'home-panel__body home-panel__body--flush' : 'home-panel__body'}>
-        {children}
-      </div>
-    </section>
-  );
-}
-
 function SeeAll({ to }: { to: string }) {
   return (
-    <Link to={to} className="home-panel__link">
+    <Link to={to} className="panel__link">
       Xem tất cả
       <ArrowRight size={14} aria-hidden />
     </Link>
@@ -136,7 +109,7 @@ function PaymentPanel({
     <Panel
       title={title}
       extra={
-        <span className="home-panel__meta">
+        <span className="panel__meta">
           Tổng: <strong>{formatMoney(total)}</strong>
         </span>
       }

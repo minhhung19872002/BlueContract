@@ -62,6 +62,12 @@ h1.doc-header__code {
   overflow-wrap: anywhere;
 }
 
+h1.doc-header__code--plain {
+  font-family: inherit;
+  font-size: 22px;
+  letter-spacing: -0.015em;
+}
+
 .doc-header__title {
   font-size: 16px;
   font-weight: 500;
@@ -75,6 +81,8 @@ h1.doc-header__code {
 .doc-header__actions {
   display: flex;
   flex-wrap: wrap;
+  flex-shrink: 0;
+  max-width: 100%;
   gap: 8px;
 }
 
@@ -299,4 +307,68 @@ h1.doc-header__code {
     margin: 16px -12px -12px;
     padding: 10px 12px;
   }
+}
+
+/* ---------- Panel (card with a 15/600 title and an action on the right) ---------- */
+.panel {
+  background: var(--bp-card);
+  border: 1px solid var(--bp-border);
+  border-radius: 12px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--bp-border);
+}
+
+.panel__title {
+  margin: 0;
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 600;
+}
+
+.panel__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.panel__meta {
+  font-size: 12.5px;
+  color: var(--bp-text-2);
+  white-space: nowrap;
+}
+
+.panel__meta strong {
+  color: var(--bp-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.panel__body {
+  padding: 16px;
+  flex: 1;
+}
+
+.panel__body--flush {
+  padding: 0;
+}
+
+.panel__body--flush .ant-table-wrapper .ant-table {
+  border-radius: 0 0 12px 12px;
+}
+
+/* Dropdown.Button renders a full-width compact block; keep it on the actions row. */
+.doc-header__actions .ant-space-compact-block {
+  width: auto;
 }

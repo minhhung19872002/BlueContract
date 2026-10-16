@@ -1,14 +1,11 @@
 import {
-  Alert,
   App,
   Button,
   Card,
-  Col,
-  Descriptions,
   Dropdown,
+  Empty,
   Form,
   Modal,
-  Row,
   Select,
   Space,
   Table,
@@ -55,7 +52,8 @@ import { SignatureList, VerifyVerdictBanner } from '../signing/VerifySignaturePa
 import { DocEditor } from '../../components/DocEditor';
 import { PdfViewer } from '../../components/PdfViewer';
 import { StatusTag } from '../../components/StatusTag';
-import { PageHeader, useApiError } from '../../components/common';
+import { useApiError } from '../../components/common';
+import { Banner, DetailGrid, DocHeader, Panel } from '../../components/layout';
 import { formatDateTime } from '../../utils/format';
 
 function formatSize(bytes?: number | null) {
@@ -195,221 +193,255 @@ export function DocumentPage() {
   const canStart =
     !!d?.canEdit && d.status === 'Draft' && (!wf || wf.status === 'Completed' || wf.status === 'Cancelled');
 
-  return (
-    <>
-      <PageHeader
-        title={d?.title ?? 'Tài liệu'}
-        subtitle={
-          d ? (
+  const versionsTable = (
+    <Table<DocumentVersionDto>
+      rowKey="id"
+      size="middle"
+      pagination={false}
+      dataSource={d?.versions ?? []}
+      scroll={{ x: 'max-content' }}
+      columns={[
+        {
+          title: 'Phiên bản',
+          dataIndex: 'versionNumber',
+          render: (v: number, r) => (
             <Space>
-              <StatusTag domain="documentType" value={d.type} />
-              <StatusTag domain="documentStatus" value={d.status} />
+              v{v}
+              {r.isCurrent && <Tag color="blue">Hiện tại</Tag>}
+              {r.isLocked && (
+                <Tag icon={<LockOutlined />} color="purple">
+                  {r.signatureCount} chữ ký
+                </Tag>
+              )}
+              {r.isFinal && <Tag color="green">Bản cuối</Tag>}
             </Space>
-          ) : undefined
-        }
-        extra={
-          d?.canEdit && (
+          ),
+        },
+        { title: 'Lý do', dataIndex: 'reason' },
+        {
+          title: 'Người tạo',
+          dataIndex: 'createdByName',
+          render: (v: string, r) => `${v ?? ''} · ${formatDateTime(r.createdAt)}`,
+        },
+        {
+          title: 'DOCX',
+          key: 'docx',
+          render: (_, r) =>
+            r.hasDocx ? (
+              <Space direction="vertical" size={0}>
+                <Hash value={r.docxSha256} />
+                <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                  {formatSize(r.docxSize)}
+                </Typography.Text>
+              </Space>
+            ) : (
+              '—'
+            ),
+        },
+        {
+          title: 'PDF',
+          key: 'pdf',
+          render: (_, r) =>
+            r.hasPdf ? (
+              <Space direction="vertical" size={0}>
+                <Hash value={r.pdfSha256} />
+                <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                  {formatSize(r.pdfSize)}
+                </Typography.Text>
+              </Space>
+            ) : (
+              '—'
+            ),
+        },
+        {
+          title: '',
+          key: 'actions',
+          render: (_, r) => (
             <Space wrap>
-              {canStart && (
-                <Button type="primary" icon={<SendOutlined />} onClick={() => setStarting(true)}>
-                  Gửi ký
+              {r.hasPdf ? (
+                <Button size="small" icon={<EyeOutlined />} onClick={() => setViewing(r)}>
+                  Xem PDF
+                </Button>
+              ) : (
+                r.hasDocx &&
+                !r.isLocked && (
+                  <Button
+                    size="small"
+                    icon={<FilePdfOutlined />}
+                    loading={renderPdf.isPending && renderPdf.variables === r.id}
+                    onClick={() =>
+                      renderPdf.mutateAsync(r.id).then(() => message.success('Đã tạo bản PDF'), onError)
+                    }
+                  >
+                    Tạo PDF
+                  </Button>
+                )
+              )}
+              {r.signatureCount > 0 && (
+                <Button
+                  size="small"
+                  icon={<SafetyCertificateOutlined />}
+                  onClick={() =>
+                    verifyVersion(d!.id, r.id).then(
+                      (result) => setVerified({ version: r.versionNumber, result }),
+                      onError,
+                    )
+                  }
+                >
+                  Xác minh chữ ký
                 </Button>
               )}
-              <Dropdown.Button
-                type={canStart ? 'default' : 'primary'}
-                icon={<EditOutlined />}
-                loading={startEdit.isPending}
-                disabled={!current?.hasDocx}
-                onClick={() => openEditor('Edit')}
-                menu={{
-                  items: [
-                    { key: 'Review', label: 'Mở chế độ rà soát (bắt buộc theo dõi thay đổi)' },
-                    { key: 'View', label: 'Chỉ xem' },
-                  ],
-                  onClick: ({ key }) => openEditor(key as EditorMode),
-                }}
-              >
-                Sửa trực tuyến
-              </Dropdown.Button>
-              <Upload
-                accept=".docx,.pdf"
-                showUploadList={false}
-                beforeUpload={(file) => {
-                  upload
-                    .mutateAsync({ file })
-                    .then(() => message.success('Đã tải lên phiên bản mới'), onError);
-                  return false;
-                }}
-              >
-                <Button icon={<UploadOutlined />} loading={upload.isPending}>
-                  Tải lên phiên bản
+              {r.hasDocx && (
+                <Button
+                  size="small"
+                  icon={<DownloadOutlined />}
+                  onClick={() =>
+                    downloadDocumentFile(d!.id, r.id, 'docx', `tai-lieu_v${r.versionNumber}.docx`).catch(
+                      onError,
+                    )
+                  }
+                >
+                  DOCX
                 </Button>
-              </Upload>
+              )}
+              {r.hasPdf && (
+                <Button
+                  size="small"
+                  icon={<DownloadOutlined />}
+                  onClick={() =>
+                    downloadDocumentFile(d!.id, r.id, 'pdf', `tai-lieu_v${r.versionNumber}.pdf`).catch(
+                      onError,
+                    )
+                  }
+                >
+                  PDF
+                </Button>
+              )}
             </Space>
+          ),
+        },
+      ]}
+    />
+  );
+
+  const actions = d?.canEdit && (
+    <>
+      {canStart && (
+        <Button type="primary" icon={<SendOutlined />} onClick={() => setStarting(true)}>
+          Gửi ký
+        </Button>
+      )}
+      <Dropdown.Button
+        type={canStart ? 'default' : 'primary'}
+        icon={<EditOutlined />}
+        loading={startEdit.isPending}
+        disabled={!current?.hasDocx}
+        onClick={() => openEditor('Edit')}
+        menu={{
+          items: [
+            { key: 'Review', label: 'Mở chế độ rà soát (bắt buộc theo dõi thay đổi)' },
+            { key: 'View', label: 'Chỉ xem' },
+          ],
+          onClick: ({ key }) => openEditor(key as EditorMode),
+        }}
+      >
+        Sửa trực tuyến
+      </Dropdown.Button>
+      <Upload
+        accept=".docx,.pdf"
+        showUploadList={false}
+        beforeUpload={(file) => {
+          upload.mutateAsync({ file }).then(() => message.success('Đã tải lên phiên bản mới'), onError);
+          return false;
+        }}
+      >
+        <Button icon={<UploadOutlined />} loading={upload.isPending}>
+          Tải lên phiên bản
+        </Button>
+      </Upload>
+    </>
+  );
+
+  if (!d) return <Card loading={doc.isLoading} />;
+
+  return (
+    <>
+      <DocHeader
+        back={{ to: -1, label: 'Quay lại' }}
+        plain
+        code={d.title}
+        tags={
+          <>
+            <StatusTag domain="documentType" value={d.type} />
+            <StatusTag domain="documentStatus" value={d.status} />
+          </>
+        }
+        sub={[
+          d.templateName && `Mẫu: ${d.templateName}`,
+          current && `Phiên bản hiện tại v${current.versionNumber}`,
+          `${d.versions.length} phiên bản`,
+        ]
+          .filter(Boolean)
+          .join(' · ')}
+        actions={actions}
+      />
+      {awaitingSave && <Banner tone="info" title="Đang chờ trình soạn thảo lưu phiên bản mới…" />}
+      <DetailGrid
+        main={
+          <>
+            <Panel
+              title={current ? `Nội dung — v${current.versionNumber}` : 'Nội dung'}
+              flush
+              extra={
+                current?.signatureCount ? (
+                  <Tag icon={<LockOutlined />} color="purple">
+                    {current.signatureCount} chữ ký
+                  </Tag>
+                ) : undefined
+              }
+            >
+              {current?.hasPdf ? (
+                <PdfViewer
+                  load={() => fetchDocumentFile(d.id, current.id, 'pdf')}
+                  cacheKey={`${current.id}:${current.pdfSha256}`}
+                  height="72vh"
+                  fileName={`tai-lieu_v${current.versionNumber}.pdf`}
+                />
+              ) : (
+                <Empty
+                  style={{ padding: 32 }}
+                  description={
+                    current?.hasDocx
+                      ? 'Phiên bản hiện tại chưa có bản PDF — bấm "Tạo PDF" ở bảng phiên bản.'
+                      : 'Chưa có nội dung'
+                  }
+                />
+              )}
+            </Panel>
+            <Panel title={`Các phiên bản (${d.versions.length})`} flush>
+              <div style={{ padding: '12px 16px' }}>
+                <Banner
+                  tone="warning"
+                  title="Phiên bản đã có chữ ký số là bất biến. Mọi chỉnh sửa sau đó tạo phiên bản mới và luồng ký phải bắt đầu lại."
+                />
+              </div>
+              {versionsTable}
+            </Panel>
+          </>
+        }
+        side={
+          wf ? (
+            <WorkflowCard wf={wf} />
+          ) : (
+            <Panel title="Luồng ký">
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description={workflow.isLoading ? 'Đang tải…' : 'Tài liệu chưa được gửi ký'}
+              />
+            </Panel>
           )
         }
       />
-      {awaitingSave && (
-        <Alert
-          type="info"
-          showIcon
-          style={{ marginBottom: 12 }}
-          message="Đang chờ trình soạn thảo lưu phiên bản mới..."
-        />
-      )}
-      <Card loading={doc.isLoading} style={{ marginBottom: 16 }}>
-        {d && (
-          <Descriptions size="small" column={{ xs: 1, md: 3 }}>
-            <Descriptions.Item label="Mẫu biểu">{d.templateName ?? '—'}</Descriptions.Item>
-            <Descriptions.Item label="Phiên bản hiện tại">v{current?.versionNumber}</Descriptions.Item>
-            <Descriptions.Item label="Số phiên bản">{d.versions.length}</Descriptions.Item>
-          </Descriptions>
-        )}
-      </Card>
-      {wf && (
-        <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-          <Col span={24}>
-            <WorkflowCard wf={wf} />
-          </Col>
-        </Row>
-      )}
-      <Card title="Các phiên bản">
-        <Alert
-          type="warning"
-          showIcon
-          style={{ marginBottom: 12 }}
-          message="Phiên bản đã có chữ ký số là bất biến. Mọi chỉnh sửa sau đó tạo phiên bản mới và luồng ký phải bắt đầu lại."
-        />
-        <Table<DocumentVersionDto>
-          rowKey="id"
-          size="middle"
-          pagination={false}
-          dataSource={d?.versions ?? []}
-          scroll={{ x: 'max-content' }}
-          columns={[
-            {
-              title: 'Phiên bản',
-              dataIndex: 'versionNumber',
-              render: (v: number, r) => (
-                <Space>
-                  v{v}
-                  {r.isCurrent && <Tag color="blue">Hiện tại</Tag>}
-                  {r.isLocked && (
-                    <Tag icon={<LockOutlined />} color="purple">
-                      {r.signatureCount} chữ ký
-                    </Tag>
-                  )}
-                  {r.isFinal && <Tag color="green">Bản cuối</Tag>}
-                </Space>
-              ),
-            },
-            { title: 'Lý do', dataIndex: 'reason' },
-            {
-              title: 'Người tạo',
-              dataIndex: 'createdByName',
-              render: (v: string, r) => `${v ?? ''} · ${formatDateTime(r.createdAt)}`,
-            },
-            {
-              title: 'DOCX',
-              key: 'docx',
-              render: (_, r) =>
-                r.hasDocx ? (
-                  <Space direction="vertical" size={0}>
-                    <Hash value={r.docxSha256} />
-                    <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                      {formatSize(r.docxSize)}
-                    </Typography.Text>
-                  </Space>
-                ) : (
-                  '—'
-                ),
-            },
-            {
-              title: 'PDF',
-              key: 'pdf',
-              render: (_, r) =>
-                r.hasPdf ? (
-                  <Space direction="vertical" size={0}>
-                    <Hash value={r.pdfSha256} />
-                    <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                      {formatSize(r.pdfSize)}
-                    </Typography.Text>
-                  </Space>
-                ) : (
-                  '—'
-                ),
-            },
-            {
-              title: '',
-              key: 'actions',
-              render: (_, r) => (
-                <Space wrap>
-                  {r.hasPdf ? (
-                    <Button size="small" icon={<EyeOutlined />} onClick={() => setViewing(r)}>
-                      Xem PDF
-                    </Button>
-                  ) : (
-                    r.hasDocx &&
-                    !r.isLocked && (
-                      <Button
-                        size="small"
-                        icon={<FilePdfOutlined />}
-                        loading={renderPdf.isPending && renderPdf.variables === r.id}
-                        onClick={() =>
-                          renderPdf.mutateAsync(r.id).then(() => message.success('Đã tạo bản PDF'), onError)
-                        }
-                      >
-                        Tạo PDF
-                      </Button>
-                    )
-                  )}
-                  {r.signatureCount > 0 && (
-                    <Button
-                      size="small"
-                      icon={<SafetyCertificateOutlined />}
-                      onClick={() =>
-                        verifyVersion(d!.id, r.id).then(
-                          (result) => setVerified({ version: r.versionNumber, result }),
-                          onError,
-                        )
-                      }
-                    >
-                      Xác minh chữ ký
-                    </Button>
-                  )}
-                  {r.hasDocx && (
-                    <Button
-                      size="small"
-                      icon={<DownloadOutlined />}
-                      onClick={() =>
-                        downloadDocumentFile(d!.id, r.id, 'docx', `tai-lieu_v${r.versionNumber}.docx`).catch(
-                          onError,
-                        )
-                      }
-                    >
-                      DOCX
-                    </Button>
-                  )}
-                  {r.hasPdf && (
-                    <Button
-                      size="small"
-                      icon={<DownloadOutlined />}
-                      onClick={() =>
-                        downloadDocumentFile(d!.id, r.id, 'pdf', `tai-lieu_v${r.versionNumber}.pdf`).catch(
-                          onError,
-                        )
-                      }
-                    >
-                      PDF
-                    </Button>
-                  )}
-                </Space>
-              ),
-            },
-          ]}
-        />
-      </Card>
-
       <Modal
         title={`Soạn thảo — ${d?.title ?? ''}`}
         open={!!session}
