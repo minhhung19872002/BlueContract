@@ -1,4 +1,4 @@
-import { ArrowLeft, CircleX, Info, TriangleAlert } from 'lucide-react';
+import { ArrowLeft, CircleCheck, CircleX, Info, TriangleAlert } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Tone } from './StatusTag';
@@ -108,7 +108,14 @@ export function Banner({
   items?: ReactNode[];
   children?: ReactNode;
 }) {
-  const Icon = tone === 'danger' ? CircleX : tone === 'warning' ? TriangleAlert : Info;
+  const Icon =
+    tone === 'danger'
+      ? CircleX
+      : tone === 'warning'
+        ? TriangleAlert
+        : tone === 'success'
+          ? CircleCheck
+          : Info;
   return (
     <div
       role={tone === 'danger' || tone === 'warning' ? 'alert' : 'status'}

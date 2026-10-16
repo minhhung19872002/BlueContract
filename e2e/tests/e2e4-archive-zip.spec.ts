@@ -22,11 +22,11 @@ test("archive dossier tree and full ZIP download with index", async ({
     .getByPlaceholder("Số hợp đồng, số quyết định, tên NCC")
     .press("Enter");
   await buyer
-    .locator(".ant-list-item")
+    .locator(".archive-list__item")
     .filter({ hasText: CONTRACT })
     .first()
     .click();
-  await expect(buyer.getByText(`Hồ sơ hợp đồng ${CONTRACT}`)).toBeVisible();
+  await expect(buyer.getByRole("heading", { name: CONTRACT })).toBeVisible();
 
   // Cây tài liệu: các nhóm từ quyết định thầu đến thanh lý.
   for (const folder of [
@@ -37,14 +37,25 @@ test("archive dossier tree and full ZIP download with index", async ({
     "Thanh lý",
   ]) {
     await expect(
-      buyer.locator(".ant-tree").getByText(folder, { exact: true }),
+      buyer.locator(".archive-tree").getByText(folder, { exact: true }),
     ).toBeVisible();
   }
-  await buyer
-    .locator(".ant-tree")
-    .getByText(/^Biên bản thanh lý TL-/)
+  const liquidationCard = buyer
+    .locator(".archive-doc")
+    .filter({ hasText: /Biên bản thanh lý TL-/ })
+    .first();
+  await expect(
+    liquidationCard.getByText(/PDF đã ký \(\d+ chữ ký\)/),
+  ).toBeVisible();
+  // The signed PDF opens in the viewer drawer.
+  await liquidationCard
+    .getByRole("button", { name: /^Biên bản thanh lý TL-/ })
     .click();
-  await expect(buyer.getByText(/PDF đã ký \(\d+ chữ ký\)/)).toBeVisible();
+  await expect(buyer.locator(".pdf-viewer__pages")).toHaveText(
+    /^Trang \d+ \/ [1-9]\d*$/,
+    { timeout: 60_000 },
+  );
+  await buyer.keyboard.press("Escape");
 
   // Tải ZIP: mỗi giai đoạn một thư mục + muc_luc.pdf.
   const [download] = await Promise.all([
@@ -67,10 +78,10 @@ test("archive dossier tree and full ZIP download with index", async ({
   expect(names.length).toBeGreaterThanOrEqual(6);
 
   // The signed liquidation PDF in the ZIP is byte-identical to the archived one (same SHA-256 as shown in the UI).
-  const shown = (await buyer
-    .locator(".ant-typography code")
+  const shown = (await liquidationCard
+    .locator("[data-sha]")
     .first()
-    .textContent())!.trim();
+    .getAttribute("data-sha"))!;
   const liquidation = names.find(
     (n) => n.startsWith("07_Thanh_ly/") && n.endsWith(".pdf"),
   )!;
