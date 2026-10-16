@@ -14,7 +14,8 @@ public class PdfSigningTests
 {
     private static readonly string[] Anchors = ["SIG_STOREKEEPER", "SIG_DELIVERER", "SIG_WAREHOUSE_ACCOUNTANT", "SIG_DEPT_HEAD", "SIG_CHIEF_ACCOUNTANT"];
     private readonly PdfSignatureService _pdf = new();
-    private readonly CmsBuilder _cms = new();
+    // No TSA configured: the HTTP client factory is never used.
+    private readonly CmsBuilder _cms = new(null!, Microsoft.Extensions.Options.Options.Create(new SigningOptions()));
 
     private static byte[] SamplePdf()
     {

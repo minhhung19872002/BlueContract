@@ -120,6 +120,7 @@ services:
       Seed__AdminPassword: ${SEED_ADMIN_PASSWORD:-}
       Signing__DefaultProvider: ${SIGNING_DEFAULT_PROVIDER:-MOCK}
       Signing__EnableMockProviders: ${SIGNING_ENABLE_MOCK:-true}
+      Signing__TsaUrl: ${SIGNING_TSA_URL:-}
       His__Provider: ${HIS_PROVIDER:-Mock}
       His__BaseUrl: ${HIS_BASE_URL:-}
       His__ApiKey: ${HIS_API_KEY:-}

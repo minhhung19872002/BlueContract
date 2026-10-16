@@ -134,6 +134,7 @@ public static class DependencyInjection
         });
         services.AddSingleton<IPdfSignatureService, PdfSignatureService>();
         services.AddSingleton<ICmsBuilder, CmsBuilder>();
+        services.AddHttpClient(CmsBuilder.TsaClient, c => c.Timeout = TimeSpan.FromSeconds(20));
         services.AddDistributedMemoryCache();
         services.AddScoped<CertificateStore>();
         services.AddScoped<IOrganizationCertificates>(sp => sp.GetRequiredService<CertificateStore>());

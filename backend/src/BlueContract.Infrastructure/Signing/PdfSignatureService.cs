@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Security.Cryptography;
 using BlueContract.Application.Signing;
+using BlueContract.Domain.Common;
 using BlueContract.Domain.Workflows;
 using iText.Bouncycastle.Cert;
 using iText.Bouncycastle.X509;
@@ -16,6 +17,7 @@ using iText.Kernel.Pdf.Canvas.Parser;
 using iText.Kernel.Pdf.Canvas.Parser.Listener;
 using iText.Layout.Borders;
 using iText.Signatures;
+using Microsoft.Extensions.Options;
 
 namespace BlueContract.Infrastructure.Signing;
 
@@ -260,9 +262,15 @@ internal sealed class PdfSignatureService : IPdfSignatureService
     }
 }
 
-/// <summary>CAdES-detached CMS (PAdES baseline B) assembled with iText's PdfPKCS7 from an external signature value.</summary>
-internal sealed class CmsBuilder : ICmsBuilder
+/// <summary>
+/// CAdES-detached CMS assembled with iText's PdfPKCS7 from an external signature value: PAdES baseline B, or B-T with an
+/// RFC 3161 signature timestamp when <see cref="SigningOptions.TsaUrl"/> is set (spec §8).
+/// </summary>
+internal sealed class CmsBuilder(IHttpClientFactory http, IOptions<SigningOptions> options) : ICmsBuilder
 {
+    /// <summary>Named HttpClient used to reach the time-stamp authority.</summary>
+    public const string TsaClient = "tsa";
+
     public byte[] GetDataToSign(byte[] documentDigest, byte[] certificate, DateTimeOffset signingTime) =>
         Create(certificate, signingTime).GetAuthenticatedAttributeBytes(documentDigest, PdfSigner.CryptoStandard.CADES, null, null);
 
@@ -271,7 +279,16 @@ internal sealed class CmsBuilder : ICmsBuilder
         var pkcs7 = Create(certificate, signingTime);
         pkcs7.GetAuthenticatedAttributeBytes(documentDigest, PdfSigner.CryptoStandard.CADES, null, null);
         pkcs7.SetExternalSignatureValue(signatureValue, null, "RSA");
-        return pkcs7.GetEncodedPKCS7(documentDigest, PdfSigner.CryptoStandard.CADES, null, null, null);
+        var tsa = string.IsNullOrWhiteSpace(options.Value.TsaUrl) ? null : new HttpTsaClient(http, options.Value.TsaUrl);
+        try
+        {
+            return pkcs7.GetEncodedPKCS7(documentDigest, PdfSigner.CryptoStandard.CADES, tsa, null, null);
+        }
+        catch (Exception ex) when (tsa is not null && ex is not OutOfMemoryException)
+        {
+            // No silent fallback: a configured TSA means every signature must carry a trusted time.
+            throw new DomainException("SIGNING_TSA_UNAVAILABLE");
+        }
     }
 
     private static PdfPKCS7 Create(byte[] certificate, DateTimeOffset signingTime)
@@ -281,5 +298,24 @@ internal sealed class CmsBuilder : ICmsBuilder
         var pkcs7 = new PdfPKCS7(null, chain, "SHA-256", false);
         pkcs7.SetSignDate(signingTime.UtcDateTime);
         return pkcs7;
+    }
+}
+
+/// <summary>
+/// iText's RFC 3161 client with the HTTP call made through <see cref="IHttpClientFactory"/> (timeouts, proxies, tests
+/// can route it to a fake TSA). Request building and response checks (nonce, imprint, status) stay iText's.
+/// </summary>
+internal sealed class HttpTsaClient(IHttpClientFactory http, string url) : TSAClientBouncyCastle(url)
+{
+    private readonly Uri _endpoint = new(url);
+
+    protected override byte[] GetTSAResponse(byte[] requestBytes)
+    {
+        using var client = http.CreateClient(CmsBuilder.TsaClient);
+        using var content = new ByteArrayContent(requestBytes);
+        content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/timestamp-query");
+        using var response = client.PostAsync(_endpoint, content).GetAwaiter().GetResult();
+        response.EnsureSuccessStatusCode();
+        return response.Content.ReadAsByteArrayAsync().GetAwaiter().GetResult();
     }
 }

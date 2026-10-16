@@ -119,9 +119,11 @@ ONLYOFFICE cần một tên miền riêng (VD `office.benhvien.vn` → `127.0.0.
 | VNPT SmartCA | `VNPT_SMARTCA` | `Signing__VnptSmartCa__BaseUrl`, `__ClientId`, `__ClientSecret` |
 | Viettel MySign | `VIETTEL_MYSIGN` | `Signing__ViettelMySign__…` |
 | FPT CA | `FPT_CA` | `Signing__FptCa__…` |
-| Dấu thời gian (TSA, khuyến nghị) | — | `Signing__TsaUrl` |
+| Dấu thời gian (TSA, khuyến nghị) | — | `SIGNING_TSA_URL` → `Signing__TsaUrl` |
 
 **Đăng ký ký số từ xa:** bệnh viện ký hợp đồng tích hợp với nhà cung cấp (VNPT SmartCA / Viettel MySign / FPT CA) để được cấp môi trường thử (UAT) và thật. Nhà cung cấp cấp `BaseUrl`, `ClientId`, `ClientSecret` của ứng dụng và yêu cầu khai báo địa chỉ IP ra của máy chủ. Nên thử trên UAT trước, rồi đổi sang thông tin môi trường thật. Từng người ký phải có thuê bao chứng thư số từ xa của chính nhà cung cấp đó, cài ứng dụng xác nhận trên điện thoại; Quản trị khai báo số serial / tổ chức cấp / hạn chứng thư trong **Quản trị → Người dùng**. Khi ký, cổng tạo yêu cầu, người ký xác nhận trên điện thoại, giao diện tự kiểm tra trạng thái đến khi có kết quả. Lớp `RemoteCaSigningProvider` (`backend/src/BlueContract.Infrastructure/Signing/SigningProviders.cs`) cần được chỉnh theo đặc tả API chính thức mà nhà cung cấp gửi khi ký hợp đồng.
+
+**Dấu thời gian:** khi đặt `SIGNING_TSA_URL` (máy chủ cấp dấu thời gian RFC 3161 của CA hoặc Bộ TT&TT), mọi chữ ký được gắn dấu thời gian đáng tin cậy (PAdES B-T); trang Xác minh hiện "Dấu thời gian: Có". Nếu TSA không trả lời trong 20 giây, việc ký bị từ chối với thông báo rõ ràng (không ký thiếu dấu thời gian). Kiểm tra bằng cách ký thử một tài liệu sau khi cấu hình.
 
 Ký nháy (`Initial`) mặc định dùng dấu nháy nội bộ không cần CA (`Signing__InitialRequiresCa=false`). Tắt các nhà cung cấp giả lập bằng `SIGNING_ENABLE_MOCK=false`. Chứng thư số của từng người được khai báo trong **Quản trị → Người dùng**.
 

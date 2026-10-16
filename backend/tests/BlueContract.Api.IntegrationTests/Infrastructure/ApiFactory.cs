@@ -75,6 +75,12 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         builder.ConfigureTestServices(services => services
             .AddHttpClient(BlueContract.Infrastructure.DependencyInjection.OnlyOfficeClient)
             .ConfigurePrimaryHttpMessageHandler(() => Server.CreateHandler()));
+
+        // Every signature gets an RFC 3161 timestamp from the in-memory TSA (spec §8, AUDIT-1 §11.7).
+        builder.UseSetting("Signing:TsaUrl", FakeTimestampAuthority.Url);
+        builder.ConfigureTestServices(services => services
+            .AddHttpClient("tsa")
+            .ConfigurePrimaryHttpMessageHandler(() => new FakeTimestampAuthority()));
         builder.UseSetting("Auth:SigningKey", "integration-test-signing-key-0123456789abcdef");
         builder.UseSetting("Auth:LoginRateLimitPerMinute", "100000");
         builder.UseSetting("Seed:Demo", "true");

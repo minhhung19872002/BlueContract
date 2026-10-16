@@ -114,6 +114,7 @@ public static class ErrorMessages
         ["DOCUMENT_PDF_REQUIRED"] = "Phiên bản chưa có bản PDF để ký.",
         ["DOCUMENT_DOCX_REQUIRED"] = "Phiên bản không có tệp Word để chỉnh sửa hoặc chuyển PDF.",
         ["DOCUMENT_FILE_NOT_FOUND"] = "Phiên bản không có tệp ở định dạng yêu cầu.",
+        ["SIGNING_TSA_UNAVAILABLE"] = "Không lấy được dấu thời gian từ máy chủ cấp dấu thời gian (TSA); chưa ký. Vui lòng thử lại sau ít phút hoặc báo Phòng CNTT.",
         ["ORG_CERTIFICATE_INVALID"] = "Không đọc được chứng thư số: cần tệp .p12/.pfx có khóa bí mật RSA và đúng mật khẩu.",
         ["ORG_CERTIFICATE_EXPIRED"] = "Chứng thư số tổ chức đã hết hạn hoặc chưa đến ngày hiệu lực.",
         ["ORG_CERTIFICATE_NOT_INSTALLED"] = "Chưa cài chứng thư số tổ chức để đóng dấu điện tử.",
