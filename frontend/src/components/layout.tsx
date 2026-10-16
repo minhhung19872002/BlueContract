@@ -1,4 +1,4 @@
-import { ArrowLeft, CircleCheck, CircleX, Info, TriangleAlert } from 'lucide-react';
+import { ArrowLeft, Check, CircleCheck, CircleX, Info, TriangleAlert } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Tone } from './StatusTag';
@@ -203,13 +203,68 @@ export function FormSection({
   );
 }
 
-/** Action bar stuck to the bottom of a long form; the total (or a status) on the left, buttons on the right. */
-export function StickyActionBar({ summary, children }: { summary?: ReactNode; children: ReactNode }) {
+/**
+ * Action bar stuck to the bottom of a long form (design/Page Form.dc.html): the total (label, amount, detail) on the
+ * left, buttons on the right.
+ */
+export function StickyActionBar({
+  summary,
+  total,
+  children,
+}: {
+  summary?: ReactNode;
+  total?: { label: ReactNode; value: ReactNode; sub?: ReactNode };
+  children: ReactNode;
+}) {
   return (
     <div className="sticky-actions">
-      <div className="sticky-actions__summary">{summary}</div>
+      {total ? (
+        <div className="sticky-actions__total">
+          <span className="sticky-actions__total-label">{total.label}</span>
+          <span className="sticky-actions__total-value">{total.value}</span>
+          {total.sub && <span className="sticky-actions__total-sub">{total.sub}</span>}
+        </div>
+      ) : (
+        <div className="sticky-actions__summary">{summary}</div>
+      )}
       <div className="sticky-actions__buttons">{children}</div>
     </div>
+  );
+}
+
+/** Step bar of a wizard (design/Page Form.dc.html): numbered circles, check mark on finished steps. */
+export function FormSteps({
+  steps,
+  current,
+  onChange,
+}: {
+  steps: string[];
+  current: number;
+  /** Called for finished steps only (going back); moving forward goes through the form validation. */
+  onChange?: (index: number) => void;
+}) {
+  return (
+    <nav aria-label="Các bước" className="form-steps">
+      {steps.map((label, i) => {
+        const done = i < current;
+        const state = done ? 'done' : i === current ? 'current' : 'todo';
+        return (
+          <button
+            key={label}
+            type="button"
+            className={`form-steps__item form-steps__item--${state}`}
+            aria-current={i === current ? 'step' : undefined}
+            disabled={!done || !onChange}
+            onClick={() => onChange?.(i)}
+          >
+            <span className="form-steps__number">
+              {done ? <Check size={13} strokeWidth={2.5} aria-hidden /> : i + 1}
+            </span>
+            <span className="form-steps__label">{label}</span>
+          </button>
+        );
+      })}
+    </nav>
   );
 }
 

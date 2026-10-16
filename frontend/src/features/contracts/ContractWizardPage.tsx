@@ -14,8 +14,6 @@ import {
   Row,
   Select,
   Space,
-  Statistic,
-  Steps,
   Switch,
   Table,
   Typography,
@@ -43,7 +41,9 @@ import {
 } from '../../api/procurement';
 import { PdfViewer } from '../../components/PdfViewer';
 import { statusOptions } from '../../components/StatusTag';
-import { PageHeader, useApiError } from '../../components/common';
+import { useApiError } from '../../components/common';
+import { DocHeader, FormSteps, StickyActionBar } from '../../components/layout';
+import { ArrowLeft } from 'lucide-react';
 import { MoneyInput, QuantityInput, SupplierSelect } from '../../components/inputs';
 import { formatMoney, formatQuantity } from '../../utils/format';
 import { TAX_CODE_RULE, USER_NAME_RULE } from '../../utils/validation';
@@ -814,9 +814,11 @@ function ContractWizard({
 
   return (
     <>
-      <PageHeader
-        title={editing ? `Sửa hợp đồng ${contractNumber ?? ''}` : 'Tạo hợp đồng'}
-        subtitle="Nguồn → NCC & hàng hóa → Điều khoản → Mẫu & xem trước"
+      <DocHeader
+        back={{ to: -1, label: 'Quay lại' }}
+        plain
+        code={editing ? `Sửa hợp đồng ${contractNumber ?? ''}` : 'Tạo hợp đồng'}
+        sub="Chọn nguồn, nhà cung cấp và hàng hóa, nhập điều khoản rồi xem trước hợp đồng sinh từ mẫu"
       />
       {draft && (
         <Alert
@@ -842,17 +844,12 @@ function ContractWizard({
           }
         />
       )}
+      <FormSteps
+        steps={['Nguồn', 'NCC & hàng hóa', 'Điều khoản', 'Mẫu & xem trước']}
+        current={step}
+        onChange={setStep}
+      />
       <Card>
-        <Steps
-          current={step}
-          style={{ marginBottom: 24 }}
-          items={[
-            { title: 'Nguồn' },
-            { title: 'NCC & hàng hóa' },
-            { title: 'Điều khoản' },
-            { title: 'Mẫu & xem trước' },
-          ]}
-        />
         <Form form={form} layout="vertical" initialValues={initialValues} onValuesChange={autosave}>
           {/* Step 0: source */}
           <div style={{ display: step === 0 ? undefined : 'none' }}>
@@ -1066,17 +1063,6 @@ function ContractWizard({
             ) : (
               <Empty description="Chọn quyết định thầu và nhà cung cấp ở bước trước" />
             )}
-            <Row gutter={16} style={{ marginTop: 16 }}>
-              <Col>
-                <Statistic title="Số mặt hàng" value={lines.length} />
-              </Col>
-              <Col>
-                <Statistic title="Tổng giá trị (gồm VAT)" value={formatMoney(total)} />
-              </Col>
-              <Col>
-                <Statistic title="Trong đó thuế GTGT" value={formatMoney(vat)} />
-              </Col>
-            </Row>
           </div>
 
           {/* Step 2: terms */}
@@ -1234,23 +1220,29 @@ function ContractWizard({
             )}
           </div>
         </Form>
-
-        <Divider />
-        <Space style={{ width: '100%', justifyContent: 'space-between' }}>
-          <Button disabled={step === 0} onClick={() => setStep(step - 1)}>
+      </Card>
+      <StickyActionBar
+        total={{
+          label: 'Tổng giá trị (gồm VAT)',
+          value: formatMoney(total),
+          sub: `Số mặt hàng: ${lines.length} · Thuế GTGT ${formatMoney(vat)}`,
+        }}
+      >
+        {step > 0 && (
+          <Button icon={<ArrowLeft size={16} aria-hidden />} onClick={() => setStep(step - 1)}>
             Quay lại
           </Button>
-          {step < 3 ? (
-            <Button type="primary" onClick={next}>
-              Tiếp tục
-            </Button>
-          ) : (
-            <Button type="primary" icon={<SaveOutlined />} loading={save.isPending} onClick={submit}>
-              {editing ? 'Lưu hợp đồng' : 'Tạo hợp đồng'}
-            </Button>
-          )}
-        </Space>
-      </Card>
+        )}
+        {step < 3 ? (
+          <Button type="primary" onClick={next}>
+            Tiếp tục
+          </Button>
+        ) : (
+          <Button type="primary" icon={<SaveOutlined />} loading={save.isPending} onClick={submit}>
+            {editing ? 'Lưu hợp đồng' : 'Tạo hợp đồng'}
+          </Button>
+        )}
+      </StickyActionBar>
     </>
   );
 }

@@ -270,11 +270,35 @@ h1.doc-header__code--plain {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin: 16px -24px -24px;
-  padding: 12px 24px;
+  margin-top: 16px;
+  padding: 12px 16px;
   background: var(--bp-card);
-  border-top: 1px solid var(--bp-border);
-  box-shadow: 0 -4px 12px -6px rgba(16, 24, 40, 0.12);
+  border: 1px solid var(--bp-border);
+  border-radius: 12px;
+  box-shadow: 0 -6px 16px -10px rgba(16, 24, 40, 0.18);
+}
+
+.sticky-actions__total {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+
+.sticky-actions__total-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--bp-caption);
+}
+
+.sticky-actions__total-value {
+  font-size: 20px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.sticky-actions__total-sub {
+  font-size: 12px;
+  color: var(--bp-text-2);
 }
 
 .sticky-actions__summary {
@@ -293,13 +317,6 @@ h1.doc-header__code--plain {
   flex-wrap: wrap;
   gap: 8px;
   margin-left: auto;
-}
-
-@media (max-width: 991px) {
-  .sticky-actions {
-    margin: 16px -16px -16px;
-    padding: 12px 16px;
-  }
 }
 
 @media (max-width: 575px) {
@@ -376,4 +393,83 @@ h1.doc-header__code--plain {
 /* Panel stacked in a page flow (not inside a grid with its own gap). */
 .panel--spaced {
   margin-bottom: 16px;
+}
+
+/* ---------- Wizard steps ---------- */
+.form-steps {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 4px;
+  margin-bottom: 16px;
+  background: var(--bp-card);
+  border: 1px solid var(--bp-border);
+  border-radius: 12px;
+}
+
+.form-steps__item {
+  flex: 1 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--bp-text-2);
+  font: inherit;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.form-steps__item--done {
+  color: var(--bp-text);
+  cursor: pointer;
+}
+
+.form-steps__item--done:hover {
+  background: var(--bp-hover);
+}
+
+.form-steps__item--current {
+  background: var(--bp-primary-bg);
+  color: var(--bp-primary-fg);
+  font-weight: 600;
+}
+
+.form-steps__item:disabled {
+  cursor: default;
+}
+
+.form-steps__number {
+  width: 24px;
+  height: 24px;
+  flex: none;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--bp-card);
+  color: var(--bp-text-2);
+  border: 1.5px solid var(--bp-input-bd);
+}
+
+.form-steps__item--done .form-steps__number {
+  background: var(--bp-success-solid);
+  border-color: var(--bp-success-solid);
+  color: #fff;
+}
+
+.form-steps__item--current .form-steps__number {
+  background: var(--bp-primary-solid);
+  border-color: var(--bp-primary-solid);
+  color: #fff;
+}
+
+.form-steps__label {
+  font-size: 13.5px;
 }
