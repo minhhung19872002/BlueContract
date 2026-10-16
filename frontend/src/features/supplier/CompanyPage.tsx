@@ -12,6 +12,7 @@ import {
   Select,
   Table,
   Tag,
+  Tooltip,
 } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { useState } from 'react';
@@ -27,7 +28,7 @@ import { P } from '../../auth/permissions';
 import { useAuth } from '../../auth/useAuth';
 import { StatusTag, statusOptions } from '../../components/StatusTag';
 import { PageHeader, useApiError } from '../../components/common';
-import { formatDateTime } from '../../utils/format';
+import { formatDate, formatDateTime } from '../../utils/format';
 import { USER_NAME_RULE } from '../../utils/validation';
 
 /** Cổng NCC — Tài khoản công ty: company info + staff accounts (managed by SUPPLIER_ADMIN). */
@@ -132,6 +133,18 @@ export function CompanyPage() {
                       />
                     ) : (
                       <StatusTag domain="userStatus" value={v} />
+                    ),
+                },
+                {
+                  title: 'Chứng thư số',
+                  dataIndex: 'certificateValidTo',
+                  render: (v: string | null, r) =>
+                    r.certificateSerial ? (
+                      <Tooltip title={`Số hiệu ${r.certificateSerial}`}>
+                        <span>Hiệu lực đến {formatDate(v)}</span>
+                      </Tooltip>
+                    ) : (
+                      <Tag>Chưa đăng ký</Tag>
                     ),
                 },
                 {

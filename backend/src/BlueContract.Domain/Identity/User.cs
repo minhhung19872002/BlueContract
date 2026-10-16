@@ -78,6 +78,9 @@ public sealed class User : Entity, IHasHistory
 
     public DateTimeOffset? CertificateValidTo { get; private set; }
 
+    /// <summary>Subject (DN) of the registered certificate, when registered from the certificate file.</summary>
+    public string? CertificateSubject { get; private set; }
+
     public string? SignatureImageFileKey { get; private set; }
 
     public string? InitialImageFileKey { get; private set; }
@@ -165,8 +168,10 @@ public sealed class User : Entity, IHasHistory
         RotateSecurityStamp();
     }
 
-    public void RegisterCertificate(string? serial, string? issuer, DateTimeOffset? validTo)
+    public void RegisterCertificate(string? serial, string? issuer, DateTimeOffset? validTo, string? subject = null)
     {
+        // Typing the same serial again (admin form) keeps the subject read from the file.
+        CertificateSubject = Guard.Optional(serial) is { } s && s == CertificateSerial && subject is null ? CertificateSubject : Guard.Optional(subject);
         CertificateSerial = Guard.Optional(serial);
         CertificateIssuer = Guard.Optional(issuer);
         CertificateValidTo = validTo;

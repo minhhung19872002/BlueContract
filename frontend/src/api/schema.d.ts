@@ -4,6 +4,87 @@
  */
 
 export interface paths {
+    "/api/account/certificate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Signing certificate registered by the user (spec §9.2-7 "đăng ký chứng thư số"). */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["RegisteredCertificateDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Registers the public certificate (.cer / .crt / .pem) of the token or remote-signing account. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "multipart/form-data": {
+                        file?: components["schemas"]["IFormFile"];
+                    };
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["RegisteredCertificateDto"];
+                    };
+                };
+            };
+        };
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/account/signature-images/{kind}": {
         parameters: {
             query?: never;
@@ -11617,6 +11698,16 @@ export interface components {
         ReceiptType: "Receipt" | "Return";
         /** @enum {unknown} */
         ReceiptValidationStatus: "Valid" | "Warning" | "Invalid";
+        /** @description Registered signing certificate of a user; nulls when none is registered. */
+        RegisteredCertificateDto: {
+            serial: null | string;
+            subject: null | string;
+            issuer: null | string;
+            /** Format: date-time */
+            validTo: null | string;
+            isExpired: boolean;
+            expiresSoon: boolean;
+        };
         RemoteCaSettingsDto: {
             code: string;
             name: string;
@@ -12237,6 +12328,9 @@ export interface components {
             isAdmin: boolean;
             /** Format: date-time */
             lastLoginAt: null | string;
+            certificateSerial: null | string;
+            /** Format: date-time */
+            certificateValidTo: null | string;
         };
         SystemInfoResponse: {
             name: string;

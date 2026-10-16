@@ -73,6 +73,9 @@ Mỗi người tải **ảnh chữ ký tay** (và nếu muốn, **chữ ký nhá
 
 Đóng dấu điện tử ký bằng **chứng thư số tổ chức** của Bệnh viện: Quản trị cài tệp `.p12`/`.pfx` (kèm mật khẩu) ở **Thông tin bệnh viện → Chứng thư số tổ chức**. Khi chưa cài, hệ thống dùng chứng thư thử nghiệm (không có giá trị pháp lý) — chỉ dùng khi chạy thử.
 
+### Chứng thư số dùng để ký
+Tại **Tài khoản → Chứng thư số dùng để ký**, tải lên tệp chứng thư công khai (.cer, .crt hoặc .pem) của USB token hoặc tài khoản ký số từ xa. Khi đã đăng ký, ký bằng USB token chỉ chấp nhận đúng chứng thư này. Chứng thư tổ chức của nhà cung cấp phải mang đúng mã số thuế của công ty. Hệ thống cảnh báo khi chứng thư còn dưới 30 ngày; quản trị NCC xem tình trạng chứng thư của từng nhân viên ở trang **Công ty**.
+
 ## 4. Tổng quan và báo cáo
 
 - **Tổng quan** (bệnh viện): tài liệu chờ xử lý theo loại, hợp đồng sắp hết hạn / sắp hết số lượng, phiếu nhập kho cảnh báo, gọi hàng chưa xác nhận quá hạn, biểu đồ thanh toán 12 tháng.

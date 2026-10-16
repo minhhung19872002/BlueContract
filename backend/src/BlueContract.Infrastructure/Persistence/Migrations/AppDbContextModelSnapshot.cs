@@ -1891,6 +1891,11 @@ namespace BlueContract.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("certificate_serial");
 
+                    b.Property<string>("CertificateSubject")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("certificate_subject");
+
                     b.Property<DateTimeOffset?>("CertificateValidTo")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("certificate_valid_to");

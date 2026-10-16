@@ -141,3 +141,9 @@ h2.account__title {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
   gap: 16px;
 }
+
+.account__cert-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}

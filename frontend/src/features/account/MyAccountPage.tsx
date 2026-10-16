@@ -13,6 +13,7 @@ import { useAuth } from '../../auth/useAuth';
 import { PageHeader, useApiError } from '../../components/common';
 import { InfoGrid } from '../../components/layout';
 import { SignatureImageSlot } from '../../components/SignatureImageSlot';
+import { MyCertificateCard } from './MyCertificateCard';
 import { ChangePasswordForm } from '../../pages/auth/ChangePasswordPage';
 import './account.css';
 
@@ -202,6 +203,7 @@ export function MyAccountPage() {
           />
         </div>
       </section>
+      <MyCertificateCard />
       <div className="account__grid">
         <TwoFactorCard />
         <section className="account__card">

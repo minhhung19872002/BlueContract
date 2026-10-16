@@ -121,3 +121,23 @@ export async function installSealCertificate(file: File, password: string) {
 export async function removeSealCertificate() {
   await apiClient.delete(SEAL_CERTIFICATE);
 }
+
+// ---------------- Registered signing certificate (spec §9.2-7) ----------------
+
+export type RegisteredCertificateDto = components['schemas']['RegisteredCertificateDto'];
+
+const MY_CERTIFICATE = '/api/account/certificate';
+
+export async function fetchMyCertificate() {
+  return (await apiClient.get<RegisteredCertificateDto>(MY_CERTIFICATE)).data;
+}
+
+export async function registerMyCertificate(file: File) {
+  const data = new FormData();
+  data.append('file', file);
+  return (await apiClient.post<RegisteredCertificateDto>(MY_CERTIFICATE, data)).data;
+}
+
+export async function removeMyCertificate() {
+  await apiClient.delete(MY_CERTIFICATE);
+}

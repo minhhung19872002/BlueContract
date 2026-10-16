@@ -341,7 +341,16 @@ public sealed class UserService(
 
 // ---------- Supplier portal: company account & staff (SUPPLIER_ADMIN) ----------
 
-public sealed record SupplierStaffDto(Guid Id, string UserName, string FullName, string? Email, UserStatus Status, bool IsAdmin, DateTimeOffset? LastLoginAt);
+public sealed record SupplierStaffDto(
+    Guid Id,
+    string UserName,
+    string FullName,
+    string? Email,
+    UserStatus Status,
+    bool IsAdmin,
+    DateTimeOffset? LastLoginAt,
+    string? CertificateSerial,
+    DateTimeOffset? CertificateValidTo);
 
 public sealed record CreateSupplierStaffRequest(string UserName, string FullName, string Email, bool IsAdmin);
 
@@ -378,7 +387,7 @@ public sealed class SupplierCompanyService(IAppDbContext db, ICurrentUser curren
             .Where(u => u.SupplierId == supplierId)
             .OrderBy(u => u.UserName)
             .Select(u => new SupplierStaffDto(u.Id, u.UserName, u.FullName, u.Email, u.Status,
-                u.Roles.Any(r => r.Role!.Code == RoleCatalog.SupplierAdmin), u.LastLoginAt))
+                u.Roles.Any(r => r.Role!.Code == RoleCatalog.SupplierAdmin), u.LastLoginAt, u.CertificateSerial, u.CertificateValidTo))
             .ToListAsync(ct);
     }
 

@@ -6,6 +6,72 @@
     "version": "1.0.0"
   },
   "paths": {
+    "/api/account/certificate": {
+      "get": {
+        "tags": [
+          "Account"
+        ],
+        "summary": "Signing certificate registered by the user (spec §9.2-7 \"đăng ký chứng thư số\").",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisteredCertificateDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Account"
+        ],
+        "summary": "Registers the public certificate (.cer / .crt / .pem) of the token or remote-signing account.",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "$ref": "#/components/schemas/IFormFile"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisteredCertificateDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Account"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    },
     "/api/account/signature-images/{kind}": {
       "post": {
         "tags": [
@@ -19125,6 +19191,51 @@
           "Invalid"
         ]
       },
+      "RegisteredCertificateDto": {
+        "required": [
+          "serial",
+          "subject",
+          "issuer",
+          "validTo",
+          "isExpired",
+          "expiresSoon"
+        ],
+        "type": "object",
+        "properties": {
+          "serial": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "subject": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "issuer": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "validTo": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "isExpired": {
+            "type": "boolean"
+          },
+          "expiresSoon": {
+            "type": "boolean"
+          }
+        },
+        "description": "Registered signing certificate of a user; nulls when none is registered."
+      },
       "RemoteCaSettingsDto": {
         "required": [
           "code",
@@ -21500,7 +21611,9 @@
           "email",
           "status",
           "isAdmin",
-          "lastLoginAt"
+          "lastLoginAt",
+          "certificateSerial",
+          "certificateValidTo"
         ],
         "type": "object",
         "properties": {
@@ -21527,6 +21640,19 @@
             "type": "boolean"
           },
           "lastLoginAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "certificateSerial": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "certificateValidTo": {
             "type": [
               "null",
               "string"

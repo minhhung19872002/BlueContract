@@ -20,6 +20,7 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
         b.Property(x => x.SecurityStamp).HasMaxLength(64).IsRequired();
         b.Property(x => x.TwoFactorSecret).HasMaxLength(1000);
         b.Property(x => x.CertificateSerial).HasMaxLength(100);
+        b.Property(x => x.CertificateSubject).HasMaxLength(1000);
         b.Property(x => x.CertificateIssuer).HasMaxLength(300);
         b.Property(x => x.SignatureImageFileKey).HasMaxLength(500);
         b.Property(x => x.InitialImageFileKey).HasMaxLength(500);

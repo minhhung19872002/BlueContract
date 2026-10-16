@@ -49,7 +49,8 @@ public sealed class SigningService(
     IClock clock,
     SigningDefaults defaults,
     SignatureImageService images,
-    IOrganizationCertificates organizationCertificates)
+    IOrganizationCertificates organizationCertificates,
+    CertificateRegistrationService certificates)
 {
     private static readonly TimeSpan RequestLifetime = TimeSpan.FromMinutes(10);
 
@@ -155,6 +156,11 @@ public sealed class SigningService(
         SigningSession session;
         try
         {
+            if (r.ClientCertificate is not null && provider.Mode == SigningMode.ClientSide)
+            {
+                await certificates.EnsureRegisteredAsync(current.UserId!.Value, Convert.FromBase64String(r.ClientCertificate), ct);
+            }
+
             session = await provider.BeginAsync(new SignRequest(request.Id, current.UserId!.Value, signerName, kind, prepared.DocumentDigest,
                 r.ClientCertificate is null ? null : Convert.FromBase64String(r.ClientCertificate)), ct);
         }
