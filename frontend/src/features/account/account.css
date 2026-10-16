@@ -1,0 +1,137 @@
+/* Tài khoản & bảo mật — design/Tai khoan.dc.html. */
+.account {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 1080px;
+}
+
+.account .page-header {
+  margin-bottom: 0;
+}
+
+.account__profile {
+  background: var(--bp-card);
+  border: 1px solid var(--bp-border);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.account__profile .info-grid {
+  flex: 1 1 400px;
+}
+
+.account__avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--bp-primary-bg);
+  color: var(--bp-primary-fg);
+  font-size: 22px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.account__roles {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.account__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.account__card {
+  background: var(--bp-card);
+  border: 1px solid var(--bp-border);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.account__card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+h2.account__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.account__lead {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--bp-text-2);
+}
+
+.account__switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.account__ok {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--bp-success-bg);
+  border: 1px solid var(--bp-success-bd);
+  color: var(--bp-success-fg);
+  font-size: 13px;
+}
+
+.account__box {
+  padding: 14px;
+  border-radius: 10px;
+  background: var(--bp-hover);
+}
+
+.account__setup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.account__setup-steps {
+  flex: 1 1 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.account__secret {
+  display: block;
+  margin-top: 4px;
+}
+
+.account__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
