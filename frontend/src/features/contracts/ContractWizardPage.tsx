@@ -42,6 +42,7 @@ import {
 import { PdfViewer } from '../../components/PdfViewer';
 import { statusOptions } from '../../components/StatusTag';
 import { useApiError } from '../../components/common';
+import { useFormDraft } from '../../hooks/useFormDraft';
 import { DocHeader, FormSteps, StickyActionBar } from '../../components/layout';
 import { ArrowLeft } from 'lucide-react';
 import { MoneyInput, QuantityInput, SupplierSelect } from '../../components/inputs';
@@ -107,7 +108,6 @@ interface Line {
   maxUnitPrice?: number;
 }
 
-const DRAFT_KEY = 'blueprocure.contract-wizard-draft';
 const iso = (d: Day) => (d ? d.format('YYYY-MM-DD') : null);
 const day = (s?: string | null) => (s ? dayjs(s) : undefined);
 let lineSeed = 0;
@@ -550,15 +550,6 @@ function FreeLines({
   );
 }
 
-function readDraft(): { savedAt: string } | null {
-  try {
-    const raw = localStorage.getItem(DRAFT_KEY);
-    return raw ? { savedAt: (JSON.parse(raw) as { savedAt: string }).savedAt } : null;
-  } catch {
-    return null; // storage unavailable: no draft restore
-  }
-}
-
 /** Tạo / sửa hợp đồng — wizard 4 bước (spec §9.1-5). Waits for the contract when editing, then mounts the wizard. */
 export function ContractWizardPage() {
   const { id } = useParams<{ id: string }>();
@@ -614,7 +605,17 @@ function ContractWizard({
   const [lines, setLines] = useState<Line[]>(initialLines);
   const [previewBlob, setPreviewBlob] = useState<{ blob: Blob; at: number } | null>(null);
   const [previewing, setPreviewing] = useState(false);
-  const [draft, setDraft] = useState<{ savedAt: string } | null>(() => (offerDraft ? readDraft() : null));
+  // Lưu nháp tự động (spec §9.3) for a new contract; lines are edited outside the antd form.
+  const draft = useFormDraft({
+    key: offerDraft ? 'contract-new' : null,
+    form,
+    extra: lines,
+    onRestoreExtra: setLines,
+  });
+  const editLines = (next: Line[]) => {
+    setLines(next);
+    draft.touch();
+  };
   const categories = useItemCategories();
   const facilities = useLookup('facilities');
   const templates = useTemplates('Contract');
@@ -663,52 +664,6 @@ function ContractWizard({
           category.importKind === 'Medical' || category.code === 'TAI_SAN' || category.code === 'HANG_HOA',
       });
   }, [category, templates.data, form]);
-
-  // Autosave of the new-contract draft (spec §9.3 "lưu nháp tự động").
-  const autosave = () => {
-    if (editing) return;
-    try {
-      const values = form.getFieldsValue(true) as WizardValues;
-      localStorage.setItem(
-        DRAFT_KEY,
-        JSON.stringify({
-          savedAt: new Date().toISOString(),
-          values: {
-            ...values,
-            signedDate: iso(values.signedDate),
-            effectiveDate: iso(values.effectiveDate),
-            expiryDate: iso(values.expiryDate),
-            guaranteeExpiry: iso(values.guaranteeExpiry),
-          },
-          lines,
-        }),
-      );
-    } catch {
-      // ignore quota / privacy mode
-    }
-  };
-  useEffect(autosave, [lines]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const restoreDraft = () => {
-    try {
-      const saved = JSON.parse(localStorage.getItem(DRAFT_KEY) ?? '{}') as {
-        values?: Record<string, unknown>;
-        lines?: Line[];
-      };
-      const v = saved.values ?? {};
-      form.setFieldsValue({
-        ...(v as Partial<WizardValues>),
-        signedDate: day(v.signedDate as string),
-        effectiveDate: day(v.effectiveDate as string),
-        expiryDate: day(v.expiryDate as string),
-        guaranteeExpiry: day(v.guaranteeExpiry as string),
-      });
-      setLines(saved.lines ?? []);
-    } catch {
-      // corrupted draft
-    }
-    setDraft(null);
-  };
 
   const total = useMemo(() => lines.reduce((s, l) => s + Math.round(l.quantity * l.unitPrice), 0), [lines]);
   const vat = useMemo(
@@ -767,7 +722,7 @@ function ContractWizard({
       }
     }
 
-    autosave();
+    draft.touch();
     setStep(step + 1);
   };
 
@@ -799,11 +754,7 @@ function ContractWizard({
 
     try {
       const contractId = await save.mutateAsync({ values: v, lines });
-      try {
-        localStorage.removeItem(DRAFT_KEY);
-      } catch {
-        // ignore
-      }
+      draft.clear();
       message.success(editing ? 'Đã lưu hợp đồng' : 'Đã tạo hợp đồng và sinh tài liệu từ mẫu');
       navigate(`/hop-dong/${contractId}`);
     } catch (e) {
@@ -824,37 +775,19 @@ function ContractWizard({
         code={editing ? `Sửa hợp đồng ${contractNumber ?? ''}` : 'Tạo hợp đồng'}
         sub="Chọn nguồn, nhà cung cấp và hàng hóa, nhập điều khoản rồi xem trước hợp đồng sinh từ mẫu"
       />
-      {draft && (
-        <Alert
-          type="info"
-          showIcon
-          style={{ marginBottom: 12 }}
-          message={`Có bản nháp chưa lưu từ ${dayjs(draft.savedAt).format('DD/MM/YYYY HH:mm')}.`}
-          action={
-            <Space>
-              <Button size="small" type="primary" onClick={restoreDraft}>
-                Khôi phục
-              </Button>
-              <Button
-                size="small"
-                onClick={() => {
-                  localStorage.removeItem(DRAFT_KEY);
-                  setDraft(null);
-                }}
-              >
-                Bỏ
-              </Button>
-            </Space>
-          }
-        />
-      )}
+      {draft.banner}
       <FormSteps
         steps={['Nguồn', 'NCC & hàng hóa', 'Điều khoản', 'Mẫu & xem trước']}
         current={step}
         onChange={setStep}
       />
       <Card>
-        <Form form={form} layout="vertical" initialValues={initialValues} onValuesChange={autosave}>
+        <Form
+          form={form}
+          layout="vertical"
+          initialValues={initialValues}
+          onValuesChange={draft.onValuesChange}
+        >
           {/* Step 0: source */}
           <div style={{ display: step === 0 ? undefined : 'none' }}>
             <Form.Item name="procurementType" label="Hình thức">
@@ -1065,11 +998,11 @@ function ContractWizard({
                 supplierId={supplierId}
                 contractId={id}
                 lines={lines}
-                setLines={setLines}
+                setLines={editLines}
                 defaultVat={defaultVat}
               />
             ) : procurementType === 'NonBidding' ? (
-              <FreeLines lines={lines} setLines={setLines} defaultVat={defaultVat} />
+              <FreeLines lines={lines} setLines={editLines} defaultVat={defaultVat} />
             ) : (
               <Empty description="Chọn quyết định thầu và nhà cung cấp ở bước trước" />
             )}

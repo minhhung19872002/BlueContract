@@ -12,6 +12,7 @@ import {
 } from '../../api/procurement';
 import { statusOptions } from '../../components/StatusTag';
 import { useApiError } from '../../components/common';
+import { useFormDraft } from '../../hooks/useFormDraft';
 import { MoneyInput, QuantityInput } from '../../components/inputs';
 import { formatDate, formatMoney, formatQuantity } from '../../utils/format';
 import {
@@ -116,6 +117,17 @@ export function AppendixDialog({
   const [form] = Form.useForm<FormValues>();
   const [lines, setLines] = useState<Record<string, { qty?: number; price?: number }>>({});
   const type = Form.useWatch('type', form);
+  // Lưu nháp tự động (spec §9.3), one draft per contract.
+  const draft = useFormDraft({
+    key: `appendix-new.${contract.id}`,
+    form,
+    extra: lines,
+    onRestoreExtra: setLines,
+  });
+  const editLines = (next: typeof lines) => {
+    setLines(next);
+    draft.touch();
+  };
   const create = useContractAction((v: FormValues) =>
     contractApi.createAppendix(contract.id, {
       number: v.number ?? null,
@@ -159,6 +171,7 @@ export function AppendixDialog({
         try {
           await create.mutateAsync(v);
           message.success('Đã tạo phụ lục — kiểm tra tài liệu rồi gửi trình ký');
+          draft.clear();
           setLines({});
           onClose();
         } catch (e) {
@@ -166,7 +179,13 @@ export function AppendixDialog({
         }
       }}
     >
-      <Form form={form} layout="vertical" initialValues={{ type: 'AddQuantity' }}>
+      {draft.banner}
+      <Form
+        form={form}
+        layout="vertical"
+        initialValues={{ type: 'AddQuantity' }}
+        onValuesChange={draft.onValuesChange}
+      >
         <Form.Item name="type" label="Loại phụ lục" rules={[{ required: true }]}>
           <Select options={statusOptions('appendixType')} onChange={() => setLines({})} />
         </Form.Item>
@@ -265,7 +284,7 @@ export function AppendixDialog({
                       const next = { ...lines };
                       if (e.target.checked) next[r.id] = {};
                       else delete next[r.id];
-                      setLines(next);
+                      editLines(next);
                     }}
                   />
                 ),
@@ -299,13 +318,13 @@ export function AppendixDialog({
                     <QuantityInput
                       size="small"
                       min={r.quantity}
-                      onChange={(v) => setLines({ ...lines, [r.id]: { qty: v ?? undefined } })}
+                      onChange={(v) => editLines({ ...lines, [r.id]: { qty: v ?? undefined } })}
                     />
                   ) : (
                     <MoneyInput
                       size="small"
                       max={r.unitPrice}
-                      onChange={(v) => setLines({ ...lines, [r.id]: { price: v ?? undefined } })}
+                      onChange={(v) => editLines({ ...lines, [r.id]: { price: v ?? undefined } })}
                     />
                   )),
               },

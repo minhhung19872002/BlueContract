@@ -41,6 +41,7 @@ import { P } from '../../auth/permissions';
 import { DataTable } from '../../components/DataTable';
 import { StatusTag, statusOptions } from '../../components/StatusTag';
 import { ExportExcelButton, PageHeader, useApiError } from '../../components/common';
+import { useFormDraft } from '../../hooks/useFormDraft';
 import { DocHeader } from '../../components/layout';
 import { QuantityInput, SupplierSelect } from '../../components/inputs';
 import { useTableUrlState } from '../../hooks/useUrlState';
@@ -228,6 +229,17 @@ export function CallCreatePage() {
   const { message } = App.useApp();
   const onError = useApiError();
   const { user } = useAuth();
+  // Lưu nháp tự động (spec §9.3), one draft per approved summary.
+  const draft = useFormDraft({
+    key: summaryId ? `call-new.${summaryId}` : null,
+    form,
+    extra: quantities,
+    onRestoreExtra: setQuantities,
+  });
+  const setCalled = (next: Record<string, number>) => {
+    setQuantities(next);
+    draft.touch();
+  };
   const create = useProposalAction(async () => {
     const v = await form.validateFields();
     return callOrderApi.create({
@@ -269,6 +281,7 @@ export function CallCreatePage() {
             onClick={async () => {
               try {
                 const ids = await create.mutateAsync();
+                draft.clear();
                 message.success(`Đã tạo ${ids.length} đơn gọi hàng và gửi email cho nhà cung cấp`);
                 navigate(ids.length === 1 ? `/goi-hang/${ids[0]}` : '/goi-hang');
               } catch (e) {
@@ -280,11 +293,13 @@ export function CallCreatePage() {
           </Button>
         }
       />
+      {draft.banner}
       <Card style={{ marginBottom: 16 }}>
         <Form
           form={form}
           layout="vertical"
           initialValues={{ deadline: dayjs().add(5, 'day'), contactName: user?.fullName }}
+          onValuesChange={draft.onValuesChange}
         >
           <Row gutter={12}>
             <Col xs={24} md={8}>
@@ -319,7 +334,7 @@ export function CallCreatePage() {
         extra={
           <Button
             size="small"
-            onClick={() => setQuantities(Object.fromEntries(lines.map((l) => [l.id, l.remainingToCall])))}
+            onClick={() => setCalled(Object.fromEntries(lines.map((l) => [l.id, l.remainingToCall])))}
           >
             Gọi toàn bộ số còn lại
           </Button>
@@ -372,7 +387,7 @@ export function CallCreatePage() {
                   max={l.remainingToCall}
                   value={quantities[l.id]}
                   status={(quantities[l.id] ?? 0) > l.remainingToCall ? 'error' : undefined}
-                  onChange={(v) => setQuantities({ ...quantities, [l.id]: v ?? 0 })}
+                  onChange={(v) => setCalled({ ...quantities, [l.id]: v ?? 0 })}
                 />
               ),
             },

@@ -19,6 +19,7 @@ import { resources, useAction, usePagedList, useSave, type SupplierDto } from '.
 import { DataTable } from '../../components/DataTable';
 import { StatusTag, statusOptions } from '../../components/StatusTag';
 import { ExportExcelButton, HistoryButton, PageHeader, useApiError } from '../../components/common';
+import { useFormDraft } from '../../hooks/useFormDraft';
 import { useTableUrlState } from '../../hooks/useUrlState';
 import { TAX_CODE_RULE, USER_NAME_RULE } from '../../utils/validation';
 
@@ -32,6 +33,8 @@ export function SuppliersPage() {
   const [accountFor, setAccountFor] = useState<SupplierDto | null>(null);
   const [form] = Form.useForm();
   const [accountForm] = Form.useForm();
+  // Lưu nháp tự động (spec §9.3) of the "Thêm nhà cung cấp" form.
+  const draft = useFormDraft({ key: editing === 'new' ? 'supplier-new' : null, form });
   const { message } = App.useApp();
   const onError = useApiError();
   const createAccount = useAction<{ id: string; asAdmin: boolean; body: object }>(
@@ -127,9 +130,11 @@ export function SuppliersPage() {
         width={760}
         destroyOnHidden
       >
+        {draft.banner}
         <Form
           form={form}
           layout="vertical"
+          onValuesChange={draft.onValuesChange}
           onFinish={async ({ withAccount: wa, adminUserName, adminFullName, adminEmail, ...values }) => {
             const body = {
               ...values,
@@ -140,6 +145,7 @@ export function SuppliersPage() {
             };
             try {
               await save.mutateAsync({ id: editing === 'new' ? undefined : editing?.id, body });
+              if (editing === 'new') draft.clear();
               message.success(
                 body.adminAccount
                   ? 'Đã lưu nhà cung cấp và gửi thông tin tài khoản qua email'

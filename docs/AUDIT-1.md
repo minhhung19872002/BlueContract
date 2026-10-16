@@ -51,7 +51,7 @@ Trạng thái: ⏳ chưa xử lý · 🔴 đã tái hiện · ✅ đã sửa (te
 
 | # | Mục | Trạng thái | Ghi chú |
 |---|---|---|---|
-| 12.1 | Lưu nháp tự động cho mọi form dài | ⏳ | |
+| 12.1 | Lưu nháp tự động cho mọi form dài | ✅ | Trước: chỉ wizard HĐ có nháp (code riêng). Nay có hook dùng chung `useFormDraft`: Lưu giá trị form và state ngoài form (dòng hàng, phiếu được chọn) vào trình duyệt, debounce 500 ms, chỉ khi người dùng đã sửa. Key theo tài khoản và theo form/đối tượng; nháp quá 14 ngày bị bỏ. Tự chuyển ngày dayjs; **không bao giờ lưu mật khẩu/secret** hay tệp. Khi mở lại form, banner "Có bản nháp chưa lưu từ … [Khôi phục] [Bỏ]"; lưu thành công thì xóa nháp. Áp cho: wizard HĐ (thay code cũ, dọn key cũ), lập phiếu nhập kho, phiếu đề xuất, gọi hàng (theo phiếu tổng hợp), biên bản nghiệm thu, 08a, phụ lục HĐ (theo HĐ), tạo quyết định thầu, thêm NCC, thêm người dùng, thêm hàng hóa. `useFormDraft.test.ts` (3) kiểm khứ hồi ngày / lồng nhau, bỏ tệp và secret, tách theo người dùng, hết hạn. Đã thử trên trình duyệt: gõ → tải lại → khôi phục đúng giá trị. |
 | 12.2 | Xuất Excel cho mọi bảng còn thiếu | ⏳ | |
 | 12.3 | Phân trang server + lọc trên URL cho các danh sách còn lại; kịch bản đi hết trang; sắp xếp kết thúc bằng khóa duy nhất | ⏳ | |
 | 12.4 | `ItemPicker`, `ReturnDialog`, `WorkflowTimeline` dùng chung; timeline cho đơn gọi hàng | ⏳ | |

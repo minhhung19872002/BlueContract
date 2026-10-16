@@ -29,6 +29,7 @@ import {
 import { DataTable } from '../../components/DataTable';
 import { StatusTag, statusOptions } from '../../components/StatusTag';
 import { ExportExcelButton, HistoryButton, PageHeader, useApiError } from '../../components/common';
+import { useFormDraft } from '../../hooks/useFormDraft';
 import { useTableUrlState } from '../../hooks/useUrlState';
 import { formatDateTime } from '../../utils/format';
 import { PASSWORD_RULE, USER_NAME_RULE } from '../../utils/validation';
@@ -73,6 +74,8 @@ export function UsersPage() {
     editingId && editingId !== 'new' ? `${resources.users}/${editingId}` : null,
   );
   const [form] = Form.useForm();
+  // Lưu nháp tự động (spec §9.3) of the "Thêm người dùng" form (passwords are never stored).
+  const draft = useFormDraft({ key: editingId === 'new' ? 'user-new' : null, form });
   const { message, modal } = App.useApp();
   const onError = useApiError();
   const userType = Form.useWatch('userType', form) as string | undefined;
@@ -129,6 +132,7 @@ export function UsersPage() {
             password: v.password || null,
           },
         });
+        draft.clear();
         message.success(v.password ? 'Đã tạo người dùng' : 'Đã tạo người dùng và gửi mật khẩu tạm qua email');
       } else {
         await save.mutateAsync({
@@ -331,7 +335,8 @@ export function UsersPage() {
           </Space>
         }
       >
-        <Form form={form} layout="vertical" onFinish={submit}>
+        {draft.banner}
+        <Form form={form} layout="vertical" onFinish={submit} onValuesChange={draft.onValuesChange}>
           <Form.Item name="id" hidden>
             <Input />
           </Form.Item>

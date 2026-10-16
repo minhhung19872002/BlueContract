@@ -46,6 +46,7 @@ import { useDocumentWorkflow } from '../../api/signing';
 import { useAuth } from '../../auth/useAuth';
 import { StatusTag } from '../../components/StatusTag';
 import { useApiError } from '../../components/common';
+import { useFormDraft } from '../../hooks/useFormDraft';
 import { DocHeader, StickyActionBar } from '../../components/layout';
 import { MoneyInput } from '../../components/inputs';
 import { formatDate, formatDateTime, formatMoney, formatQuantity } from '../../utils/format';
@@ -75,6 +76,8 @@ export function ValuationCreatePage() {
   });
   const rows = contractId ? (available.data?.items ?? []) : [];
   const total = rows.filter((r) => selected.includes(r.id)).reduce((s, r) => s + r.totalAmount, 0);
+  // Lưu nháp tự động (spec §9.3).
+  const draft = useFormDraft({ key: 'valuation-new', form, extra: selected, onRestoreExtra: setSelected });
   const create = usePaymentAction(async () => {
     const h = await form.validateFields();
     return valuationApi.create({
@@ -94,8 +97,14 @@ export function ValuationCreatePage() {
         code="Lập biên bản xác định giá trị khối lượng hoàn thành (Mẫu 08a)"
         sub="Hệ thống tính giá trị kỳ này, lũy kế đến kỳ trước / kỳ này, % so với hợp đồng và sinh kèm Đề nghị thanh toán"
       />
+      {draft.banner}
       <Card style={{ marginBottom: 16 }}>
-        <Form form={form} layout="vertical" initialValues={{ advanceAmount: 0, advanceRecovered: 0 }}>
+        <Form
+          form={form}
+          layout="vertical"
+          initialValues={{ advanceAmount: 0, advanceRecovered: 0 }}
+          onValuesChange={draft.onValuesChange}
+        >
           <Row gutter={12}>
             <Col xs={24} md={10}>
               <Form.Item name="contractId" label="Hợp đồng" rules={[{ required: true }]}>
@@ -133,7 +142,13 @@ export function ValuationCreatePage() {
             loading={available.isFetching}
             dataSource={rows}
             pagination={false}
-            rowSelection={{ selectedRowKeys: selected, onChange: (keys) => setSelected(keys.map(String)) }}
+            rowSelection={{
+              selectedRowKeys: selected,
+              onChange: (keys) => {
+                setSelected(keys.map(String));
+                draft.touch();
+              },
+            }}
             locale={{ emptyText: <Empty description="Không có biên bản nghiệm thu nào sẵn sàng" /> }}
             columns={[
               { title: 'Số biên bản', dataIndex: 'number' },
@@ -157,6 +172,7 @@ export function ValuationCreatePage() {
           loading={create.isPending}
           onClick={() =>
             create.mutateAsync().then((v) => {
+              draft.clear();
               message.success(`Đã lập biên bản ${v.number} và đề nghị thanh toán ${v.paymentRequestNumber}`);
               navigate(`/thanh-toan/xac-dinh-gia-tri/${v.id}`);
             }, onError)

@@ -28,6 +28,7 @@ import { P } from '../../auth/permissions';
 import { DataTable } from '../../components/DataTable';
 import { StatusTag, statusOptions } from '../../components/StatusTag';
 import { ExportExcelButton, PageHeader, useApiError } from '../../components/common';
+import { useFormDraft } from '../../hooks/useFormDraft';
 import { SupplierSelect } from '../../components/inputs';
 import { useTableUrlState } from '../../hooks/useUrlState';
 import { formatMoney } from '../../utils/format';
@@ -45,6 +46,8 @@ export function ItemsPage() {
   const onError = useApiError();
   const [editing, setEditing] = useState<ItemDto | 'new' | null>(null);
   const [form] = Form.useForm<SaveItemRequest>();
+  // Lưu nháp tự động (spec §9.3) of the "Thêm hàng hóa" form.
+  const draft = useFormDraft({ key: editing === 'new' ? 'item-new' : null, form });
 
   const open = (item: ItemDto | 'new') => {
     setEditing(item);
@@ -179,6 +182,7 @@ export function ItemsPage() {
           const body = await form.validateFields();
           try {
             await save.mutateAsync({ id: editing === 'new' ? undefined : (editing as ItemDto).id, body });
+            if (editing === 'new') draft.clear();
             message.success('Đã lưu hàng hóa');
             setEditing(null);
           } catch (e) {
@@ -187,7 +191,8 @@ export function ItemsPage() {
         }}
         destroyOnHidden
       >
-        <Form form={form} layout="vertical">
+        {draft.banner}
+        <Form form={form} layout="vertical" onValuesChange={draft.onValuesChange}>
           <Row gutter={12}>
             <Col xs={24} md={8}>
               <Form.Item name="code" label="Mã hàng" rules={[{ required: true, whitespace: true }]}>

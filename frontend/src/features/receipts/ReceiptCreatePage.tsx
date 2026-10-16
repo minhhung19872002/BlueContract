@@ -28,6 +28,7 @@ import {
   type ReceiptDto,
   type ReceiptType,
 } from '../../api/receipts';
+import { useFormDraft } from '../../hooks/useFormDraft';
 import { useApiError } from '../../components/common';
 import { DocHeader, StickyActionBar } from '../../components/layout';
 import { MoneyInput, QuantityInput } from '../../components/inputs';
@@ -85,6 +86,14 @@ function ReceiptEditor({ receipt }: { receipt?: ReceiptDto }) {
   const contract = useContract(contractId);
   const items = contract.data?.items ?? [];
 
+  // Lưu nháp tự động (spec §9.3) for a new receipt.
+  const draft = useFormDraft({
+    key: editing ? null : 'receipt-new',
+    form,
+    extra: entries,
+    onRestoreExtra: setEntries,
+  });
+
   const save = useReceiptAction(async () => {
     const h = await form.validateFields();
     const body = {
@@ -114,7 +123,10 @@ function ReceiptEditor({ receipt }: { receipt?: ReceiptDto }) {
     return receiptApi.create(body);
   });
 
-  const set = (key: string, patch: Entry) => setEntries({ ...entries, [key]: { ...entries[key], ...patch } });
+  const set = (key: string, patch: Entry) => {
+    setEntries({ ...entries, [key]: { ...entries[key], ...patch } });
+    draft.touch();
+  };
   const total = items.reduce(
     (s, i) => s + Math.round((entries[i.id]?.qty ?? 0) * (entries[i.id]?.price ?? i.unitPrice)),
     0,
@@ -128,9 +140,11 @@ function ReceiptEditor({ receipt }: { receipt?: ReceiptDto }) {
         code={editing ? `Sửa phiếu ${receipt.number}` : 'Lập phiếu trên cổng'}
         sub="Phiếu được kiểm tra tự động theo hợp đồng trước khi gửi ký"
       />
+      {draft.banner}
       <Card style={{ marginBottom: 16 }}>
         <Form
           form={form}
+          onValuesChange={draft.onValuesChange}
           layout="vertical"
           initialValues={{
             type: receipt?.type ?? 'Receipt',
@@ -334,6 +348,7 @@ function ReceiptEditor({ receipt }: { receipt?: ReceiptDto }) {
           onClick={async () => {
             try {
               const savedId = await save.mutateAsync();
+              draft.clear();
               message.success('Đã lưu phiếu — kiểm tra cảnh báo rồi gửi ký');
               navigate(`/nhap-kho/${savedId}`);
             } catch (e) {

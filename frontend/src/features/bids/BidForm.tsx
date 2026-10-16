@@ -14,11 +14,19 @@ const METHODS = [
 ];
 
 /** Header of a bid decision (shared by create and edit). */
-export function BidForm({ form, lockNumber }: { form: FormInstance<BidFormValues>; lockNumber?: boolean }) {
+export function BidForm({
+  form,
+  lockNumber,
+  onValuesChange,
+}: {
+  form: FormInstance<BidFormValues>;
+  lockNumber?: boolean;
+  onValuesChange?: () => void;
+}) {
   const categories = useItemCategories();
   const facilities = useLookup('facilities');
   return (
-    <Form form={form} layout="vertical">
+    <Form form={form} layout="vertical" onValuesChange={onValuesChange}>
       <Row gutter={12}>
         <Col xs={24} md={8}>
           <Form.Item

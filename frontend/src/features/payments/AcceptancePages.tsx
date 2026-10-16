@@ -37,6 +37,7 @@ import { useDocumentWorkflow } from '../../api/signing';
 import { useAuth } from '../../auth/useAuth';
 import { StatusTag } from '../../components/StatusTag';
 import { useApiError } from '../../components/common';
+import { useFormDraft } from '../../hooks/useFormDraft';
 import { DocHeader, StickyActionBar } from '../../components/layout';
 import { formatDate, formatDateTime, formatMoney, formatQuantity } from '../../utils/format';
 import { WorkflowCard } from '../signing/WorkflowPanel';
@@ -116,6 +117,14 @@ function AcceptanceEditor({ acceptance }: { acceptance?: AcceptanceDto }) {
   const rows = candidates.data ?? [];
   const total = rows.filter((r) => selected.includes(r.receiptId)).reduce((s, r) => s + r.amount, 0);
 
+  // Lưu nháp tự động (spec §9.3) for a new acceptance.
+  const draft = useFormDraft({
+    key: editing ? null : 'acceptance-new',
+    form,
+    extra: selected,
+    onRestoreExtra: setSelected,
+  });
+
   const save = usePaymentAction(async () => {
     const h = await form.validateFields();
     const body = {
@@ -141,10 +150,12 @@ function AcceptanceEditor({ acceptance }: { acceptance?: AcceptanceDto }) {
         code={editing ? `Sửa biên bản nghiệm thu ${acceptance.number}` : 'Lập biên bản nghiệm thu'}
         sub="Chỉ gồm phiếu nhập kho đã ký đủ, chưa nghiệm thu; phiếu hoàn trả được trừ vào giá trị"
       />
+      {draft.banner}
       <Card style={{ marginBottom: 16 }}>
         <Form
           form={form}
           layout="vertical"
+          onValuesChange={draft.onValuesChange}
           initialValues={{
             contractId: acceptance?.contractId,
             period: acceptance
@@ -203,7 +214,13 @@ function AcceptanceEditor({ acceptance }: { acceptance?: AcceptanceDto }) {
             loading={candidates.isFetching}
             dataSource={rows}
             pagination={false}
-            rowSelection={{ selectedRowKeys: selected, onChange: (keys) => setSelected(keys.map(String)) }}
+            rowSelection={{
+              selectedRowKeys: selected,
+              onChange: (keys) => {
+                setSelected(keys.map(String));
+                draft.touch();
+              },
+            }}
             locale={{
               emptyText: <Empty description="Không có phiếu nhập kho đã ký nào chưa nghiệm thu trong kỳ" />,
             }}
@@ -226,6 +243,7 @@ function AcceptanceEditor({ acceptance }: { acceptance?: AcceptanceDto }) {
           onClick={async () => {
             try {
               const savedId = await save.mutateAsync();
+              draft.clear();
               message.success('Đã lưu biên bản — kiểm tra rồi gửi ký');
               navigate(`/thanh-toan/nghiem-thu/${savedId}`);
             } catch (e) {

@@ -6,11 +6,11 @@ Cổng Quản lý & Thanh toán Mua sắm Hàng hóa Trực tuyến số hóa to
 
 - Truy cập địa chỉ cổng do bệnh viện cung cấp, đăng nhập bằng tài khoản được cấp. Lần đầu (hoặc sau khi được đặt lại mật khẩu) hệ thống yêu cầu đổi mật khẩu: tối thiểu 8 ký tự, có chữ hoa, chữ thường, chữ số và ký tự đặc biệt.
 - Nhập sai mật khẩu 5 lần liên tiếp, tài khoản bị khóa tạm 15 phút.
-- **Tài khoản & bảo mật** (bấm tên ở góc phải): đổi mật khẩu, bật **xác thực 2 lớp** (ứng dụng Google/Microsoft Authenticator). Thông tin chứng thư số (số serial, tổ chức cấp, hạn dùng) do Quản trị khai báo trong hồ sơ người dùng.
+- **Tài khoản & bảo mật** (bấm tên ở góc phải): đổi mật khẩu, bật **xác thực 2 lớp** (ứng dụng Google/Microsoft Authenticator). Tự **đăng ký chứng thư số** dùng để ký (tải tệp .cer/.pem — xem mục Chứng thư số dùng để ký).
 - Người dùng nhà cung cấp (NCC) đăng nhập cùng trang và được chuyển sang **Cổng Nhà cung cấp**.
 - Chuông thông báo hiện tài liệu mới chờ xử lý theo thời gian thực; email gửi kèm đường dẫn mở thẳng tài liệu.
 
-Quy ước hiển thị: tiền `1.234.567 ₫` (đơn giá **đã gồm thuế GTGT**), ngày `dd/MM/yyyy`, giờ Việt Nam. Mọi danh sách có tìm kiếm, lọc, sắp xếp, phân trang và nút **Xuất Excel**; bộ lọc được giữ trên địa chỉ trang để gửi cho đồng nghiệp.
+Quy ước hiển thị: tiền `1.234.567 ₫` (đơn giá **đã gồm thuế GTGT**), ngày `dd/MM/yyyy`, giờ Việt Nam. Mọi danh sách có tìm kiếm, lọc, sắp xếp, phân trang và nút **Xuất Excel**; bộ lọc được giữ trên địa chỉ trang để gửi cho đồng nghiệp. Các form dài (hợp đồng, phiếu nhập kho, đề xuất, gọi hàng, nghiệm thu, 08a, phụ lục, quyết định thầu, NCC, người dùng, hàng hóa) **tự lưu nháp** trên máy đang dùng; mở lại form sẽ thấy lời mời **Khôi phục** bản nháp (nháp giữ 14 ngày, không lưu mật khẩu).
 
 ## 2. Trình ký (dùng chung mọi tài liệu)
 

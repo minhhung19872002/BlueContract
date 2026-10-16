@@ -32,6 +32,7 @@ import {
 } from '../../api/proposals';
 import { useAuth } from '../../auth/useAuth';
 import { useApiError } from '../../components/common';
+import { useFormDraft } from '../../hooks/useFormDraft';
 import { DocHeader, StickyActionBar } from '../../components/layout';
 import { QuantityInput } from '../../components/inputs';
 import { formatMoney, formatQuantity } from '../../utils/format';
@@ -111,6 +112,14 @@ function ProposalEditor({
     to: period?.[1]?.format('YYYY-MM-DD'),
   });
 
+  // Lưu nháp tự động (spec §9.3) for a new proposal.
+  const draft = useFormDraft({
+    key: editing ? null : 'proposal-new',
+    form,
+    extra: entries,
+    onRestoreExtra: setEntries,
+  });
+
   const save = useProposalAction(async () => {
     const h = await form.validateFields();
     const body = {
@@ -139,7 +148,10 @@ function ProposalEditor({
     () => chosen.reduce((s, r) => s + Math.round((entries[r.contractItemId]?.qty ?? 0) * r.unitPrice), 0),
     [chosen, entries],
   );
-  const set = (key: string, patch: Entry) => setEntries({ ...entries, [key]: { ...entries[key], ...patch } });
+  const set = (key: string, patch: Entry) => {
+    setEntries({ ...entries, [key]: { ...entries[key], ...patch } });
+    draft.touch();
+  };
 
   return (
     <>
@@ -149,8 +161,14 @@ function ProposalEditor({
         code={editing ? `Sửa phiếu đề xuất ${proposal.number}` : 'Lập phiếu đề xuất'}
         sub="Số lượng đề xuất không vượt số lượng còn lại của hợp đồng"
       />
+      {draft.banner}
       <Card style={{ marginBottom: 16 }}>
-        <Form form={form} layout="vertical" initialValues={initialHeader}>
+        <Form
+          form={form}
+          layout="vertical"
+          initialValues={initialHeader}
+          onValuesChange={draft.onValuesChange}
+        >
           <Row gutter={12}>
             <Col xs={24} md={6}>
               <Form.Item name="departmentId" label="Khoa/phòng" rules={[{ required: true }]}>
@@ -321,6 +339,7 @@ function ProposalEditor({
           onClick={async () => {
             try {
               const savedId = await save.mutateAsync();
+              draft.clear();
               message.success('Đã lưu phiếu đề xuất — kiểm tra rồi Ký và gửi');
               navigate(`/de-xuat/${savedId}`);
             } catch (e) {

@@ -15,6 +15,7 @@ import { P } from '../../auth/permissions';
 import { DataTable } from '../../components/DataTable';
 import { StatusTag, statusOptions } from '../../components/StatusTag';
 import { ExportExcelButton, PageHeader, useApiError } from '../../components/common';
+import { useFormDraft } from '../../hooks/useFormDraft';
 import { SupplierSelect } from '../../components/inputs';
 import { useTableUrlState } from '../../hooks/useUrlState';
 import { formatDate, formatMoney } from '../../utils/format';
@@ -35,6 +36,8 @@ export function BidDecisionsPage() {
   const [creating, setCreating] = useState(false);
   const [form] = Form.useForm<BidFormValues>();
   const create = useBidAction((v: BidFormValues) => bidApi.create(toBidRequest(v)));
+  // Lưu nháp tự động (spec §9.3) of the "Tạo quyết định thầu" form.
+  const draft = useFormDraft({ key: 'bid-new', form });
 
   return (
     <>
@@ -145,6 +148,7 @@ export function BidDecisionsPage() {
           const v = await form.validateFields();
           try {
             const id = await create.mutateAsync(v);
+            draft.clear();
             message.success('Đã tạo quyết định thầu — tiếp tục thêm NCC trúng thầu và danh mục');
             setCreating(false);
             navigate(`/quyet-dinh-thau/${id}`);
@@ -154,7 +158,8 @@ export function BidDecisionsPage() {
         }}
         destroyOnHidden
       >
-        <BidForm form={form} />
+        {draft.banner}
+        <BidForm form={form} onValuesChange={draft.onValuesChange} />
       </Modal>
     </>
   );
