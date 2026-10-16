@@ -12,7 +12,7 @@ internal sealed class SystemSettingConfiguration : IEntityTypeConfiguration<Syst
         builder.Property(x => x.Key).HasMaxLength(128).IsRequired();
         builder.Property(x => x.Value).HasMaxLength(2000).IsRequired();
         builder.Property(x => x.Description).HasMaxLength(500);
-        builder.Property(x => x.ValueType).HasConversion<string>().HasMaxLength(20);
+        builder.Property(x => x.ValueType).HasMaxLength(20);
         builder.HasIndex(x => x.Key).IsUnique();
     }
 }

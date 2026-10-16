@@ -20,18 +20,22 @@ Theo dõi tiến độ theo Phase (spec §14). Đánh dấu `[x]` khi hạng m�
 
 **Kiểm chứng:** `dotnet test` 30/30 pass (14 Domain, 9 Application, 7 Integration với Testcontainers) · `npm run lint/test/build` pass · `scripts\dev-up.ps1` → `http://localhost:47080` mở được, `/health/ready` = Healthy (postgres, minio, gotenberg) · `seed.ps1`, `backup.ps1` chạy được.
 
-## Phase 1 — Nền tảng
-- [ ] Auth: JWT access 15' + refresh token (DB, rotate, httpOnly cookie SameSite=Strict); PasswordHasher; khóa sau 5 lần sai; 2FA TOTP (tùy chọn)
-- [ ] User / Role / Permission / UserRole / RolePermission / UserDataScope / SigningDelegation
-- [ ] `[HasPermission]` policy-based authorization
-- [ ] Global query filter theo `SupplierId` cho user NCC + integration test cô lập NCC A/B (kể cả đoán ID)
-- [ ] AuditLog interceptor (JSONB trước/sau) + trigger append-only
-- [ ] CRUD + lịch sử: Organization, Facility, Department(+History), Warehouse, Supplier(+History), User(+History)
-- [ ] Layout Nội bộ & Cổng NCC, menu theo quyền, axios refresh-token interceptor, trang đăng nhập
-- [ ] Ma trận phân quyền Role × Permission
-- [ ] Seed: 1 Organization, 4 cơ sở, ~15 khoa phòng, 5 kho, tài khoản demo mọi role + 3 NCC; `--reset-demo`
-- [ ] Màn hình SystemSetting
+## Phase 1 — Nền tảng ✅ (16/10/2026)
+- [x] Auth: JWT access 15' (HS256) + refresh token opaque lưu SHA-256 trong DB, xoay vòng mỗi lần dùng, phát hiện dùng lại → thu hồi cả "family"; cookie httpOnly SameSite=Strict Path=/api/auth; PasswordHasher (ASP.NET Identity); khóa 15' sau 5 lần sai; rate limit đăng nhập theo IP; 2FA TOTP (RFC 6238, QR trong UI); bắt buộc đổi mật khẩu tạm
+- [x] Security stamp: đổi mật khẩu / vai trò / khóa / vô hiệu hóa → token cũ bị từ chối (cache 15 s)
+- [x] User / Role / Permission (48 quyền, 16 vai trò) / UserRole / RolePermission / UserDataScope (Cơ sở, Khoa/phòng, Mảng) / SigningDelegation (KT. GIÁM ĐỐC)
+- [x] `[HasPermission(...)]` policy-based authorization (policy provider động)
+- [x] Cô lập dữ liệu NCC bằng EF Core named query filter (`SupplierIsolation`) — test: NCC A không đọc/sửa được dữ liệu NCC B kể cả đoán ID
+- [x] AuditLog tự động (interceptor, JSONB trước/sau, che mật khẩu) + ghi tay hành động nghiệp vụ (đăng nhập, khóa, đổi mật khẩu...) + trigger append-only ở DB
+- [x] CRUD + lịch sử phiên bản: Organization, Facility, Department(+History), Warehouse, Supplier(+History, cấp tài khoản + email), User(+History, đặt lại mật khẩu, mở khóa)
+- [x] Layout Nội bộ & Cổng NCC, menu lọc theo quyền, guard theo cổng, axios interceptor refresh single-flight, trang đăng nhập (2 bước khi bật 2FA), đổi mật khẩu, tài khoản & bảo mật
+- [x] Ma trận phân quyền Role × Permission (checkbox, lưu theo vai trò, tạo vai trò mới)
+- [x] Màn hình: Thông tin bệnh viện, Cơ sở, Khoa/phòng, Kho, NCC, Người dùng, Vai trò, Ủy quyền ký, Tham số hệ thống, Nhật ký hoạt động (lọc + diff trước/sau); Cổng NCC: Tài khoản công ty (SUPPLIER_ADMIN quản lý nhân viên)
+- [x] Bảng: phân trang/sort/lọc server-side, bộ lọc lưu trên URL, xuất Excel (ClosedXML)
+- [x] Seed demo: 1 bệnh viện, 4 cơ sở, 17 khoa/phòng, 5 kho, tài khoản cho mọi vai trò + 3 NCC × 2 tài khoản, 1 ủy quyền ký; `--reset-demo`
+- [x] SystemSetting chỉnh sửa trên UI
 
+**Kiểm chứng:** backend 114/114 test (36 Domain, 23 Application, 55 Integration) · frontend 19/19 test, lint 0 lỗi · `docker compose up` → đăng nhập `admin`, `ncc1` bằng trình duyệt; menu đúng quyền; reload giữ phiên qua refresh cookie.
 ## Phase 2 — Lõi tài liệu
 - [ ] Template engine DOCX (placeholder, filter `money`/`words`, bảng lặp, `#if`, anchor `{{SIG_*}}`), validate template
 - [ ] Đọc số tiền bằng chữ tiếng Việt + unit test kỹ

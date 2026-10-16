@@ -1,0 +1,66 @@
+import { useMutation } from '@tanstack/react-query';
+import { apiClient } from './http';
+import { authStore } from '../auth/authStore';
+import type { components } from './schema';
+
+type S = components['schemas'];
+export type LoginResult = S['LoginResult'];
+
+function applyLogin(result: LoginResult) {
+  if (result.accessToken && result.user) authStore.setSession(result.accessToken, result.user);
+  return result;
+}
+
+export function useLogin() {
+  return useMutation({
+    mutationFn: async (body: S['LoginRequest']) =>
+      applyLogin((await apiClient.post<LoginResult>('/api/auth/login', body)).data),
+  });
+}
+
+export function useLoginTwoFactor() {
+  return useMutation({
+    mutationFn: async (body: S['TwoFactorLoginRequest']) =>
+      applyLogin((await apiClient.post<LoginResult>('/api/auth/login/2fa', body)).data),
+  });
+}
+
+export function useChangePassword() {
+  return useMutation({
+    mutationFn: async (body: S['ChangePasswordRequest']) => {
+      await apiClient.post('/api/auth/change-password', body);
+    },
+  });
+}
+
+export function useTwoFactorSetup() {
+  return useMutation({
+    mutationFn: async () => (await apiClient.post<S['TwoFactorSetupResponse']>('/api/auth/2fa/setup')).data,
+  });
+}
+
+export function useEnableTwoFactor() {
+  return useMutation({
+    mutationFn: async (body: S['EnableTwoFactorRequest']) => {
+      await apiClient.post('/api/auth/2fa/enable', body);
+    },
+  });
+}
+
+export function useDisableTwoFactor() {
+  return useMutation({
+    mutationFn: async (body: S['DisableTwoFactorRequest']) => {
+      await apiClient.post('/api/auth/2fa/disable', body);
+    },
+  });
+}
+
+export async function reloadCurrentUser() {
+  const me = (await apiClient.get<S['CurrentUserDto']>('/api/auth/me')).data;
+  authStore.setUser(me);
+  return me;
+}
+
+export async function logoutRequest() {
+  await apiClient.post('/api/auth/logout');
+}

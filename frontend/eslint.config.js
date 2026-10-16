@@ -24,7 +24,16 @@ export default tseslint.config(
       // Components must go through TanStack Query hooks, never call axios directly (spec §15).
       'no-restricted-imports': [
         'error',
-        { paths: [{ name: 'axios', message: 'Dùng apiClient trong src/api/http.ts qua hooks TanStack Query.' }] },
+        {
+          paths: [{ name: 'axios', message: 'Dùng apiClient trong src/api/http.ts qua hooks TanStack Query.' }],
+          patterns: [
+            {
+              group: ['**/api/http'],
+              importNames: ['apiClient'],
+              message: 'Không gọi API trực tiếp trong component — dùng hooks trong src/api/.',
+            },
+          ],
+        },
       ],
     },
   },

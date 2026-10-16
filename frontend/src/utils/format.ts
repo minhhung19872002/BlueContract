@@ -26,3 +26,10 @@ export function formatDateTime(value: string | Date | null | undefined): string 
   if (!value) return '';
   return dayjs(value).tz(APP_TIME_ZONE).format('DD/MM/YYYY HH:mm');
 }
+
+/** Returns a copy of the record without the given key. */
+export function omitKey<T extends Record<string, unknown>>(record: T, key: string): T {
+  const copy = { ...record };
+  delete copy[key];
+  return copy;
+}

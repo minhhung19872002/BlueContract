@@ -8,6 +8,10 @@ public sealed record Error(string Code, ErrorKind Kind = ErrorKind.Validation)
     public static Error Forbidden(string code = "FORBIDDEN") => new(code, ErrorKind.Forbidden);
 
     public static Error Conflict(string code = "CONFLICT") => new(code, ErrorKind.Conflict);
+
+    public static Error Unauthorized(string code = "UNAUTHORIZED") => new(code, ErrorKind.Unauthorized);
+
+    public static Error Validation(string code) => new(code, ErrorKind.Validation);
 }
 
 public enum ErrorKind

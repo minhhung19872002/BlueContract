@@ -32,7 +32,20 @@ Lần đầu chạy sẽ mất vài phút vì phải tải image (riêng ONLYOFF
 Có thể đổi các cổng trong `.env` (xem `.env.example`).
 
 ### Tài khoản demo
-Tài khoản demo được seed từ **Phase 1**, mật khẩu chung `Demo@123`: `admin`, `muasam`, `rasoat`, `khoanoi`, `tonghop`, `totruongduoc`, `ketoan`, `ketoantruong`, `ketoankho`, `thukho`, `truongkhoa`, `giamdoc`, `vanthu`, `ncc1`, `ncc1.user`, `ncc2`, `ncc2.user`, `ncc3`, `ncc3.user`.
+Mật khẩu chung **`Demo@123`**.
+
+| Tài khoản | Vai trò | Tài khoản | Vai trò |
+|---|---|---|---|
+| `admin` | Quản trị hệ thống | `ketoantruong` | Kế toán trưởng |
+| `muasam` | Tổ Mua sắm | `ketoankho` | Kế toán kho |
+| `rasoat` | Tổ Rà soát | `thukho` | Thủ kho |
+| `khoanoi` | Khoa/Phòng (Khoa Nội) | `truongkhoa` | Trưởng khoa Dược |
+| `tonghop` / `tonghopvt` | Người tổng hợp (Dược / Vật tư) | `giamdoc` / `phogiamdoc` | Giám đốc / Phó Giám đốc |
+| `totruongduoc` / `totruongvattu` | Tổ trưởng mảng | `vanthu` | Văn thư |
+| `ketoan` | Kế toán | `xem` | Chỉ xem |
+| `ncc1`, `ncc2`, `ncc3` | Quản trị NCC | `ncc1.user`, `ncc2.user`, `ncc3.user` | Người dùng NCC |
+
+Người dùng NCC đăng nhập cùng trang và được chuyển sang **Cổng Nhà cung cấp** (`/ncc`).
 
 ## Scripts
 

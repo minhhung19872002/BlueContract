@@ -1,8 +1,11 @@
+using System.Text.Json.Serialization;
+using BlueProcure.Api.Auth;
 using BlueProcure.Api.Middleware;
 using BlueProcure.Application;
 using BlueProcure.Infrastructure;
 using BlueProcure.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.HttpOverrides;
 using Scalar.AspNetCore;
 using Serilog;
 using InfrastructureDI = BlueProcure.Infrastructure.DependencyInjection;
@@ -20,11 +23,35 @@ try
         .ReadFrom.Services(services)
         .Enrich.FromLogContext());
 
-    builder.Services.AddControllers();
+    builder.Services.AddControllers(options =>
+        {
+            options.Filters.Add<ValidationFilter>();
+            options.Filters.Add<PasswordChangeRequiredFilter>();
+        })
+        .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+
+    // OpenAPI schema generation reads the HTTP JSON options: keep enums as strings there too.
+    builder.Services.ConfigureHttpJsonOptions(o => o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+    builder.Services.Configure<Microsoft.AspNetCore.Mvc.ApiBehaviorOptions>(o => o.SuppressModelStateInvalidFilter = false);
+    builder.Services.Configure<ForwardedHeadersOptions>(o =>
+    {
+        // Behind the nginx reverse proxy (web container): trust X-Forwarded-* from the private network.
+        o.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+        o.KnownIPNetworks.Clear();
+        o.KnownProxies.Clear();
+    });
     builder.Services.AddOpenApi(options => options.AddDocumentTransformer((document, _, _) =>
     {
         document.Info.Title = "BlueProcure API";
         document.Info.Description = "Cổng Quản lý & Thanh toán Mua sắm Hàng hóa Trực tuyến";
+        document.Components ??= new Microsoft.OpenApi.OpenApiComponents();
+        document.Components.SecuritySchemes ??= new Dictionary<string, Microsoft.OpenApi.IOpenApiSecurityScheme>();
+        document.Components.SecuritySchemes["Bearer"] = new Microsoft.OpenApi.OpenApiSecurityScheme
+        {
+            Type = Microsoft.OpenApi.SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT",
+        };
         return Task.CompletedTask;
     }));
     builder.Services.AddProblemDetails(options => options.CustomizeProblemDetails = ctx =>
@@ -33,16 +60,28 @@ try
 
     builder.Services.AddApplication();
     builder.Services.AddInfrastructure(builder.Configuration);
+    builder.Services.AddAppAuth(builder.Configuration);
+    builder.Services.AddCors(o => o.AddDefaultPolicy(p => p
+        .WithOrigins(builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? [])
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials()));
 
     var app = builder.Build();
 
     // Skip bootstrap when the build-time OpenAPI generator (GetDocument.Insider) loads the app.
     var isOpenApiGeneration = System.Reflection.Assembly.GetEntryAssembly()?.GetName().Name == "GetDocument.Insider";
+    if (!isOpenApiGeneration && System.Text.Encoding.UTF8.GetByteCount(app.Configuration["Auth:SigningKey"] ?? string.Empty) < 32)
+    {
+        throw new InvalidOperationException("Auth:SigningKey must be configured with at least 32 bytes (env Auth__SigningKey).");
+    }
+
     var seedOnly = args.Contains("--seed-only", StringComparer.OrdinalIgnoreCase);
     if (!isOpenApiGeneration && (seedOnly || app.Configuration.GetValue("Database:InitializeOnStartup", true)))
     {
         await using var scope = app.Services.CreateAsyncScope();
-        await scope.ServiceProvider.GetRequiredService<DatabaseInitializer>().InitializeAsync(CancellationToken.None);
+        var resetDemo = args.Contains("--reset-demo", StringComparer.OrdinalIgnoreCase);
+        await scope.ServiceProvider.GetRequiredService<DatabaseInitializer>().InitializeAsync(CancellationToken.None, resetDemo);
     }
 
     // `dotnet BlueProcure.Api.dll --seed-only`: migrate + seed, then exit (used by scripts/seed.*).
@@ -52,6 +91,7 @@ try
         return;
     }
 
+    app.UseForwardedHeaders();
     app.UseMiddleware<CorrelationIdMiddleware>();
     app.UseSerilogRequestLogging();
     app.UseExceptionHandler();
@@ -71,6 +111,9 @@ try
         ResponseWriter = HealthResponseWriter.WriteAsync,
     });
 
+    app.UseCors();
+    app.UseAuthentication();
+    app.UseRateLimiter();
     app.UseAuthorization();
     app.MapControllers();
 

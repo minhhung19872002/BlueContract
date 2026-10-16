@@ -1,7 +1,13 @@
+using BlueProcure.Application.Auth;
 using BlueProcure.Application.Common;
 using BlueProcure.Infrastructure.HealthChecks;
+using BlueProcure.Infrastructure.Identity;
+using BlueProcure.Infrastructure.Messaging;
 using BlueProcure.Infrastructure.Persistence;
+using BlueProcure.Infrastructure.Persistence.Seeding;
+using BlueProcure.Infrastructure.Reporting;
 using BlueProcure.Infrastructure.Storage;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,13 +34,44 @@ public static class DependencyInjection
         services.AddSingleton<IClock, SystemClock>();
         services.AddScoped<AuditableEntityInterceptor>();
 
-        services.AddDbContext<AppDbContext>((sp, options) => options
-            .UseNpgsql(connectionString, npgsql => npgsql.MigrationsHistoryTable("__ef_migrations_history"))
-            .UseSnakeCaseNamingConvention()
-            .AddInterceptors(sp.GetRequiredService<AuditableEntityInterceptor>()));
+        // Factory (scoped, so interceptors/current user resolve per request) + scoped context from it.
+        services.AddDbContextFactory<AppDbContext>(
+            (sp, options) => options
+                .UseNpgsql(connectionString, npgsql => npgsql.MigrationsHistoryTable("__ef_migrations_history"))
+                .UseSnakeCaseNamingConvention()
+                .AddInterceptors(sp.GetRequiredService<AuditableEntityInterceptor>()),
+            ServiceLifetime.Scoped);
+        services.AddScoped(sp => sp.GetRequiredService<IDbContextFactory<AppDbContext>>().CreateDbContext());
+        services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<AppDbContext>());
+        services.AddScoped<IAuditLogger, AuditLogger>();
 
+        services.Configure<SeedOptions>(configuration.GetSection(SeedOptions.SectionName));
         services.AddScoped<DatabaseInitializer>();
+        services.AddScoped<IdentitySeeder>();
+        services.AddScoped<DemoSeeder>();
 
+        // Identity
+        services.Configure<AuthOptions>(configuration.GetSection(AuthOptions.SectionName));
+        services.AddSingleton<IPasswordService, PasswordService>();
+        services.AddSingleton<ITokenService, JwtTokenService>();
+        services.AddSingleton<ITotpService, TotpService>();
+        services.AddSingleton<ISecretProtector, DataProtectionSecretProtector>();
+        var dataProtection = services.AddDataProtection().SetApplicationName("BlueProcure");
+
+        // Keys live in PostgreSQL so every API instance shares them; skipped for the build-time OpenAPI generator (no DB).
+        if (System.Reflection.Assembly.GetEntryAssembly()?.GetName().Name != "GetDocument.Insider")
+        {
+            dataProtection.PersistKeysToDbContext<AppDbContext>();
+        }
+
+        // Messaging & links
+        services.Configure<EmailOptions>(configuration.GetSection(EmailOptions.SectionName));
+        services.Configure<AppOptions>(configuration.GetSection(AppOptions.SectionName));
+        services.AddScoped<IEmailSender, SmtpEmailSender>();
+        services.AddSingleton<IAppLinkBuilder, AppLinkBuilder>();
+        services.AddSingleton<IExcelExporter, ClosedXmlExcelExporter>();
+
+        // Storage
         services.Configure<StorageOptions>(configuration.GetSection(StorageOptions.SectionName));
         services.AddSingleton<IFileStorage, MinioFileStorage>();
 

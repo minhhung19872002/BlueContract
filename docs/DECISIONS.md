@@ -49,3 +49,27 @@ Mỗi mục là một ADR ngắn: **Bối cảnh → Quyết định → Hệ qu
 
 ## ADR-013 — Sao lưu MinIO
 - **Quyết định:** `scripts/backup.*` dùng `pg_dump -Fc` + `mc mirror`, chạy `mc` có sẵn trong image `minio/minio` (cùng phiên bản server) thay vì image `minio/mc` riêng. Giữ 30 bản gần nhất.
+
+## ADR-014 — Token & phiên đăng nhập
+- **Quyết định:** Access token JWT HS256, 15 phút, chứa quyền (`perm`), phạm vi dữ liệu (`dscope`), `supplier_id` và `stamp`. Refresh token là chuỗi ngẫu nhiên 64 byte, DB chỉ lưu SHA-256; mỗi lần refresh sinh token mới cùng `FamilyId`. Nếu token đã xoay vòng bị dùng lại thì thu hồi toàn bộ family (nghi bị đánh cắp). Mỗi request kiểm tra `SecurityStamp` (cache 15 s), nên đổi mật khẩu, vai trò, khóa hoặc vô hiệu hóa tài khoản có hiệu lực gần như ngay.
+- **Hệ quả:** Không cần danh sách đen access token. Access token chỉ giữ trong bộ nhớ trình duyệt; F5 khôi phục phiên bằng cookie refresh.
+
+## ADR-015 — Cô lập dữ liệu nhà cung cấp
+- **Quyết định:** Dùng named query filter của EF Core 10. Mỗi entity có filter `SoftDelete` và filter `SupplierIsolation` riêng. Entity nghiệp vụ implement `ISupplierScoped` (có `SupplierId`) được gắn filter tự động; `Supplier` (theo `Id`) và `User` (theo `SupplierId`) cấu hình riêng. Filter đọc `ICurrentUser` qua thuộc tính của `AppDbContext`, nên giá trị được tham số hóa theo từng request.
+- **Hệ quả:** Truy vấn bỏ qua filter (`IgnoreQueryFilters`) chỉ dùng cho đăng nhập và seed. Code review phải chặn mọi chỗ dùng khác.
+
+## ADR-016 — Lịch sử danh mục & nhật ký
+- **Quyết định:** Một interceptor duy nhất làm ba việc theo thứ tự: đóng dấu thời gian, chuyển xóa cứng thành xóa mềm, ghi `audit_logs` (JSONB trước/sau, che `PasswordHash`/`SecurityStamp`/`TwoFactorSecret`), và thêm snapshot vào bảng `*_history` cho entity đánh dấu `IHasHistory` (Department, User, Supplier). `audit_logs` có trigger chặn UPDATE/DELETE. `--reset-demo` dùng TRUNCATE, lệnh này không kích hoạt trigger theo dòng; chỉ được bật khi `Seed:AllowReset=true` (môi trường dev).
+
+## ADR-017 — Cấp tài khoản bằng mật khẩu tạm
+- **Bối cảnh:** Spec nói "gửi email kích hoạt".
+- **Quyết định:** Hệ thống sinh mật khẩu tạm đạt chính sách mật khẩu, gửi qua email và đặt cờ `MustChangePassword`. Server chặn mọi API (trừ `/api/auth/*`) cho đến khi người dùng đổi mật khẩu. Cách này đơn giản hơn link kích hoạt mà vẫn đảm bảo mật khẩu tạm chỉ dùng được một lần.
+
+## ADR-018 — Tìm kiếm không phân biệt hoa thường
+- **Quyết định:** Dùng `EF.Functions.ILike` của Npgsql ngay trong tầng Application (PostgreSQL là yêu cầu bắt buộc). Tham số tìm kiếm được escape `%` và `_`. Khi dữ liệu lớn (Phase 9) sẽ bổ sung index `pg_trgm` cho các cột tìm kiếm chính.
+
+## ADR-019 — TOTP tự viết, Data Protection lưu trong DB
+- **Quyết định:** TOTP theo RFC 6238 (SHA-1, 6 số, bước 30 s, chấp nhận lệch ±1 bước) tự viết khoảng 60 dòng, có test bằng vector chuẩn của RFC, không thêm thư viện. Secret TOTP được mã hóa bằng ASP.NET Data Protection; key ring lưu trong bảng `data_protection_keys` để nhiều instance API dùng chung.
+
+## ADR-020 — Enum dạng chuỗi
+- **Quyết định:** Enum lưu trong DB dạng chuỗi (convention `HaveConversion<string>`) và serialize JSON dạng chuỗi, cả trong MVC lẫn OpenAPI, để TS client sinh ra kiểu union (`"Clinical" | "Paraclinical" | ...`).

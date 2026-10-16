@@ -103,6 +103,13 @@ services:
       Storage__Bucket: ${MINIO_BUCKET:-blueprocure}
       ExternalServices__GotenbergUrl: http://gotenberg:3000
       ExternalServices__OnlyOfficeInternalUrl: http://onlyoffice
+      Auth__SigningKey: ${AUTH_SIGNING_KEY:-dev-only-signing-key-change-me-0123456789abcdef}
+      Seed__Demo: ${SEED_DEMO:-true}
+      Seed__AllowReset: ${SEED_ALLOW_RESET:-true}
+      Seed__AdminPassword: ${SEED_ADMIN_PASSWORD:-}
+      Email__Host: mailpit
+      Email__Port: "1025"
+      App__PublicBaseUrl: ${PUBLIC_BASE_URL:-http://localhost:47080}
       Serilog__WriteTo__2__Name: Seq
       Serilog__WriteTo__2__Args__serverUrl: ${SEQ_URL:-http://seq:5341}
 
