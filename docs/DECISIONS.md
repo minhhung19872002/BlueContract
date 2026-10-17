@@ -20,7 +20,7 @@ Mỗi mục là một ADR ngắn: **Bối cảnh → Quyết định → Hệ qu
 - **Quyết định:** `snake_case` (EFCore.NamingConventions). Bảng lịch sử migration tên `__ef_migrations_history`. Kiểu `decimal` mặc định `numeric(18,2)` (tiền); cột số lượng sẽ được cấu hình riêng `numeric(18,3)`. Thời gian là `timestamptz` (UTC); ngày nghiệp vụ hiển thị theo `Asia/Ho_Chi_Minh` (`IClock.TodayLocal`).
 
 ## ADR-005 — Khởi tạo khi chạy lần đầu
-- **Quyết định:** Khi start, API chạy `DatabaseInitializer` (migrate → seed idempotent → tạo bucket MinIO, có retry khi dependency chưa sẵn sàng). Cờ `Database:InitializeOnStartup` (mặc định `true`). Lệnh `dotnet BlueContract.Api.dll --seed-only` chỉ migrate + seed rồi thoát (dùng trong `scripts/seed.*`).
+- **Quyết định:** Khi start, API chạy `DatabaseInitializer` (migrate → seed idempotent → tạo bucket lưu trữ tệp, có retry khi dependency chưa sẵn sàng; từ 13.6 bucket do container `storage-init` tạo bằng tài khoản S3 quản trị, API chỉ kiểm tra). Cờ `Database:InitializeOnStartup` (mặc định `true`). Lệnh `dotnet BlueContract.Api.dll --seed-only` chỉ migrate + seed rồi thoát (dùng trong `scripts/seed.*`).
 - **Hệ quả:** Khi chạy nhiều instance API, nên đặt `InitializeOnStartup=false` cho các instance phụ hoặc chạy migrate như một bước deploy riêng (ghi trong DEPLOY.md ở Phase 9).
 
 ## ADR-006 — Sinh TypeScript client từ OpenAPI
@@ -29,10 +29,10 @@ Mỗi mục là một ADR ngắn: **Bối cảnh → Quyết định → Hệ qu
 
 ## ADR-007 — Cổng trên máy dev
 - **Bối cảnh:** Máy dev đang chạy nhiều stack khác chiếm 5432/8080/9000/8025/1025.
-- **Quyết định:** Mọi cổng host bind `127.0.0.1` trong dải `47xxx`, cấu hình được qua `.env` (web 47080, api 47081, postgres 47432, minio 47900/47901, onlyoffice 47082, gotenberg 47300, mailpit 47025/47125, seq 47341). Cổng của Postgres/API/Gotenberg/SMTP chỉ mở trong `docker-compose.override.yml` (dev).
+- **Quyết định:** Mọi cổng host bind `127.0.0.1` trong dải `47xxx`, cấu hình được qua `.env` (web 47080, api 47081, postgres 47432, kho tệp S3 47900 / filer 47901 (trước là MinIO, xem ADR-021), onlyoffice 47082, gotenberg 47300, mailpit 47025/47125, seq 47341). Cổng của Postgres/API/Gotenberg/SMTP chỉ mở trong `docker-compose.override.yml` (dev).
 
 ## ADR-008 — Thư viện kiểm thử
-- **Quyết định:** xUnit + **Shouldly** (FluentAssertions v8 đã đổi sang license thương mại). Integration test dùng Testcontainers (PostgreSQL 16 + MinIO) với `WebApplicationFactory<Program>`.
+- **Quyết định:** xUnit + **Shouldly** (FluentAssertions v8 đã đổi sang license thương mại). Integration test dùng Testcontainers (PostgreSQL 16 + SeaweedFS S3, ADR-021) với `WebApplicationFactory<Program>`.
 
 ## ADR-009 — ONLYOFFICE Docs Community (ghi chú license)
 - **Quyết định:** Dùng image `onlyoffice/documentserver:9.0` (Community Edition, **AGPL v3**, giới hạn **20 kết nối soạn thảo đồng thời**). Bật JWT (`ONLYOFFICE_JWT_SECRET`). Tích hợp sau interface `IDocumentEditorService` (Phase 2) để có thể chuyển sang bản Enterprise/Developer hoặc trình soạn thảo khác.
@@ -47,8 +47,9 @@ Mỗi mục là một ADR ngắn: **Bối cảnh → Quyết định → Hệ qu
 ## ADR-012 — Lỗi trả về client
 - **Quyết định:** Mọi lỗi trả về `application/problem+json` với `code` ổn định (`CONTRACT_QTY_EXCEEDED`…) và `title` tiếng Việt, ánh xạ tập trung tại `Application/Common/ErrorMessages.cs`. Lỗi 500 không lộ stack trace. `DbUpdateConcurrencyException` → 409 `CONFLICT`.
 
-## ADR-013 — Sao lưu MinIO
+## ADR-013 — Sao lưu MinIO (đã thay: ADR-021, AUDIT-1 §13.3)
 - **Quyết định:** `scripts/backup.*` dùng `pg_dump -Fc` + `mc mirror`, chạy `mc` có sẵn trong image `minio/minio` (cùng phiên bản server) thay vì image `minio/mc` riêng. Giữ 30 bản gần nhất.
+- **Hiện trạng:** MinIO đã bỏ (ADR-021); sao lưu do container `backup` (`pg_dump` + `aws s3 sync`) chạy hằng ngày, `scripts/backup.*` và `scripts/restore.*` gọi vào container này. Bản cài cũ chuyển dữ liệu theo DEPLOY.md mục 6 "Bản cài cũ dùng MinIO".
 
 ## ADR-014 — Token & phiên đăng nhập
 - **Quyết định:** Access token JWT HS256, 15 phút, chứa quyền (`perm`), phạm vi dữ liệu (`dscope`), `supplier_id` và `stamp`. Refresh token là chuỗi ngẫu nhiên 64 byte, DB chỉ lưu SHA-256; mỗi lần refresh sinh token mới cùng `FamilyId`. Nếu token đã xoay vòng bị dùng lại thì thu hồi toàn bộ family (nghi bị đánh cắp). Mỗi request kiểm tra `SecurityStamp` (cache 15 s), nên đổi mật khẩu, vai trò, khóa hoặc vô hiệu hóa tài khoản có hiệu lực gần như ngay.
@@ -77,7 +78,7 @@ Mỗi mục là một ADR ngắn: **Bối cảnh → Quyết định → Hệ qu
 ## ADR-021 — Lưu trữ tệp: SeaweedFS (S3) thay cho container MinIO (thay thế một phần ADR-013)
 - **Bối cảnh:** Image MinIO trên Docker Hub và quay.io không còn pull được nữa (CI báo `pull access denied for minio/minio`). Máy dev vẫn chạy được chỉ vì image đã có sẵn trong cache. Chainguard có image MinIO nhưng chỉ có tag `latest`, trái với yêu cầu ghim phiên bản.
 - **Quyết định:** Dùng `chrislusf/seaweedfs:3.97` (Apache-2.0) bật S3 gateway, credential lấy từ `.env`. Code vẫn đi qua `IFileStorage` → `S3FileStorage` (client S3 của MinIO .NET SDK), nên không phụ thuộc server cụ thể. Production có thể trỏ sang bất kỳ dịch vụ S3 nào (MinIO thương mại, Ceph RGW, AWS S3, Viettel/VNPT Cloud S3) chỉ bằng cấu hình `Storage:*`. Integration test chạy với cùng image (Testcontainers generic container), có test presigned URL. Backup dùng `amazon/aws-cli:2.27.0 s3 sync` thay cho `mc mirror`.
-- **Hệ quả:** Giao diện quản trị MinIO được thay bằng giao diện filer của SeaweedFS (cổng 47901). Health check đổi tên `minio` → `storage`.
+- **Hệ quả:** Giao diện quản trị MinIO được thay bằng giao diện filer của SeaweedFS (cổng 47901). Health check đổi tên `minio` → `storage`. Biến `.env` đổi từ `MINIO_*` sang `S3_*`; gói NuGet `Minio` vẫn dùng làm client S3. Chuyển dữ liệu từ bản cài cũ: DEPLOY.md mục 6.
 
 ## ADR-022 — Template engine DOCX tự viết
 - **Bối cảnh:** Các thư viện template DOCX mã nguồn mở hoặc chưa hỗ trợ lặp dòng bảng kèm định dạng tiền/số kiểu Việt Nam, hoặc có license thương mại.

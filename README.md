@@ -20,7 +20,7 @@ cd BlueContract
 powershell -ExecutionPolicy Bypass -File scripts\dev-up.ps1
 ```
 
-Lần đầu chạy sẽ mất vài phút vì phải tải image (riêng ONLYOFFICE khoảng 3–4 GB). Script tự làm các việc sau: tạo `.env`, build image, khởi động toàn bộ service, chạy migration, seed dữ liệu, tạo bucket lưu trữ tệp, rồi chờ đến khi `/health/ready` trả về xanh.
+Lần đầu chạy sẽ mất vài phút vì phải tải image (riêng ONLYOFFICE khoảng 3–4 GB). Script tự làm các việc sau: tạo `.env`, build image, khởi động toàn bộ service (PostgreSQL, kho tệp S3 SeaweedFS, Redis, Gotenberg, ONLYOFFICE, Mailpit, API, web, sao lưu tự động), tạo bucket lưu trữ tệp, chạy migration, seed dữ liệu, rồi chờ đến khi `/health/ready` trả về xanh.
 
 | Dịch vụ | URL |
 |---|---|
@@ -58,24 +58,31 @@ Người dùng NCC đăng nhập cùng trang và được chuyển sang **Cổng
 | Khởi động stack | `scripts\dev-up.ps1 [-Seq] [-NoBuild]` | `scripts/dev-up.sh [--seq] [--no-build]` |
 | Migrate + seed lại | `scripts\seed.ps1 [-ResetDemo]` | `scripts/seed.sh [--reset-demo]` |
 | Xóa sạch DB + kho tệp | `scripts\reset-db.ps1 [-Force]` | `scripts/reset-db.sh [--force]` |
-| Sao lưu (giữ 30 bản) | `scripts\backup.ps1` | `scripts/backup.sh` |
+| Sao lưu ngay (ngoài lần tự động hằng ngày của container `backup`, giữ 30 bản) | `scripts\backup.ps1` | `scripts/backup.sh` |
+| Khôi phục một bản sao lưu (thay toàn bộ dữ liệu, hỏi xác nhận) | `scripts\restore.ps1 -Stamp <yyyymmdd-HHMMSS> [-Yes]` | `scripts/restore.sh <yyyymmdd-HHMMSS> [--yes]` |
 | Xuất 16 mẫu DOCX + 2 biểu mẫu import Excel ra `templates/` | `scripts\export-templates.ps1` | `scripts/export-templates.sh` |
 | Kiểm thử E2E (Playwright) trên stack đang chạy | `scripts\e2e.ps1` | `scripts/e2e.sh` |
+| Chạy API N instance sau nginx rồi kiểm thử E2E #6 (thông báo và phiên ký qua Redis) | `scripts\scale-check.ps1 [-Instances 2]` | `scripts/scale-check.sh [2]` |
+| Sinh lại bảng endpoint trong `docs/API.md` sau khi đổi API | `scripts\gen-api-doc.ps1` | `scripts/gen-api-doc.sh` |
 | Cổng coverage Domain + Application (≥ 70%) sau `dotnet test --collect "XPlat Code Coverage"` | `scripts\coverage.ps1 [dir] [min]` | `scripts/coverage.sh [dir] [min]` |
 
 ## Phát triển không qua Docker (tùy chọn)
 
-Cần cài **.NET 10 SDK** và **Node.js 22**. Hạ tầng (Postgres, kho tệp S3, Gotenberg…) vẫn chạy bằng Docker.
+Cần cài **.NET 10 SDK** và **Node.js 22**. Hạ tầng (Postgres, kho tệp S3, Gotenberg…) vẫn chạy bằng Docker. Không cần Redis khi chỉ chạy một instance API.
 
 ```powershell
-docker compose up -d postgres storage gotenberg onlyoffice mailpit
+docker compose up -d postgres storage storage-init gotenberg onlyoffice mailpit
 cd backend;  dotnet run --project src/BlueContract.Api          # http://localhost:5296
 cd frontend; npm install; npm run dev                           # http://localhost:5173 (proxy /api → 5296)
 ```
 
 - Chạy test backend: `cd backend; dotnet test`. Integration test dùng Testcontainers nên cần Docker đang chạy.
 - Chạy kiểm tra frontend: `cd frontend; npm run lint; npm test; npm run build`
-- Sinh lại TS client sau khi đổi API: `cd backend; dotnet build`, rồi `cd frontend; npm run gen:api`
+- Sinh lại TS client sau khi đổi API: `cd backend; dotnet build`, rồi `cd frontend; npm run gen:api`. Sinh lại cả `docs/API.md` (`scripts\gen-api-doc.ps1`); CI báo lỗi nếu tài liệu cũ hơn code.
+
+## Triển khai thật
+
+Dùng `docker-compose.prod.yml` (không kèm `docker-compose.override.yml` của dev): mọi bí mật bắt buộc đặt trong `.env`, có TLS + HSTS, tắt dữ liệu demo và các công cụ dev; API từ chối khởi động nếu còn cờ dev hay bí mật mặc định. Tệp tải xuống đi qua cổng (`/api/files/…`), kho tệp không cần mở ra ngoài. Chi tiết: [`docs/DEPLOY.md`](docs/DEPLOY.md).
 
 ## Cấu trúc
 
@@ -83,6 +90,8 @@ cd frontend; npm install; npm run dev                           # http://localho
 backend/   .NET 10 — Domain / Application / Infrastructure / Api + tests
 frontend/  React 18 + Vite + TypeScript + Ant Design 5
 templates/ Mẫu DOCX/XLSX
-scripts/   dev-up, seed, reset-db, backup, e2e, coverage (.ps1 + .sh)
+e2e/       Kiểm thử E2E Playwright
+ops/       Container sao lưu (backup) và reverse proxy TLS
+scripts/   dev-up, seed, reset-db, backup, restore, export-templates, e2e, scale-check, coverage, gen-api-doc (.ps1 + .sh)
 docs/      SPEC, DECISIONS, DEPLOY, USER_GUIDE, HIS_INTEGRATION, API (thử API: Scalar tại /docs)
 ```

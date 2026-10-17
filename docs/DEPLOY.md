@@ -148,10 +148,9 @@ Ký nháy (`Initial`) mặc định dùng dấu nháy nội bộ không cần CA
 
 **Tự động:** container `backup` (cùng `docker compose up`) sao lưu **hằng ngày lúc `BACKUP_TIME`** (giờ Việt Nam, mặc định 01:30). Mỗi lần ghi vào `BACKUP_DIR/<yyyymmdd-HHMMSS>/` gồm `db.dump` (`pg_dump` dạng custom) và `files/` (toàn bộ bucket tệp), giữ `BACKUP_KEEP` bản gần nhất (mặc định 30). Một bản chỉ hiện ra khi đã sao lưu xong (thư mục `.partial` được đổi tên ở bước cuối). Thời điểm thành công gần nhất ghi trong `BACKUP_DIR/last-success`; nhật ký xem bằng `docker compose logs backup`. Đặt `BACKUP_TIME=` (rỗng) để tắt. Thư mục `BACKUP_DIR` cần được chép ra máy / kho lưu trữ khác (rsync, ổ mạng) theo quy trình của bệnh viện.
 
-**Sao lưu ngay:** `scripts/backup.sh` / `scriptsackup.ps1`.
+**Sao lưu ngay:** `scripts/backup.sh` / `scripts\backup.ps1`.
 
-**Khôi phục:** `scripts/restore.sh <yyyymmdd-HHMMSS>` / `scripts
-estore.ps1 -Stamp <yyyymmdd-HHMMSS>`. Script hỏi xác nhận (gõ `KHOI PHUC`, hoặc thêm `--yes` / `-Yes`), rồi:
+**Khôi phục:** `scripts/restore.sh <yyyymmdd-HHMMSS>` / `scripts\restore.ps1 -Stamp <yyyymmdd-HHMMSS>`. Script hỏi xác nhận (gõ `KHOI PHUC`, hoặc thêm `--yes` / `-Yes`), rồi:
 1. dừng API;
 2. ngắt kết nối và tạo lại cơ sở dữ liệu từ `db.dump`;
 3. làm bucket **giống hệt** bản sao lưu (`sync --delete`: tệp tạo sau thời điểm sao lưu bị xóa);
@@ -165,6 +164,16 @@ Diễn tập ngày 17/10/2026 trên bộ dữ liệu demo:
 - Khôi phục mất khoảng 2 phút. Kết quả: số liệu trùng khớp, cơ sở và tệp thêm sau đều mất, kiểm tra toàn vẹn 993 tệp không sai, không thiếu.
 
 Nên diễn tập lại mỗi quý trên máy thử.
+
+### Bản cài cũ dùng MinIO (trước ADR-021)
+Kho tệp đã chuyển từ container MinIO sang SeaweedFS (ADR-021). Định dạng dữ liệu trên đĩa của hai bên khác nhau, nên **không** gắn lại volume `minio-data` cũ cho `storage` được. Dữ liệu chuyển qua bản sao lưu:
+1. Trên bản cũ (vẫn còn container `minio`), chạy `scripts/backup.sh` / `scripts\backup.ps1` của bản cũ. Kết quả là `backups/<yyyymmdd-HHMMSS>/` gồm `db.dump` và thư mục `minio/` (các tệp thường, chép bằng `mc mirror`).
+2. Đổi tên thư mục `minio/` thành `files/`, là tên mà `restore-once.sh` của bản mới đọc.
+3. Cập nhật mã nguồn, thêm vào `.env` các biến `S3_*` (xem `.env.example`; các biến `MINIO_*` không còn dùng), rồi `docker compose up -d`.
+4. Chạy `scripts/restore.sh <yyyymmdd-HHMMSS>` / `scripts\restore.ps1 -Stamp <yyyymmdd-HHMMSS>`, rồi **Kiểm tra toàn vẹn → Kiểm tra ngay**: mọi tệp phải khớp SHA-256.
+5. Khi đã chắc chắn, xóa container và volume MinIO cũ: `docker volume rm <project>_minio-data`.
+
+Nếu bệnh viện muốn dùng tiếp một máy chủ MinIO (hoặc dịch vụ S3 khác) có sẵn thay cho SeaweedFS: giữ nguyên dữ liệu ở đó. Trong một tệp compose bổ sung, đặt `Storage__Endpoint` (dạng `host:port`), `Storage__UseSsl`, `Storage__AccessKey`, `Storage__SecretKey`, `Storage__Bucket` cho `api`, đặt `S3_ENDPOINT` và tài khoản đọc toàn bucket cho `backup`, rồi bỏ phụ thuộc vào `storage` / `storage-init` của hai service này. Bucket phải được tạo sẵn. Mã chỉ đi qua giao diện S3, không phụ thuộc máy chủ cụ thể.
 
 ## 7. Vận hành
 
