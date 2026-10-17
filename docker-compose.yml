@@ -1,8 +1,16 @@
 name: blueprocure
 
 # All host ports bind to 127.0.0.1 and are configurable via .env (see .env.example).
+# Docker's own log of every container (stdout): rotated, so a chatty service cannot fill the disk (AUDIT-1 §13.5).
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
 services:
   postgres:
+    logging: *logging
     image: postgres:16.10-alpine
     restart: unless-stopped
     environment:
@@ -20,6 +28,7 @@ services:
 
   # S3-compatible object storage (SeaweedFS; MinIO images are no longer published — see ADR-021).
   storage:
+    logging: *logging
     image: chrislusf/seaweedfs:3.97
     restart: unless-stopped
     entrypoint: ["sh", "-c"]
@@ -45,6 +54,7 @@ services:
       start_period: 20s
   # Shared state of the API instances (SignalR backplane, signing sessions): lets `--scale api=N` work (ADR-061).
   redis:
+    logging: *logging
     image: redis:7.4-alpine
     restart: unless-stopped
     command: ["redis-server", "--save", "", "--appendonly", "no", "--maxmemory", "256mb", "--maxmemory-policy", "volatile-lru"]
@@ -55,6 +65,7 @@ services:
       retries: 5
 
   gotenberg:
+    logging: *logging
     image: gotenberg/gotenberg:8.20
     restart: unless-stopped
     command:
@@ -69,6 +80,7 @@ services:
       start_period: 20s
 
   onlyoffice:
+    logging: *logging
     image: onlyoffice/documentserver:9.0
     restart: unless-stopped
     environment:
@@ -91,6 +103,7 @@ services:
       start_period: 120s
 
   mailpit:
+    logging: *logging
     image: axllent/mailpit:v1.27
     restart: unless-stopped
     environment:
@@ -100,6 +113,7 @@ services:
       - "127.0.0.1:${MAILPIT_UI_PORT:-47025}:8025"
 
   seq:
+    logging: *logging
     image: datalust/seq:2025.2
     profiles: ["seq"]
     restart: unless-stopped
@@ -112,6 +126,7 @@ services:
       - seq-data:/data
 
   api:
+    logging: *logging
     build:
       context: ./backend
     image: blueprocure/api:dev
@@ -127,6 +142,9 @@ services:
         condition: service_healthy
     # Ready = database, storage and Gotenberg reachable (/health/ready); the first start migrates and seeds, hence the
     # long start period.
+    volumes:
+      # Application log files (blueprocure-<host>-<date>.log), kept across container rebuilds.
+      - api-logs:/app/logs
     healthcheck:
       test: ["CMD", "dotnet", "BlueContract.Api.dll", "--health-check"]
       interval: 30s
@@ -173,11 +191,12 @@ services:
       Email__Host: mailpit
       Email__Port: "1025"
       App__PublicBaseUrl: ${PUBLIC_BASE_URL:-http://localhost:47080}
-      Serilog__WriteTo__2__Name: Seq
-      Serilog__WriteTo__2__Args__serverUrl: ${SEQ_URL:-http://seq:5341}
+      Serilog__WriteTo__1__Name: Seq
+      Serilog__WriteTo__1__Args__serverUrl: ${SEQ_URL:-http://seq:5341}
 
   # Daily backup (pg_dump + file bucket) into ./backups, Vietnam time; scripts/restore.* restores one (AUDIT-1 §13.3).
   backup:
+    logging: *logging
     build:
       context: ./ops/backup
     image: blueprocure/backup:dev
@@ -203,6 +222,7 @@ services:
       - ${BACKUP_DIR:-./backups}:/backups
 
   web:
+    logging: *logging
     build:
       context: ./frontend
     image: blueprocure/web:dev
@@ -219,6 +239,7 @@ services:
       - "127.0.0.1:${WEB_PORT:-47080}:8080"
 
 volumes:
+  api-logs:
   postgres-data:
   storage-data:
   onlyoffice-data:

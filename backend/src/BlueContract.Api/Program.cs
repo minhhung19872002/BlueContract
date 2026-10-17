@@ -40,10 +40,27 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
 
-    builder.Host.UseSerilog((context, services, configuration) => configuration
-        .ReadFrom.Configuration(context.Configuration)
-        .ReadFrom.Services(services)
-        .Enrich.FromLogContext());
+    builder.Host.UseSerilog((context, services, configuration) =>
+    {
+        configuration
+            .ReadFrom.Configuration(context.Configuration)
+            .ReadFrom.Services(services)
+            .Enrich.FromLogContext();
+
+        // Daily files on the log volume, one set per instance (host name), bounded in size and count (AUDIT-1 §13.5).
+        var file = context.Configuration.GetSection("LogFile");
+        if (file.GetValue("Enabled", true))
+        {
+            configuration.WriteTo.File(
+                Path.Combine(file["Directory"] ?? "logs", $"blueprocure-{Environment.MachineName}-.log"),
+                rollingInterval: RollingInterval.Day,
+                retainedFileCountLimit: file.GetValue("RetainedFiles", 30),
+                fileSizeLimitBytes: file.GetValue("MaxFileMegabytes", 50) * 1024L * 1024L,
+                rollOnFileSizeLimit: true,
+                outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] [{CorrelationId}] {SourceContext}: {Message:lj}{NewLine}{Exception}",
+                formatProvider: System.Globalization.CultureInfo.InvariantCulture);
+        }
+    });
 
     builder.Services.AddControllers(options =>
         {
@@ -167,7 +184,11 @@ try
 
     app.UseForwardedHeaders();
     app.UseMiddleware<CorrelationIdMiddleware>();
-    app.UseSerilogRequestLogging();
+    app.UseSerilogRequestLogging(options => options.GetLevel = (http, _, error) =>
+        // Container healthchecks hit /health every 30 s: keep them out of the logs unless they fail.
+        error is null && http.Response.StatusCode < 500 && http.Request.Path.StartsWithSegments("/health")
+            ? Serilog.Events.LogEventLevel.Verbose
+            : error is not null || http.Response.StatusCode >= 500 ? Serilog.Events.LogEventLevel.Error : Serilog.Events.LogEventLevel.Information);
     app.UseExceptionHandler();
     app.UseStatusCodePages();
 
