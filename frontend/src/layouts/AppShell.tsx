@@ -99,7 +99,7 @@ function useNavBadges(isSupplier: boolean, canInbox: boolean): Record<NavBadge, 
 const badgeTitle: Record<NavBadge, string> = {
   inbox: 'tài liệu chờ tôi xử lý',
   callOrders: 'đơn gọi hàng chờ xác nhận',
-  receipts: 'phiếu cần xử lý',
+  receipts: 'phiếu nhập kho cần xử lý (cảnh báo / không hợp lệ)',
 };
 
 function toMenu(items: NavItem[], counts: Record<NavBadge, number>, collapsed: boolean): MenuProps['items'] {
@@ -121,6 +121,7 @@ function toMenu(items: NavItem[], counts: Record<NavBadge, number>, collapsed: b
             <span
               className={`app-sider__badge${urgent ? ' app-sider__badge--urgent' : ''}`}
               aria-label={`${count} ${i.badge ? badgeTitle[i.badge] : ''}`}
+              title={`${count} ${i.badge ? badgeTitle[i.badge] : ''}`}
             >
               {count > 99 ? '99+' : count}
             </span>

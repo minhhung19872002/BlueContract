@@ -8839,6 +8839,13 @@
             "schema": {
               "type": "boolean"
             }
+          },
+          {
+            "name": "NeedsAttention",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
@@ -9039,6 +9046,13 @@
           },
           {
             "name": "Accepted",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "NeedsAttention",
             "in": "query",
             "schema": {
               "type": "boolean"

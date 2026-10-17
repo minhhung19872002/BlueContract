@@ -34,7 +34,9 @@ public sealed record ReceiptFilter(
     DateOnly? From,
     DateOnly? To,
     bool? HasInvoice,
-    bool? Accepted);
+    bool? Accepted,
+    // Open receipts (not completed, not cancelled) whose check is a warning or invalid: what the dashboard counts.
+    bool? NeedsAttention = null);
 
 public sealed record ReceiptLineDto(
     Guid Id,

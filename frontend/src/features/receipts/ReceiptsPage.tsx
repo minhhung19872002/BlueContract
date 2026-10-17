@@ -9,10 +9,11 @@ import {
   Select,
   Space,
   Switch,
+  Tag,
   Tooltip,
   Typography,
 } from 'antd';
-import { ApiOutlined, PlusOutlined } from '@ant-design/icons';
+import { ApiOutlined, CloseOutlined, PlusOutlined } from '@ant-design/icons';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import dayjs from '../../i18n/dayjs';
@@ -45,6 +46,7 @@ const FILTERS = [
   'from',
   'to',
   'hasInvoice',
+  'needsAttention',
 ] as const;
 
 /** Phiếu nhập kho (spec §9.1-10; cổng NCC §9.2-5): lọc trạng thái ký, cảnh báo, NCC, kho, ngày. */
@@ -94,6 +96,16 @@ export function ReceiptsPage() {
         searchPlaceholder="Tìm theo số phiếu, số HĐ, số hóa đơn, tên hàng"
         filters={
           <>
+            {state.filters.needsAttention === 'true' && (
+              <Tag
+                closable
+                color="warning"
+                closeIcon={<CloseOutlined aria-label="Bỏ lọc phiếu cần xử lý" />}
+                onClose={() => update({ filters: { needsAttention: undefined } })}
+              >
+                Phiếu cần xử lý: cảnh báo / không hợp lệ, chưa hoàn tất
+              </Tag>
+            )}
             <Select
               allowClear
               placeholder="Trạng thái ký"

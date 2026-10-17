@@ -153,7 +153,7 @@ export function HomePage() {
               value={`${d.warningReceipts} / ${d.invalidReceipts}`}
               tone={d.invalidReceipts > 0 ? 'danger' : d.warningReceipts > 0 ? 'warning' : 'success'}
               sub="Đối chiếu với hợp đồng và hóa đơn"
-              onClick={() => navigate('/nhap-kho?validation=Warning')}
+              onClick={() => navigate('/nhap-kho?needsAttention=true')}
             />
             <KpiCard
               icon={<Truck {...ICON} />}

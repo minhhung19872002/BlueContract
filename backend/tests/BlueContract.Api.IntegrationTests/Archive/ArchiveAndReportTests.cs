@@ -6,8 +6,10 @@ using BlueContract.Api.IntegrationTests.Infrastructure;
 using BlueContract.Application.Archive;
 using BlueContract.Application.Common;
 using BlueContract.Application.Documents;
+using BlueContract.Application.Receipts;
 using BlueContract.Application.Reports;
 using BlueContract.Domain.Contracts;
+using BlueContract.Domain.Receipts;
 using Shouldly;
 
 namespace BlueContract.Api.IntegrationTests.Archive;
@@ -98,6 +100,19 @@ public class ArchiveAndReportTests(ApiFactory factory)
 
         // NCC2 never sees NCC3's payment of the liquidated contract.
         supplierDashboard.Payments.Sum(m => m.Paid).ShouldBeLessThan(dashboard.Payments.Sum(m => m.Paid));
+    }
+
+    [Fact]
+    public async Task The_receipts_needing_attention_list_matches_the_dashboard_count()
+    {
+        // The dashboard card and the menu badge count open receipts with a warning or invalid check; their link must
+        // list exactly those (not the completed ones, not only the warnings).
+        using var director = await factory.LoginAsync("giamdoc");
+        var dashboard = await director.GetFromJsonAsync<InternalDashboardDto>("/api/dashboard", JsonDefaults.Options);
+        var list = await director.GetFromJsonAsync<PagedResult<ReceiptListItemDto>>("/api/warehouse-receipts?needsAttention=true&pageSize=200", JsonDefaults.Options);
+
+        list!.Total.ShouldBe(dashboard!.WarningReceipts + dashboard.InvalidReceipts);
+        list.Items.ShouldAllBe(r => r.ValidationStatus != ReceiptValidationStatus.Valid && r.Status != ReceiptStatus.Completed && r.Status != ReceiptStatus.Cancelled);
     }
 
     [Fact]
