@@ -30,8 +30,7 @@ import { PdfViewer } from '../../components/PdfViewer';
 import { StatusTag } from '../../components/StatusTag';
 import { ReasonDialog } from '../../components/ReasonDialog';
 import { useApiError } from '../../components/common';
-import { Banner, DocHeader, DocKpis, InfoGrid, Panel, type DocKpi } from '../../components/layout';
-import dayjs from '../../i18n/dayjs';
+import { Banner, DocHeader, DocKpis, InfoGrid, Panel } from '../../components/layout';
 import { formatDate, formatDateTime, formatMoney, formatQuantity } from '../../utils/format';
 import { WorkflowCard, WorkflowTimeline } from '../signing/WorkflowPanel';
 import { ContractReceipts } from '../receipts/ContractReceipts';
@@ -42,6 +41,7 @@ import { contractInfoLabel, formatContractInfo } from '../../utils/contractInfo'
 import { AccountantReviewPanel, SupplierReviewPanel } from './ContractReviewPanels';
 import { ExportableTable } from '../../components/TableExportButton';
 import { DetailState } from '../../components/DetailState';
+import { contractKpis } from './contractKpis';
 
 const pct = (part: number, whole: number) => (whole > 0 ? Math.round((part * 1000) / whole) / 10 : 0);
 
@@ -117,38 +117,7 @@ export function ContractDetailPage() {
   if (!c) return <DetailState query={contract} />;
 
   const a = c.actions;
-  const totals = c.items.reduce(
-    (s, i) => ({
-      value: s.value + i.amount,
-      received: s.received + i.receivedQuantity * i.unitPrice,
-      paid: s.paid + i.paidQuantity * i.unitPrice,
-    }),
-    { value: 0, received: 0, paid: 0 },
-  );
-  const daysLeft = c.expiryDate ? dayjs(c.expiryDate).diff(dayjs().startOf('day'), 'day') : null;
-  const kpis: DocKpi[] = [
-    { label: 'Tổng giá trị', value: formatMoney(c.totalAmount), hint: `${c.items.length} mặt hàng` },
-    {
-      label: 'Đã nhập kho',
-      value: formatMoney(totals.received),
-      percent: pct(totals.received, totals.value),
-      tone: 'teal',
-      hint: `${pct(totals.received, totals.value)}% giá trị hợp đồng`,
-    },
-    {
-      label: 'Đã thanh toán',
-      value: formatMoney(totals.paid),
-      percent: pct(totals.paid, totals.value),
-      tone: 'success',
-      hint: `${pct(totals.paid, totals.value)}% giá trị hợp đồng`,
-    },
-    {
-      label: 'Hiệu lực đến',
-      value: formatDate(c.expiryDate) || '—',
-      hint: daysLeft === null ? 'Chưa xác định' : daysLeft < 0 ? 'Đã hết hạn' : `Còn ${daysLeft} ngày`,
-      tone: daysLeft !== null && daysLeft < 30 ? 'danger' : undefined,
-    },
-  ];
+  const kpis = contractKpis(c);
 
   return (
     <>
@@ -363,7 +332,7 @@ export function ContractDetailPage() {
                         render: (v: number) => formatQuantity(v),
                       },
                       {
-                        title: 'Đã nhập kho',
+                        title: c.requiresWarehouseReceipt ? 'Đã nhập kho' : 'Đã xác nhận',
                         dataIndex: 'receivedQuantity',
                         align: 'right',
                         render: (v: number) => formatQuantity(v),
