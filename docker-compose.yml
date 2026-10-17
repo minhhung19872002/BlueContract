@@ -114,6 +114,8 @@ services:
       # Allow callbacks/downloads to the api container on the private docker network.
       ALLOW_PRIVATE_IP_ADDRESS: "true"
       ALLOW_META_IP_ADDRESS: "true"
+      # Skip bundled plugin install on startup; pluginsmanager crashes and writes multi-GB WSL dumps
+      PLUGINS_ENABLED: "false"
     ports:
       - "127.0.0.1:${ONLYOFFICE_PORT:-47082}:80"
     volumes:
@@ -201,6 +203,9 @@ services:
       His__Provider: ${HIS_PROVIDER:-Mock}
       His__BaseUrl: ${HIS_BASE_URL:-}
       His__ApiKey: ${HIS_API_KEY:-}
+      His__AuthMode: ${HIS_AUTH_MODE:-ApiKey}
+      His__Username: ${HIS_USERNAME:-}
+      His__Password: ${HIS_PASSWORD:-}
       His__PullEnabled: ${HIS_PULL_ENABLED:-true}
       His__PullCron: ${HIS_PULL_CRON:-*/15 * * * *}
       # X-Forwarded-For is trusted only from the reverse proxy (the web container's docker network).

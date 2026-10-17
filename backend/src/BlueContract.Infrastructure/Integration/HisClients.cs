@@ -25,6 +25,22 @@ public sealed class HisOptions
 
     public string? ApiKey { get; set; }
 
+    /// <summary>"ApiKey" (static header above) or "Login": a service account logs in and sends "Authorization: Bearer".</summary>
+    public string AuthMode { get; set; } = "ApiKey";
+
+    public string? Username { get; set; }
+
+    public string? Password { get; set; }
+
+    /// <summary>Relative URL taking {"username","password"} as JSON (Login mode).</summary>
+    public string LoginPath { get; set; } = "api/auth/login";
+
+    /// <summary>Dotted path to the access token in the login response.</summary>
+    public string TokenPath { get; set; } = "data.token";
+
+    /// <summary>How long a token is reused before logging in again (keep below the vendor's token lifetime).</summary>
+    public int TokenLifetimeMinutes { get; set; } = 25;
+
     public int TimeoutSeconds { get; set; } = 30;
 
     /// <summary>Relative URL with placeholders {bidNumber}, {taxCode}, {facilityCode}.</summary>

@@ -220,7 +220,14 @@ Khi nhận lỗi 5xx hoặc mất kết nối, HIS nên gửi lại (ký lại v
 
 ## 3. API HIS cung cấp cho cổng (outbound — `IHisClient`)
 
-Cấu hình trong `appsettings` mục `His` (biến môi trường `His__...`): `Provider` = `Rest`, `BaseUrl`, `ApiKeyHeader`, `ApiKey`, `TimeoutSeconds`. Mỗi lời gọi có retry, circuit breaker và timeout.
+Cấu hình trong `appsettings` mục `His` (biến môi trường `His__...`): `Provider` = `Rest`, `BaseUrl`, `TimeoutSeconds`. Mỗi lời gọi có retry, circuit breaker và timeout.
+
+Xác thực (`AuthMode`):
+- `ApiKey` (mặc định): gửi `ApiKey` trong header `ApiKeyHeader`.
+- `Login`: đăng nhập bằng tài khoản dịch vụ `Username` / `Password` (`HIS_AUTH_MODE`, `HIS_USERNAME`, `HIS_PASSWORD`), gửi `Authorization: Bearer <token>`.
+  - `LoginPath` (mặc định `api/auth/login`, body `{"username","password"}`) và `TokenPath` (mặc định `data.token`).
+  - Token dùng chung cho cả instance, đăng nhập lại sau `TokenLifetimeMinutes` (mặc định 25) hoặc khi HIS trả 401.
+  - Tài khoản dịch vụ không được bật xác thực 2 lớp.
 
 | Nghiệp vụ | Cấu hình đường dẫn (mặc định) | Ánh xạ trường |
 |---|---|---|
@@ -241,3 +248,21 @@ Bật bằng `HIS_PULL_ENABLED=true`, lịch `HIS_PULL_CRON` (mặc định 15 p
 - HIS giả lập (`HIS_PROVIDER=Mock`) trả dữ liệu ổn định theo Số QĐ + MST.
 - `POST /api/dev/his/simulate-receipt` (bật bằng `HIS_DEV_ENDPOINTS=true`, cần đăng nhập với quyền lập phiếu nhập kho) tạo phiếu cho một hợp đồng hiệu lực theo kịch bản `Valid` / `Warning` / `Invalid`, gửi ngay (`Push`) hoặc xếp vào HIS giả lập chờ job kéo về (`Pull`). Trên giao diện: **Phiếu nhập kho → "Giả lập HIS gửi phiếu"**.
 - Khóa thử nghiệm mặc định trong `.env.example`: `X-Api-Key = his-dev-key`, secret `his-dev-secret-change-me-0123456789`. **Bắt buộc thay khi triển khai thật.**
+
+## 5. HIS BlueStar (`his.bluestar.com.vn`)
+
+HIS của BlueStar (repo HIS, migration 227) đã có sẵn API theo đúng các đường dẫn mặc định ở mục 3, dưới tiền tố `api/integration/bluecontract/`:
+
+| Cổng gọi | HIS trả |
+|---|---|
+| `bid-items` | luôn rỗng: HIS chưa lưu kết quả trúng thầu theo mặt hàng. Danh mục trúng thầu nhập bằng Excel, **mã key HIS = mã thuốc trên HIS** |
+| `stock-movements?warehouse=<mã kho>&from&to&keys=<mã thuốc,…>` | XNT theo mã kho (`hisKey`, `opening`, `received`, `issued`, `closing`) |
+| `warehouse-receipts?from&to` | phiếu nhập NCC **được duyệt** trong khoảng ngày, theo đúng schema mục 2.1 (tối đa 31 ngày) |
+
+- **Đăng nhập:** tài khoản dịch vụ role `BLUECONTRACT_SERVICE`. Role này không có quyền nào ngoài các route trên và được miễn hạn đổi mật khẩu.
+- **HIS đẩy phiếu:** khi duyệt một phiếu nhập NCC, HIS gửi ngay `POST /api/integration/his/warehouse-receipts` có ký HMAC. Cấu hình phía HIS là `BlueContract__BaseUrl`, `BlueContract__ApiKey`, `BlueContract__Secret` (= `HIS_INBOUND_API_KEY` / `HIS_INBOUND_SECRET` của cổng). Nếu đẩy lỗi, cổng vẫn kéo về được nhờ `HIS_PULL_ENABLED=true`.
+- **Ghép hợp đồng:** theo MST của NCC trên HIS, cộng với **Số QĐ trúng thầu** và **Số hợp đồng** nhập trên phiếu "Nhập từ NCC" của HIS. Đơn giá gửi sang = đơn giá HIS × (1 + VAT%).
+- **Hóa đơn:** không gửi kèm, vì HIS không lưu ký hiệu hóa đơn. NCC tải XML hóa đơn điện tử lên cổng ở bước "Người giao hàng ký".
+- **Khai báo trên cổng:**
+  - Quản trị → Kho: "Mã kho HIS" = mã kho trên HIS (VD `KT01`).
+  - Nhà cung cấp: MST trùng với MST trên HIS.

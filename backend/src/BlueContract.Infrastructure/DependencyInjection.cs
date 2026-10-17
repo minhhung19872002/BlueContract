@@ -104,7 +104,15 @@ public static class DependencyInjection
         var his = configuration.GetSection(HisOptions.SectionName).Get<HisOptions>() ?? new HisOptions();
         if (his.Provider.Equals("Rest", StringComparison.OrdinalIgnoreCase))
         {
-            services.AddHttpClient(RestHisClient.ClientName, (sp, c) =>
+            var login = his.AuthMode.Equals("Login", StringComparison.OrdinalIgnoreCase);
+            if (login && (string.IsNullOrWhiteSpace(his.Username) || string.IsNullOrEmpty(his.Password)))
+            {
+                throw new InvalidOperationException("His:Username and His:Password are required when His:AuthMode=Login.");
+            }
+
+            services.AddSingleton<HisTokenCache>();
+            services.AddTransient<HisLoginHandler>();
+            var client = services.AddHttpClient(RestHisClient.ClientName, (sp, c) =>
             {
                 var o = sp.GetRequiredService<IOptions<HisOptions>>().Value;
                 c.BaseAddress = string.IsNullOrWhiteSpace(o.BaseUrl)
@@ -114,7 +122,15 @@ public static class DependencyInjection
                 {
                     c.DefaultRequestHeaders.Add(o.ApiKeyHeader, o.ApiKey);
                 }
-            }).AddStandardResilienceHandler(r =>
+            });
+
+            // Outermost: the bearer token, so a 401 → re-login → retry wraps the resilience pipeline below.
+            if (login)
+            {
+                client.AddHttpMessageHandler<HisLoginHandler>();
+            }
+
+            client.AddStandardResilienceHandler(r =>
             {
                 r.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(Math.Max(his.TimeoutSeconds, 5) * 3);
                 r.AttemptTimeout.Timeout = TimeSpan.FromSeconds(Math.Max(his.TimeoutSeconds, 5));

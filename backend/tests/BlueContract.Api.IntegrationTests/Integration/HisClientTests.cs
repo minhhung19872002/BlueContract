@@ -87,4 +87,78 @@ public class HisClientTests
         var stock = await mock.GetStockMovementAsync("KT01", [.. first.Select(i => i.HisKey)], new DateOnly(2026, 10, 1), new DateOnly(2026, 10, 31), CancellationToken.None);
         stock.ShouldAllBe(s => s.Closing == s.Opening + s.Received - s.Issued && s.Closing >= 0);
     }
+
+    private sealed class Clock : BlueContract.Application.Common.IClock
+    {
+        public DateTimeOffset UtcNow { get; set; } = new(2026, 10, 17, 1, 0, 0, TimeSpan.Zero);
+
+        public DateOnly TodayLocal => DateOnly.FromDateTime(UtcNow.UtcDateTime);
+    }
+
+    /// <summary>A HIS that only knows bearer tokens (His:AuthMode=Login), like his.bluestar.com.vn.</summary>
+    private sealed class JwtHis : HttpMessageHandler
+    {
+        public int Logins { get; private set; }
+
+        public string Current { get; set; } = "t1";
+
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            if (request.RequestUri!.AbsolutePath == "/api/auth/login")
+            {
+                var body = await request.Content!.ReadAsStringAsync(cancellationToken);
+                if (!body.Contains("\"svc-bluecontract\"", StringComparison.Ordinal))
+                {
+                    return new HttpResponseMessage(HttpStatusCode.Unauthorized);
+                }
+
+                Logins++;
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent($$"""{ "success": true, "data": { "token": "{{Current}}" } }""", Encoding.UTF8, "application/json"),
+                };
+            }
+
+            return request.Headers.Authorization?.Parameter == Current
+                ? new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("""{ "success": true, "data": [ { "hisKey": "TH001", "closing": 7 } ] }""", Encoding.UTF8, "application/json") }
+                : new HttpResponseMessage(HttpStatusCode.Unauthorized);
+        }
+    }
+
+    private static (RestHisClient Client, Clock Clock) LoginClient(JwtHis his)
+    {
+        var options = Options.Create(new HisOptions { Provider = "Rest", BaseUrl = "https://his.example.vn", AuthMode = "Login", Username = "svc-bluecontract", Password = "p" });
+        var clock = new Clock();
+        var handler = new HisLoginHandler(new HisTokenCache(clock), options, NullLogger<HisLoginHandler>.Instance) { InnerHandler = his };
+        return (new RestHisClient(new Factory(handler), options, NullLogger<RestHisClient>.Instance), clock);
+    }
+
+    [Fact]
+    public async Task Login_mode_reuses_one_token_and_logs_in_again_when_it_expires()
+    {
+        var his = new JwtHis();
+        var (client, clock) = LoginClient(his);
+
+        (await client.GetStockMovementAsync("KT01", ["TH001"], new DateOnly(2026, 10, 1), new DateOnly(2026, 10, 17), CancellationToken.None))
+            .ShouldHaveSingleItem().Closing.ShouldBe(7);
+        await client.GetStockMovementAsync("KT01", ["TH001"], new DateOnly(2026, 10, 1), new DateOnly(2026, 10, 17), CancellationToken.None);
+        his.Logins.ShouldBe(1);
+
+        clock.UtcNow = clock.UtcNow.AddMinutes(26);
+        await client.GetStockMovementAsync("KT01", ["TH001"], new DateOnly(2026, 10, 1), new DateOnly(2026, 10, 17), CancellationToken.None);
+        his.Logins.ShouldBe(2);
+    }
+
+    [Fact]
+    public async Task Login_mode_logs_in_again_once_when_the_token_is_revoked()
+    {
+        var his = new JwtHis();
+        var (client, _) = LoginClient(his);
+        await client.GetStockMovementAsync("KT01", ["TH001"], new DateOnly(2026, 10, 1), new DateOnly(2026, 10, 17), CancellationToken.None);
+
+        his.Current = "t2";   // HIS restarted / password rotated: the cached token is now refused
+        (await client.GetStockMovementAsync("KT01", ["TH001"], new DateOnly(2026, 10, 1), new DateOnly(2026, 10, 17), CancellationToken.None))
+            .ShouldHaveSingleItem();
+        his.Logins.ShouldBe(2);
+    }
 }
