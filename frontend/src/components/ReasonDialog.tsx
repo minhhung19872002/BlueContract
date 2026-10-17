@@ -62,7 +62,12 @@ export function ReasonDialog<V extends object = Record<string, never>>({
       okButtonProps={{ danger, loading }}
       destroyOnHidden
       onOk={async () => {
-        const values = await form.validateFields();
+        let values: V & { reason?: string };
+        try {
+          values = await form.validateFields();
+        } catch {
+          return; // the form shows what is missing
+        }
         const { reason, ...rest } = values;
         try {
           await onConfirm((reason ?? '').trim(), rest as unknown as V);

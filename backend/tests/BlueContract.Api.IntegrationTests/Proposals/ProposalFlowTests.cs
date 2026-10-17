@@ -284,6 +284,50 @@ public class ProposalFlowTests(ApiFactory factory)
         (await other.GetAsync(new Uri($"/api/call-orders/{orderId}/timeline", UriKind.Relative))).StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
 
+    /// <summary>AUDIT-1 §13.8: the supplier refuses a whole call (nothing can be delivered): the quantities go back.</summary>
+    [Fact]
+    public async Task A_supplier_rejecting_a_call_gives_the_quantity_back()
+    {
+        var (summaryId, lineId, warehouse) = await ApprovedSummaryAsync(3);
+        using var aggregator = await factory.LoginAsync("tonghopvt");
+        using var created = await aggregator.PostAsJsonAsync("/api/call-orders",
+            new CreateCallsRequest(summaryId, warehouse, DateOnly.FromDateTime(DateTime.UtcNow.AddDays(5)), null, null, [new CallLineRequest(lineId, 3)]), JsonDefaults.Options);
+        created.StatusCode.ShouldBe(HttpStatusCode.OK, await created.Content.ReadAsStringAsync());
+        var orderId = (await created.Content.ReadFromJsonAsync<List<Guid>>())!.Single();
+        (await GetSummaryAsync(aggregator, summaryId)).Lines.Single(l => l.Id == lineId).RemainingToCall.ShouldBe(0);
+
+        string supplierUser;
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var supplierId = await db.CallOrders.Where(o => o.Id == orderId).Select(o => o.SupplierId).SingleAsync();
+            string[] demo = ["ncc1", "ncc2", "ncc3"];
+            supplierUser = await db.Users.Where(u => u.SupplierId == supplierId && demo.Contains(u.UserName)).Select(u => u.UserName).FirstAsync();
+        }
+
+        using var supplier = await factory.LoginAsync(supplierUser);
+        var order = (await supplier.GetFromJsonAsync<CallOrderDto>($"/api/call-orders/{orderId}", JsonDefaults.Options))!;
+        using (var refused = await supplier.PostAsJsonAsync($"/api/call-orders/{orderId}/confirm",
+                   new ConfirmCallRequest([.. order.Lines.Select(l => new ConfirmLineRequest(l.Id, 0, "Hết hàng, nhà sản xuất ngừng cung cấp"))], "Không giao được"), JsonDefaults.Options))
+        {
+            refused.StatusCode.ShouldBe(HttpStatusCode.NoContent, await refused.Content.ReadAsStringAsync());
+        }
+
+        var after = (await aggregator.GetFromJsonAsync<CallOrderDto>($"/api/call-orders/{orderId}", JsonDefaults.Options))!;
+        after.Status.ShouldBe(CallOrderStatus.Rejected);
+        after.Lines.ShouldAllBe(l => l.ConfirmedQuantity == 0 && l.ShortageReason == "Hết hàng, nhà sản xuất ngừng cung cấp");
+        after.CanCancel.ShouldBeFalse();
+        (await GetSummaryAsync(aggregator, summaryId)).Lines.Single(l => l.Id == lineId).RemainingToCall.ShouldBe(3, "the refused quantity can be called again");
+
+        var timeline = await aggregator.GetFromJsonAsync<List<System.Text.Json.JsonElement>>($"/api/call-orders/{orderId}/timeline");
+        timeline!.ShouldContain(e => e.GetProperty("kind").GetString() == "rejected");
+
+        // A rejected order cannot be confirmed again.
+        using var again = await supplier.PostAsJsonAsync($"/api/call-orders/{orderId}/confirm",
+            new ConfirmCallRequest([.. order.Lines.Select(l => new ConfirmLineRequest(l.Id, l.Quantity, null))], null), JsonDefaults.Options);
+        again.StatusCode.ShouldNotBe(HttpStatusCode.NoContent);
+    }
+
     /// <summary>AUDIT-1 §10.5: no call for a contract that is liquidated, expired or not yet in force.</summary>
     [Theory]
     [InlineData("liquidated")]

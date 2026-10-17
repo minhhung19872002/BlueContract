@@ -241,7 +241,7 @@ public sealed class CallOrderService(
             .ToDictionaryAsync(x => x.Key, x => x.Qty, ct);
         var contractQuantities = await db.Contracts.AsNoTracking().SelectMany(c => c.Items).Where(i => itemIds.Contains(i.Id))
             .Select(i => new { i.Id, i.Quantity }).ToDictionaryAsync(x => x.Id, x => x.Quantity, ct);
-        if (callItems.Any(x => calledSoFar.GetValueOrDefault(x.Key) + x.Value > contractQuantities.GetValueOrDefault(x.Key)))
+        if (callItems.Any(x => QuantityRules.CallExceedsContract(x.Value, calledSoFar.GetValueOrDefault(x.Key), contractQuantities.GetValueOrDefault(x.Key))))
         {
             return Error.Validation("CALL_QTY_EXCEEDS_CONTRACT");
         }

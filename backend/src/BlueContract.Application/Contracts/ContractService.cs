@@ -711,8 +711,7 @@ public sealed class ContractService(
                 return Error.Validation("CONTRACT_ITEM_NOT_IN_BID");
             }
 
-            var remaining = bidItem.Quantity - contracted.GetValueOrDefault(bidItem.ItemId);
-            if (line.Quantity > remaining)
+            if (QuantityRules.ExceedsBid(line.Quantity, bidItem.Quantity, contracted.GetValueOrDefault(bidItem.ItemId)))
             {
                 return Error.Validation("CONTRACT_QTY_EXCEEDS_BID");
             }
@@ -751,7 +750,7 @@ public sealed class ContractService(
             }
 
             var bidItem = bidItems.FirstOrDefault(b => b.ItemId == item.ItemId);
-            if (bidItem is null || wanted > bidItem.Quantity - others.GetValueOrDefault(item.ItemId))
+            if (bidItem is null || QuantityRules.ExceedsBid(wanted, bidItem.Quantity, others.GetValueOrDefault(item.ItemId)))
             {
                 return Error.Validation("APPENDIX_QTY_EXCEEDS_BID");
             }
