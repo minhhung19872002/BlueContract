@@ -11,6 +11,27 @@ using Hangfire;
 using Serilog;
 using InfrastructureDI = BlueContract.Infrastructure.DependencyInjection;
 
+// `dotnet BlueContract.Api.dll --health-check`: the container healthcheck (the runtime image has no curl). Asks the
+// running API for /health/ready and exits 0 (ready) or 1, without starting a second host.
+if (args.Contains("--health-check"))
+{
+    using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
+    var port = Environment.GetEnvironmentVariable("ASPNETCORE_HTTP_PORTS")?.Split(';')[0] ?? "8080";
+    try
+    {
+        using var ready = await http.GetAsync(new Uri($"http://127.0.0.1:{port}/health/ready"));
+        Environment.Exit(ready.IsSuccessStatusCode ? 0 : 1);
+    }
+    catch (HttpRequestException)
+    {
+        Environment.Exit(1);
+    }
+    catch (TaskCanceledException)
+    {
+        Environment.Exit(1);
+    }
+}
+
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console(formatProvider: System.Globalization.CultureInfo.InvariantCulture)
     .CreateBootstrapLogger();

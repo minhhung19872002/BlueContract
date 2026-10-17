@@ -142,7 +142,8 @@ Ký nháy (`Initial`) mặc định dùng dấu nháy nội bộ không cần CA
 
 **Sao lưu ngay:** `scripts/backup.sh` / `scriptsackup.ps1`.
 
-**Khôi phục:** `scripts/restore.sh <yyyymmdd-HHMMSS>` / `scriptsestore.ps1 -Stamp <yyyymmdd-HHMMSS>`. Script hỏi xác nhận (gõ `KHOI PHUC`, hoặc thêm `--yes` / `-Yes`), rồi:
+**Khôi phục:** `scripts/restore.sh <yyyymmdd-HHMMSS>` / `scripts
+estore.ps1 -Stamp <yyyymmdd-HHMMSS>`. Script hỏi xác nhận (gõ `KHOI PHUC`, hoặc thêm `--yes` / `-Yes`), rồi:
 1. dừng API;
 2. ngắt kết nối và tạo lại cơ sở dữ liệu từ `db.dump`;
 3. làm bucket **giống hệt** bản sao lưu (`sync --delete`: tệp tạo sau thời điểm sao lưu bị xóa);
@@ -161,12 +162,12 @@ Nên diễn tập lại mỗi quý trên máy thử.
 
 | Việc | Cách làm |
 |---|---|
-| Sức khỏe hệ thống | `GET /health/ready` (PostgreSQL, kho tệp, Gotenberg) — gắn vào hệ thống giám sát |
+| Sức khỏe hệ thống | `GET /health/ready` (PostgreSQL, kho tệp, Gotenberg) — gắn vào hệ thống giám sát. Mọi container có healthcheck: `docker compose ps` hiện `(healthy)`. api dùng `dotnet BlueContract.Api.dll --health-check` (image không có curl); web dùng `/nginx-health`. api chờ gotenberg, web chờ api; seed demo tự chờ Gotenberg |
 | Nhật ký ứng dụng | `docker compose logs api`; tùy chọn Seq (`--profile seq`) |
-| Nhật ký hoạt động người dùng | Quản trị → Nhật ký hoạt động (append-only, có trigger chặn sửa/xóa) |
-| Toàn vẹn tài liệu | job hằng ngày 02:00; cảnh báo gửi email/thông báo cho quản trị khi có tệp lệch hoặc mất |
-| Nghiệm thu tự động | job 01:00 hằng ngày, chỉ chạy đúng ngày cấu hình trong tham số `acceptance.job_day_of_month` |
-| Nhắc việc quá SLA | job mỗi giờ |
+| Nhật ký hoạt động người dùng | Quản trị → Nhật ký hoạt động (chỉ ghi thêm, có trigger chặn sửa/xóa) |
+| Toàn vẹn tài liệu | job hằng ngày lúc `job.integrity_check_hour` (mặc định 02:00, sửa ở Tham số hệ thống); cảnh báo gửi email/thông báo cho quản trị khi có tệp lệch hoặc mất |
+| Nghiệm thu tự động | job hằng ngày lúc `job.acceptance_hour` (mặc định 01:00), chỉ lập biên bản đúng ngày `acceptance.job_day_of_month` |
+| Nhắc việc quá SLA | job mỗi `job.workflow_reminder_minutes` phút (mặc định 60) |
 | Cập nhật phiên bản | `git pull && docker compose up -d --build api web` (migration chạy tự động; sao lưu trước khi cập nhật) |
 
 ## 8. Bảo mật — danh sách kiểm tra

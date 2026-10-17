@@ -61,6 +61,12 @@ services:
       - gotenberg
       - --api-timeout=120s
       - --libreoffice-auto-start=true
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
 
   onlyoffice:
     image: onlyoffice/documentserver:9.0
@@ -77,6 +83,12 @@ services:
     volumes:
       - onlyoffice-data:/var/www/onlyoffice/Data
       - onlyoffice-logs:/var/log/onlyoffice
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost/healthcheck | grep -q true"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
 
   mailpit:
     image: axllent/mailpit:v1.27
@@ -112,7 +124,15 @@ services:
       redis:
         condition: service_healthy
       gotenberg:
-        condition: service_started
+        condition: service_healthy
+    # Ready = database, storage and Gotenberg reachable (/health/ready); the first start migrates and seeds, hence the
+    # long start period.
+    healthcheck:
+      test: ["CMD", "dotnet", "BlueContract.Api.dll", "--health-check"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 300s
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
       ConnectionStrings__Default: Host=postgres;Port=5432;Database=${POSTGRES_DB:-blueprocure};Username=${POSTGRES_USER:-blueprocure};Password=${POSTGRES_PASSWORD:-blueprocure_dev};GSS Encryption Mode=Disable
@@ -188,7 +208,13 @@ services:
     image: blueprocure/web:dev
     restart: unless-stopped
     depends_on:
-      - api
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO", "/dev/null", "http://127.0.0.1:8080/nginx-health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     ports:
       - "127.0.0.1:${WEB_PORT:-47080}:8080"
 

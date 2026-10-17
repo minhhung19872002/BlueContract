@@ -50,6 +50,9 @@ public sealed class DatabaseInitializer(
         await services.GetRequiredService<WorkflowSeeder>().SeedAsync(ct);
         if (seedOptions.Value.Demo)
         {
+            // Demo contracts, receipts and payments are rendered to PDF: wait for Gotenberg, which starts LibreOffice
+            // after the API on a fresh `docker compose up` (AUDIT-1 §13.4).
+            await RetryAsync("Gotenberg (PDF conversion)", () => GotenbergReadyAsync(ct), ct);
             await services.GetRequiredService<DemoProcurementSeeder>().SeedAsync(ct);
         }
     }
@@ -92,6 +95,13 @@ public sealed class DatabaseInitializer(
         db.SystemSettings.AddRange(missing);
         await db.SaveChangesAsync(ct);
         logger.LogInformation("Seeded {Count} system settings", missing.Count);
+    }
+
+    private async Task GotenbergReadyAsync(CancellationToken ct)
+    {
+        using var client = services.GetRequiredService<IHttpClientFactory>().CreateClient(DependencyInjection.GotenbergClient);
+        using var response = await client.GetAsync(new Uri("/health", UriKind.Relative), ct);
+        response.EnsureSuccessStatusCode();
     }
 
     private async Task RetryAsync(string what, Func<Task> action, CancellationToken ct)
