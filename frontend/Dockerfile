@@ -7,7 +7,11 @@ COPY . .
 RUN npm run build
 
 # Unprivileged nginx listens on 8080 and runs as non-root.
-FROM nginxinc/nginx-unprivileged:1.28-alpine AS runtime
+FROM nginxinc/nginx-unprivileged:1.30-alpine AS runtime
+# Security fixes of the Alpine packages published after the base image was built (Trivy gate in CI).
+USER root
+RUN apk upgrade --no-cache
+USER 101
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY nginx-security-headers.conf /etc/nginx/snippets/security-headers.conf
 COPY --from=build /app/dist /usr/share/nginx/html
