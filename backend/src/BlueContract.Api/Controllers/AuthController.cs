@@ -10,7 +10,7 @@ namespace BlueContract.Api.Controllers;
 
 [Route("api/auth")]
 [AllowWithPendingPasswordChange]
-public sealed class AuthController(AuthService auth, ICurrentUser currentUser) : ApiControllerBase
+public sealed class AuthController(AuthService auth, ICurrentUser currentUser, IWebHostEnvironment environment) : ApiControllerBase
 {
     /// <summary>httpOnly, SameSite=Strict, scoped to the auth endpoints so it is never sent elsewhere (spec §11).</summary>
     public const string RefreshCookie = "bp_refresh";
@@ -100,8 +100,9 @@ public sealed class AuthController(AuthService auth, ICurrentUser currentUser) :
             Response.Cookies.Append(RefreshCookie, cookie.Token, new CookieOptions
             {
                 HttpOnly = true,
-                // HTTPS in production (nginx forwards the scheme); plain HTTP only in local dev.
-                Secure = Request.IsHttps,
+                // HTTPS in production (the proxies forward the scheme); always Secure there, even if a proxy hop forgot
+                // X-Forwarded-Proto. Plain HTTP only in local dev and tests.
+                Secure = Request.IsHttps || environment.IsProduction(),
                 SameSite = SameSiteMode.Strict,
                 Path = CookiePath,
                 Expires = cookie.ExpiresAt,

@@ -88,6 +88,8 @@ try
         // addresses / networks configured in "ForwardedHeaders" (docker compose: the network of the web container).
         // Anyone else could otherwise spoof the HIS's IP past the whitelist or dodge the per-IP rate limits.
         o.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+        // Production has two proxies (TLS → web nginx → API): follow the chain while the hop is a trusted proxy.
+        o.ForwardLimit = null;
         var section = builder.Configuration.GetSection("ForwardedHeaders");
         foreach (var network in section.GetSection("KnownNetworks").Get<string[]>() ?? [])
         {
@@ -160,6 +162,18 @@ try
         }
 
         return;
+    }
+
+    if (!isOpenApiGeneration && app.Environment.IsProduction()
+        && BlueContract.Api.Startup.ProductionGuard.Problems(app.Configuration) is { Count: > 0 } problems)
+    {
+        foreach (var problem in problems)
+        {
+            Log.Fatal("Cấu hình Production chưa an toàn: {Problem}", problem);
+        }
+
+        throw new InvalidOperationException(
+            $"Từ chối khởi động ở môi trường Production: {problems.Count} vấn đề cấu hình (xem log phía trên, docs/DEPLOY.md mục 2).");
     }
 
     if (!isOpenApiGeneration && System.Text.Encoding.UTF8.GetByteCount(app.Configuration["Auth:SigningKey"] ?? string.Empty) < 32)

@@ -1,0 +1,89 @@
+# Production overrides (AUDIT-1 §13.6). Use WITHOUT the development override:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+# Every secret is required (the start fails with the variable's name when one is missing); the API also refuses to start
+# with development switches or default secrets (ProductionGuard). Only the TLS proxy publishes ports.
+services:
+  postgres:
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Đặt POSTGRES_PASSWORD}
+
+  storage:
+    ports: !reset []
+    environment:
+      S3_SECRET_KEY: ${S3_SECRET_KEY:?Đặt S3_SECRET_KEY}
+      S3_ADMIN_SECRET_KEY: ${S3_ADMIN_SECRET_KEY:?Đặt S3_ADMIN_SECRET_KEY}
+
+  storage-init:
+    environment:
+      AWS_SECRET_ACCESS_KEY: ${S3_ADMIN_SECRET_KEY:?Đặt S3_ADMIN_SECRET_KEY}
+
+  onlyoffice:
+    ports: !reset []
+    environment:
+      JWT_SECRET: ${ONLYOFFICE_JWT_SECRET:?Đặt ONLYOFFICE_JWT_SECRET}
+
+  # Development mail catcher: not part of production (SMTP is set below or on the "Cấu hình email" screen).
+  mailpit:
+    profiles: ["dev"]
+
+  api:
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__Default: Host=postgres;Port=5432;Database=${POSTGRES_DB:-blueprocure};Username=${POSTGRES_USER:-blueprocure};Password=${POSTGRES_PASSWORD:?Đặt POSTGRES_PASSWORD};GSS Encryption Mode=Disable
+      Storage__SecretKey: ${S3_SECRET_KEY:?Đặt S3_SECRET_KEY}
+      OnlyOffice__PublicUrl: ${ONLYOFFICE_PUBLIC_URL:?Đặt ONLYOFFICE_PUBLIC_URL (https://<OFFICE_SERVER_NAME>)}
+      OnlyOffice__JwtSecret: ${ONLYOFFICE_JWT_SECRET:?Đặt ONLYOFFICE_JWT_SECRET}
+      Auth__SigningKey: ${AUTH_SIGNING_KEY:?Đặt AUTH_SIGNING_KEY (≥ 32 ký tự ngẫu nhiên)}
+      Seed__Demo: "false"
+      Seed__AllowReset: "false"
+      Seed__AdminPassword: ${SEED_ADMIN_PASSWORD:?Đặt SEED_ADMIN_PASSWORD (mật khẩu tạm của admin lần đầu)}
+      Signing__EnableMockProviders: "false"
+      Signing__DefaultProvider: ${SIGNING_DEFAULT_PROVIDER:-USB_TOKEN}
+      His__Provider: ${HIS_PROVIDER:?Đặt HIS_PROVIDER=Rest (có HIS) hoặc Mock (chưa kết nối HIS)}
+      HisInbound__Clients__0__ApiKey: ${HIS_INBOUND_API_KEY:?Đặt HIS_INBOUND_API_KEY}
+      HisInbound__Clients__0__Secret: ${HIS_INBOUND_SECRET:?Đặt HIS_INBOUND_SECRET}
+      HisInbound__DevEndpoints: "false"
+      Hangfire__DashboardEnabled: "false"
+      Email__Enabled: ${EMAIL_ENABLED:-true}
+      Email__Host: ${SMTP_HOST:-}
+      Email__Port: ${SMTP_PORT:-587}
+      Email__UseStartTls: ${SMTP_STARTTLS:-true}
+      Email__UserName: ${SMTP_USERNAME:-}
+      Email__Password: ${SMTP_PASSWORD:-}
+      Email__FromAddress: ${SMTP_FROM:-no-reply@benhvien.vn}
+      App__PublicBaseUrl: ${PUBLIC_BASE_URL:?Đặt PUBLIC_BASE_URL (https://<SERVER_NAME>)}
+
+  backup:
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD:?Đặt POSTGRES_PASSWORD}
+      AWS_SECRET_ACCESS_KEY: ${S3_ADMIN_SECRET_KEY:?Đặt S3_ADMIN_SECRET_KEY}
+
+  # Reached only through the TLS proxy.
+  web:
+    ports: !reset []
+
+  tls:
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    depends_on:
+      web:
+        condition: service_healthy
+    environment:
+      SERVER_NAME: ${SERVER_NAME:?Đặt SERVER_NAME (tên miền cổng)}
+      OFFICE_SERVER_NAME: ${OFFICE_SERVER_NAME:?Đặt OFFICE_SERVER_NAME (tên miền ONLYOFFICE)}
+    ports:
+      - "${TLS_HTTP_PORT:-80}:80"
+      - "${TLS_HTTPS_PORT:-443}:443"
+    volumes:
+      - ./ops/tls/templates:/etc/nginx/templates:ro
+      - ${TLS_CERT_DIR:-./certs}:/etc/nginx/certs:ro
+    healthcheck:
+      test: ["CMD", "wget", "-qO", "/dev/null", "http://127.0.0.1/tls-health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

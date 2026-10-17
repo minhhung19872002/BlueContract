@@ -28,62 +28,70 @@ Toàn bộ dịch vụ trong `docker-compose.yml` chỉ mở cổng trên `127.0
 ```bash
 git clone <repo> /opt/blueprocure && cd /opt/blueprocure
 cp .env.example .env
+mkdir certs   # fullchain.pem + privkey.pem cho cả SERVER_NAME và OFFICE_SERVER_NAME (SAN hoặc wildcard)
 ```
 
-Sửa `.env`. **Bắt buộc đổi mọi giá trị bí mật** — các giá trị mẫu chỉ để demo:
+Production dùng **`docker-compose.prod.yml`**, **không dùng** `docker-compose.override.yml` (file override chỉ dành cho phát triển). Trong file production:
+- Mọi bí mật là **bắt buộc**: thiếu biến nào thì compose dừng và nêu tên biến đó.
+- API **từ chối khởi động** khi còn cờ dev hoặc bí mật mặc định (`ProductionGuard`, liệt kê mọi vấn đề trong log).
+
+Biến cần đặt trong `.env`:
 
 | Biến | Giá trị production |
 |---|---|
-| `ASPNETCORE_ENVIRONMENT` | `Production` (tắt trang Hangfire, tắt endpoint dev) |
-| `POSTGRES_PASSWORD` | mật khẩu mạnh |
-| `S3_ACCESS_KEY`, `S3_SECRET_KEY` | khóa riêng |
+| `POSTGRES_PASSWORD` | mật khẩu mạnh (≥ 12 ký tự) |
+| `S3_ACCESS_KEY`, `S3_SECRET_KEY` | tài khoản S3 **của ứng dụng**: chỉ đọc / ghi / liệt kê bucket của mình, không tạo hay xóa bucket |
+| `S3_ADMIN_ACCESS_KEY`, `S3_ADMIN_SECRET_KEY` | tài khoản S3 quản trị: tạo bucket (container `storage-init`) và sao lưu / khôi phục |
 | `ONLYOFFICE_JWT_SECRET` | chuỗi ngẫu nhiên ≥ 32 ký tự |
-| `ONLYOFFICE_PUBLIC_URL` | URL trình duyệt dùng để tải editor, VD `https://office.benhvien.vn` |
 | `AUTH_SIGNING_KEY` | chuỗi ngẫu nhiên ≥ 32 byte (`openssl rand -base64 48`) |
-| `SEED_DEMO` | `false` |
-| `SEED_ALLOW_RESET` | `false` |
 | `SEED_ADMIN_PASSWORD` | mật khẩu tạm của tài khoản `admin` đầu tiên (bắt buộc đổi ở lần đăng nhập đầu) |
-| `PUBLIC_BASE_URL` | `https://muasam.benhvien.vn` (dùng trong link email) |
-| `AUTH_LOGIN_RATE_LIMIT` | `10` (số lần đăng nhập / phút / IP) |
-| `SIGNING_DEFAULT_PROVIDER` | nhà cung cấp chữ ký số thật (mục 4) |
-| `SIGNING_ENABLE_MOCK` | `false` |
-| `HIS_*` | theo mục 5 |
-| `HIS_DEV_ENDPOINTS` | `false` |
-| `HANGFIRE_DASHBOARD` | `false` |
+| `SERVER_NAME`, `PUBLIC_BASE_URL` | `muasam.benhvien.vn`, `https://muasam.benhvien.vn` |
+| `OFFICE_SERVER_NAME`, `ONLYOFFICE_PUBLIC_URL` | `office.benhvien.vn`, `https://office.benhvien.vn` |
+| `TLS_CERT_DIR` | thư mục chứng thư TLS (mặc định `./certs`) |
+| `HIS_PROVIDER`, `HIS_*`, `HIS_INBOUND_API_KEY`, `HIS_INBOUND_SECRET` | theo mục 5 |
+| `SIGNING_DEFAULT_PROVIDER` | nhà cung cấp chữ ký số thật (mục 4; mặc định `USB_TOKEN`) |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_FROM` | máy chủ email (cũng sửa được ở **Quản trị → Cấu hình email & ký số**) |
+| `DOCKER_SUBNET` | dải mạng nội bộ của compose (mặc định `172.28.200.0/24`; đổi nếu trùng mạng LAN) |
 
-Email SMTP (biến môi trường của dịch vụ `api` trong `docker-compose.override.yml` hoặc file compose riêng):
-
-```yaml
-services:
-  api:
-    environment:
-      Email__Host: smtp.benhvien.vn
-      Email__Port: "587"
-      Email__UseStartTls: "true"
-      Email__UserName: muasam@benhvien.vn
-      Email__Password: ${SMTP_PASSWORD}
-      Email__FromAddress: muasam@benhvien.vn
-      Email__FromName: "Cổng mua sắm — BVĐK TP Vinh"
-      Cors__Origins__0: https://muasam.benhvien.vn
-```
-
-Bỏ dịch vụ `mailpit` khỏi stack production (chỉ dùng để xem email khi phát triển).
+File production tự cố định các giá trị sau, không cần đặt: `ASPNETCORE_ENVIRONMENT=Production`, tắt dữ liệu demo, tắt reset, tắt chữ ký thử nghiệm, tắt endpoint giả lập HIS, tắt trang Hangfire. `mailpit` không chạy. Kho tệp và ONLYOFFICE không mở cổng ra ngoài.
 
 ## 3. Khởi động
 
 ```bash
-docker compose up -d --build postgres storage gotenberg onlyoffice api web
-docker compose logs -f api        # chờ "Now listening" — migration và seed chạy tự động khi khởi động
-curl -s http://127.0.0.1:47080/health/ready
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+docker compose -f docker-compose.yml -f docker-compose.prod.yml ps     # chờ mọi dịch vụ (healthy)
+curl -s https://muasam.benhvien.vn/health/ready
 ```
+
+Thứ tự khởi động:
+1. postgres, storage, redis, gotenberg;
+2. `storage-init` tạo bucket bằng tài khoản quản trị rồi thoát;
+3. api (migrate, seed, kiểm tra cấu hình Production);
+4. web;
+5. `tls`.
+
+Container `tls` (nginx) là cửa vào duy nhất (cổng 80/443):
+- HTTP chuyển sang HTTPS;
+- TLS 1.2/1.3;
+- HSTS 1 năm;
+- `SERVER_NAME` → cổng web; `OFFICE_SERVER_NAME` → ONLYOFFICE (kể cả websocket).
 
 Lần đầu: đăng nhập `admin` bằng `SEED_ADMIN_PASSWORD` → đổi mật khẩu → bật xác thực 2 lớp → khai báo **Thông tin bệnh viện, Cơ sở, Khoa/phòng, Kho (kèm mã kho HIS), Nhà cung cấp, Người dùng và vai trò**. Mẫu biểu, luồng ký và tham số hệ thống có sẵn mặc định và chỉnh được trong menu Quản trị.
 
-Chỉ migrate + seed rồi thoát (VD trong pipeline triển khai): `docker compose run --rm api --seed-only`.
+Chỉ migrate + seed rồi thoát (VD trong pipeline triển khai): `docker compose -f docker-compose.yml -f docker-compose.prod.yml run --rm api --seed-only`.
 
-### Reverse proxy (TLS)
+Diễn tập 17/10/2026 (stack production dưới tên project riêng, chứng thư tự ký):
+- Với cấu hình dev, API ở Production dừng và liệt kê 12 vấn đề.
+- Với `.env` đầy đủ, mọi dịch vụ đều `(healthy)`.
+- HTTP trả 301 sang HTTPS; HTTPS có HSTS.
+- Cookie phiên có `secure`; IP trong nhật ký là client, không phải proxy.
+- Không có dữ liệu demo; admin bị buộc đổi mật khẩu.
+- `/hangfire` và endpoint giả lập HIS trả 404.
+- Tài khoản S3 của ứng dụng không tạo / liệt kê / xóa được bucket.
 
-Ví dụ nginx của bệnh viện:
+### Reverse proxy riêng của bệnh viện
+
+Nếu bệnh viện đã có reverse proxy / cân bằng tải phía trước thì bỏ container `tls` (hoặc đổi `TLS_HTTP_PORT` / `TLS_HTTPS_PORT`). Proxy đó chuyển tiếp tới cổng 443 của `tls` hoặc thẳng tới container `web`, kèm `X-Forwarded-For` và `X-Forwarded-Proto`. Đặt `TRUSTED_PROXY_NETWORK` là dải mạng của proxy (không bao giờ `0.0.0.0/0`). Ví dụ cấu hình nginx tương đương:
 
 ```nginx
 server {
@@ -107,11 +115,11 @@ server {
 }
 ```
 
-API chỉ tin `X-Forwarded-For` từ proxy khai báo trong `TRUSTED_PROXY_NETWORK` (mặc định dải bridge Docker `172.16.0.0/12`, là container `web`). Nếu có thêm proxy TLS phía trước, nginx của container `web` chuyển tiếp chuỗi địa chỉ, và giới hạn theo IP (đăng nhập, whitelist HIS) áp lên địa chỉ client mà proxy tin cậy báo lại. Không đặt `0.0.0.0/0`: ai cũng sẽ giả được IP.
+API chỉ tin `X-Forwarded-*` từ các proxy trong `TRUSTED_PROXY_NETWORK`; mặc định là `DOCKER_SUBNET`, tức các container `tls` và `web`. API đi lần theo cả chuỗi proxy tin cậy, nên IP dùng cho giới hạn đăng nhập, whitelist HIS và nhật ký là IP của client.
 
-**Tải tệp:** link tải là `/api/files/{token}` trên chính tên miền của cổng: ký bằng Data Protection, sống ngắn (5 phút), chỉ cấp sau khi kiểm tra quyền, API tự đọc tệp từ kho. Vì vậy chỉ cần mở cổng web, **không** cần mở cổng kho lưu trữ (47900) ra mạng. Chỉ khi có tên miền S3 công khai (CDN, S3 của nhà cung cấp) thì mới đặt `STORAGE_PUBLIC_ENDPOINT`; khi đó link là presigned URL S3 trỏ tới tên miền đó.
+**Tải tệp:** link tải là `/api/files/{token}` trên chính tên miền của cổng: ký bằng Data Protection, sống ngắn (5 phút), chỉ cấp sau khi kiểm tra quyền, API tự đọc tệp từ kho. Vì vậy **không** cần mở cổng kho lưu trữ ra mạng. Chỉ khi có tên miền S3 công khai (CDN, S3 của nhà cung cấp) thì mới đặt `STORAGE_PUBLIC_ENDPOINT`; khi đó link là presigned URL S3 trỏ tới tên miền đó.
 
-ONLYOFFICE cần một tên miền riêng (VD `office.benhvien.vn` → `127.0.0.1:47082`) vì trình duyệt tải editor trực tiếp từ đó; `ONLYOFFICE_PUBLIC_URL` trỏ tới tên miền này. Container `web` đã tự gắn các header bảo mật (`X-Content-Type-Options`, `X-Frame-Options`, `Content-Security-Policy: frame-ancestors`, `Referrer-Policy`, `Permissions-Policy`); HSTS đặt ở reverse proxy vì chỉ ở đó mới có TLS.
+Container `web` tự gắn các header bảo mật: `X-Content-Type-Options`, `X-Frame-Options`, `Content-Security-Policy: frame-ancestors`, `Referrer-Policy`, `Permissions-Policy`. HSTS do `tls` (hoặc proxy của bệnh viện) gắn, vì chỉ ở đó mới có TLS.
 
 ## 4. Chữ ký số
 
@@ -172,9 +180,10 @@ Nên diễn tập lại mỗi quý trên máy thử.
 
 ## 8. Bảo mật — danh sách kiểm tra
 
-- [ ] Đã đổi mọi bí mật trong `.env`, `SEED_DEMO=false`, `SEED_ALLOW_RESET=false`, `SIGNING_ENABLE_MOCK=false`, `HIS_DEV_ENDPOINTS=false`, `HANGFIRE_DASHBOARD=false`.
-- [ ] Chỉ cổng 443 mở ra ngoài; cổng 47xxx chỉ lắng nghe `127.0.0.1`.
-- [ ] HTTPS + HSTS ở reverse proxy; `Cors__Origins` chỉ chứa tên miền của cổng.
+- [ ] Chạy bằng `docker-compose.prod.yml` (không có override phát triển); API khởi động được, tức `ProductionGuard` không còn báo vấn đề nào.
+- [ ] Chỉ cổng 80/443 của `tls` mở ra ngoài (các container khác không publish cổng).
+- [ ] HTTPS + HSTS (container `tls` hoặc proxy của bệnh viện); `Cors__Origins` chỉ chứa tên miền của cổng.
+- [ ] Tài khoản S3 của ứng dụng tách khỏi tài khoản quản trị S3.
 - [ ] Tài khoản quản trị bật xác thực 2 lớp; chính sách mật khẩu và khóa tài khoản sau 5 lần sai (mặc định) giữ nguyên.
 - [ ] Whitelist IP cho API HIS; secret HIS cấp riêng cho từng môi trường.
 - [ ] Sao lưu hằng ngày được chép ra ngoài máy chủ; đã diễn tập khôi phục.
