@@ -51,6 +51,7 @@ import { WorkflowCard } from '../signing/WorkflowPanel';
 import { DocumentPdf } from '../proposals/ProposalDetailPage';
 import { EffectiveContractSelect } from './AcceptancePages';
 import { ExportableTable } from '../../components/TableExportButton';
+import { DetailState } from '../../components/DetailState';
 
 const valuationColumns = [
   { title: 'Biên bản 08a', dataIndex: 'number' },
@@ -236,7 +237,7 @@ export function LiquidationDetailPage() {
     liquidationApi.update(id!, { contractId: l!.contractId, notes: l!.notes ?? null }),
   );
 
-  if (!l) return <Card loading={liquidation.isLoading} />;
+  if (!l) return <DetailState query={liquidation} />;
   const base = isSupplier ? '/ncc' : '';
 
   return (

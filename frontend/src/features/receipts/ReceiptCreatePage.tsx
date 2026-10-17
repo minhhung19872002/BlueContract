@@ -33,6 +33,7 @@ import { useApiError } from '../../components/common';
 import { DocHeader, StickyActionBar } from '../../components/layout';
 import { MoneyInput, QuantityInput } from '../../components/inputs';
 import { formatMoney, formatQuantity } from '../../utils/format';
+import { DetailState } from '../../components/DetailState';
 
 interface Header {
   type: ReceiptType;
@@ -50,7 +51,7 @@ type Entry = { qty?: number; lot?: string; expiry?: dayjs.Dayjs | null; price?: 
 export function ReceiptCreatePage() {
   const { id } = useParams<{ id: string }>();
   const existing = useReceipt(id);
-  if (id && !existing.data) return <Card loading />;
+  if (id && !existing.data) return <DetailState query={existing} />;
   return <ReceiptEditor key={id ?? 'new'} receipt={existing.data} />;
 }
 

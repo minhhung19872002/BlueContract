@@ -38,6 +38,7 @@ import { DocHeader, StickyActionBar } from '../../components/layout';
 import { QuantityInput } from '../../components/inputs';
 import { formatMoney, formatQuantity } from '../../utils/format';
 import { candidateLabel, filterCandidates } from './candidateFilter';
+import { DetailState } from '../../components/DetailState';
 
 interface Header {
   departmentId?: string;
@@ -54,7 +55,7 @@ export function ProposalEditorPage() {
   const { id } = useParams<{ id: string }>();
   const existing = useProposal(id);
   const { user } = useAuth();
-  if (id && !existing.data) return <Card loading />;
+  if (id && !existing.data) return <DetailState query={existing} />;
   const p = existing.data;
   return (
     <ProposalEditor

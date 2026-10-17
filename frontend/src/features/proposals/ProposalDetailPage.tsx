@@ -17,6 +17,7 @@ import { DocHeader } from '../../components/layout';
 import { formatQuantity } from '../../utils/format';
 import { WorkflowCard } from '../signing/WorkflowPanel';
 import { ExportableTable } from '../../components/TableExportButton';
+import { DetailState } from '../../components/DetailState';
 
 /** Current PDF of a business document (shared by proposal, summary and call order pages). */
 export function DocumentPdf({ documentId }: { documentId: string }) {
@@ -44,7 +45,7 @@ export function ProposalDetailPage() {
   const submit = useProposalAction(() => proposalApi.submit(id!));
   const cancel = useProposalAction(() => proposalApi.cancel(id!));
 
-  if (!p) return <Card loading={proposal.isLoading} />;
+  if (!p) return <DetailState query={proposal} />;
 
   return (
     <>

@@ -49,6 +49,7 @@ import { QuantityInput, SupplierSelect } from '../../components/inputs';
 import { useTableUrlState } from '../../hooks/useUrlState';
 import { formatDate, formatDateTime, formatMoney, formatQuantity } from '../../utils/format';
 import { DocumentPdf } from './ProposalDetailPage';
+import { DetailState } from '../../components/DetailState';
 
 const FILTERS = ['status', 'supplierId', 'overdue', 'tab'] as const;
 
@@ -257,7 +258,7 @@ export function CallCreatePage() {
   });
 
   if (!summaryId) return <Empty description="Chọn phiếu tổng hợp đã duyệt để gọi hàng" />;
-  if (!summary.data) return <Card loading />;
+  if (!summary.data) return <DetailState query={summary} />;
   const s = summary.data;
   const lines = s.lines.filter((l) => l.remainingToCall > 0);
   const over = lines.some((l) => (quantities[l.id] ?? 0) > l.remainingToCall);
@@ -430,7 +431,7 @@ export function CallOrderDetailPage() {
   const timeline = useCallOrderTimeline(id);
   const { isSupplier } = useAuth();
 
-  if (!o) return <Card loading={order.isLoading} />;
+  if (!o) return <DetailState query={order} />;
   const missingReason = o.lines.some(
     (l) => (answers[l.id]?.qty ?? l.quantity) < l.quantity && !answers[l.id]?.reason?.trim(),
   );

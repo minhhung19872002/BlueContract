@@ -52,6 +52,7 @@ import { BidForm } from './BidForm';
 import { fromBid, toBidRequest, type BidFormValues } from './bidFormValues';
 import { ImportItemsDialog } from './ImportItemsDialog';
 import { ExportableTable } from '../../components/TableExportButton';
+import { DetailState } from '../../components/DetailState';
 
 /** Chi tiết quyết định thầu: thông tin, NCC trúng thầu, danh mục hàng (HIS / Excel / nhập tay), các hợp đồng đã tạo. */
 export function BidDecisionDetailPage() {
@@ -281,7 +282,7 @@ export function BidDecisionDetailPage() {
       />
 
       {!b ? (
-        <Card loading={bid.isLoading} style={{ marginBottom: 16 }} />
+        <DetailState query={bid} />
       ) : (
         <>
           <DocKpis

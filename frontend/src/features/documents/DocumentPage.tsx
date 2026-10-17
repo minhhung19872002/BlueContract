@@ -1,7 +1,6 @@
 import {
   App,
   Button,
-  Card,
   Dropdown,
   Empty,
   Form,
@@ -57,6 +56,7 @@ import { StatusTag } from '../../components/StatusTag';
 import { useApiError } from '../../components/common';
 import { Banner, DetailGrid, DocHeader, Panel } from '../../components/layout';
 import { formatDateTime } from '../../utils/format';
+import { DetailState } from '../../components/DetailState';
 
 function formatSize(bytes?: number | null) {
   if (!bytes) return '';
@@ -385,7 +385,7 @@ export function DocumentPage() {
     </>
   );
 
-  if (!d) return <Card loading={doc.isLoading} />;
+  if (!d) return <DetailState query={doc} />;
 
   return (
     <>

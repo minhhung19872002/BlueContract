@@ -50,6 +50,7 @@ import { formatDate, formatDateTime, formatMoney, formatQuantity } from '../../u
 import { WorkflowCard } from '../signing/WorkflowPanel';
 import { DocumentPdf } from '../proposals/ProposalDetailPage';
 import { ExportableTable } from '../../components/TableExportButton';
+import { DetailState } from '../../components/DetailState';
 
 const TITLE: Record<string, string> = { Receipt: 'Phiếu nhập kho', Return: 'Phiếu hoàn trả' };
 
@@ -67,7 +68,7 @@ export function ReceiptDetailPage() {
   const revalidate = useReceiptAction(() => receiptApi.revalidate(id!));
   const cancel = useReceiptAction(() => receiptApi.cancel(id!));
 
-  if (!r) return <Card loading={receipt.isLoading} />;
+  if (!r) return <DetailState query={receipt} />;
   const title = r.source === 'VirtualPortal' ? 'Phiếu xác nhận khối lượng' : TITLE[r.type];
   const lineIssues = new Map<number, string[]>();
   r.issues

@@ -49,6 +49,7 @@ import { MoneyInput, QuantityInput, SupplierSelect } from '../../components/inpu
 import { ItemPicker } from '../../components/ItemPicker';
 import { formatMoney, formatQuantity } from '../../utils/format';
 import { TAX_CODE_RULE, USER_NAME_RULE } from '../../utils/validation';
+import { DetailState } from '../../components/DetailState';
 
 type Day = dayjs.Dayjs | null | undefined;
 
@@ -587,7 +588,7 @@ export function ContractWizardPage() {
   const { id } = useParams<{ id: string }>();
   const [params] = useSearchParams();
   const existing = useContract(id);
-  if (id && !existing.data) return <Card loading />;
+  if (id && !existing.data) return <DetailState query={existing} />;
   const bidParam = params.get('bid');
   const init = existing.data
     ? fromContract(existing.data)

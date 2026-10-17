@@ -43,6 +43,7 @@ import { formatDate, formatDateTime, formatMoney, formatQuantity } from '../../u
 import { WorkflowCard } from '../signing/WorkflowPanel';
 import { DocumentPdf } from '../proposals/ProposalDetailPage';
 import { ExportableTable } from '../../components/TableExportButton';
+import { DetailState } from '../../components/DetailState';
 
 /** Hợp đồng có hiệu lực để chọn khi lập biên bản. */
 export function EffectiveContractSelect({
@@ -96,7 +97,7 @@ interface Header {
 export function AcceptanceEditorPage() {
   const { id } = useParams<{ id: string }>();
   const existing = useAcceptance(id);
-  if (id && !existing.data) return <Card loading />;
+  if (id && !existing.data) return <DetailState query={existing} />;
   return <AcceptanceEditor key={id ?? 'new'} acceptance={existing.data} />;
 }
 
@@ -272,7 +273,7 @@ export function AcceptanceDetailPage() {
   const submit = usePaymentAction(() => acceptanceApi.submit(id!));
   const cancel = usePaymentAction(() => acceptanceApi.cancel(id!));
 
-  if (!a) return <Card loading={acceptance.isLoading} />;
+  if (!a) return <DetailState query={acceptance} />;
   const base = isSupplier ? '/ncc' : '';
 
   return (

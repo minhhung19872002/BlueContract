@@ -1,4 +1,4 @@
-import { App, Button, Card, Descriptions, Drawer, Select, Space, Typography } from 'antd';
+import { App, Button, Descriptions, Drawer, Select, Space, Typography } from 'antd';
 import {
   BookOpen,
   CalendarClock,
@@ -29,6 +29,7 @@ import { PageHeader, useApiError } from '../../components/common';
 import { useTableUrlState } from '../../hooks/useUrlState';
 import { formatDateTime } from '../../utils/format';
 import './integration.css';
+import { DetailState } from '../../components/DetailState';
 
 const FILTERS = ['direction', 'status', 'operation'] as const;
 
@@ -163,7 +164,7 @@ export function IntegrationPage() {
         }
       />
       {!c ? (
-        <Card loading={config.isLoading} style={{ marginBottom: 16 }} />
+        <DetailState query={config} />
       ) : (
         <div className="his-cards">
           <HisCard

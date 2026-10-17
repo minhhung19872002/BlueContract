@@ -41,6 +41,7 @@ import { ContractCalls, ContractHistory } from './ContractTabs';
 import { contractInfoLabel, formatContractInfo } from '../../utils/contractInfo';
 import { AccountantReviewPanel, SupplierReviewPanel } from './ContractReviewPanels';
 import { ExportableTable } from '../../components/TableExportButton';
+import { DetailState } from '../../components/DetailState';
 
 const pct = (part: number, whole: number) => (whole > 0 ? Math.round((part * 1000) / whole) / 10 : 0);
 
@@ -113,7 +114,7 @@ export function ContractDetailPage() {
     setTimeout(() => void invalidate(), 15_000);
   };
 
-  if (!c) return <Card loading={contract.isLoading} />;
+  if (!c) return <DetailState query={contract} />;
 
   const a = c.actions;
   const totals = c.items.reduce(

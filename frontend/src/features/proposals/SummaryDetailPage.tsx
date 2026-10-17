@@ -34,6 +34,7 @@ import { formatDateTime, formatMoney, formatQuantity } from '../../utils/format'
 import { WorkflowCard } from '../signing/WorkflowPanel';
 import { DocumentPdf } from './ProposalDetailPage';
 import { ExportableTable } from '../../components/TableExportButton';
+import { DetailState } from '../../components/DetailState';
 
 /** Chi tiết tổng hợp: bảng tổng hợp, cột SL duyệt (tổ trưởng sửa), gửi ký, xuất Excel, gọi hàng. */
 export function SummaryDetailPage() {
@@ -54,7 +55,7 @@ export function SummaryDetailPage() {
     ),
   );
 
-  if (!s) return <Card loading={summary.isLoading} />;
+  if (!s) return <DetailState query={summary} />;
   const changed = Object.keys(approved).length > 0;
 
   return (

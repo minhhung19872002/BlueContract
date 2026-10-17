@@ -54,6 +54,7 @@ import { WorkflowCard } from '../signing/WorkflowPanel';
 import { DocumentPdf } from '../proposals/ProposalDetailPage';
 import { EffectiveContractSelect } from './AcceptancePages';
 import { ExportableTable } from '../../components/TableExportButton';
+import { DetailState } from '../../components/DetailState';
 
 interface Header {
   contractId?: string;
@@ -200,7 +201,7 @@ export function ValuationDetailPage() {
   const submit = usePaymentAction(() => valuationApi.submit(id!));
   const cancel = usePaymentAction(() => valuationApi.cancel(id!));
 
-  if (!v) return <Card loading={valuation.isLoading} />;
+  if (!v) return <DetailState query={valuation} />;
   const base = isSupplier ? '/ncc' : '';
 
   return (
