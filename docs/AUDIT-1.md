@@ -75,7 +75,11 @@ Trạng thái: ⏳ chưa xử lý · 🔴 đã tái hiện · ✅ đã sửa (te
 
 ## Tìm thêm khi chạy thật
 
-_(điền sau Phase 13: mỗi vai trò đăng nhập, cố tình đi đường sai.)_
+Chạy thật sau Phase 13 (stack docker, dữ liệu demo + dữ liệu E2E, lần lượt đăng nhập từng vai trò, cố tình đi đường sai):
+
+| Vai trò / màn hình | Lỗi | Tái hiện | Cách sửa |
+|---|---|---|---|
+| `khoanoi` — Lập phiếu đề xuất | Kho thuốc có **90 dòng** mặt hàng (một mặt hàng xuất hiện ở nhiều hợp đồng) mà không có ô tìm; ô "SL đề xuất" / "Ghi chú" không có nhãn nên trình đọc màn hình chỉ đọc "spinbutton"; cảnh báo vượt số lượng không nói mặt hàng nào | Chọn Thuốc + Kho Thuốc chính, nhập 999.999 cho một dòng | Ô tìm theo tên hàng / số HĐ / NCC (không dấu, nhiều từ), ô "Chỉ hiện mặt hàng đã nhập số lượng", dòng "Đang hiện x / y"; nhãn từng ô `SL đề xuất: <tên hàng> — HĐ <số>`; cảnh báo liệt kê mặt hàng và số còn lại. `utils/search.ts` (`foldVietnamese`, `matchesSearch`, dùng chung với Ctrl+K); `candidateFilter.test.ts` (4) ĐỎ trước khi sửa. Đã thử trên trình duyệt: lọc "paracetamol minh an" còn 39 / 90, bật chỉ hiện đã nhập còn 1, nháp tự động khôi phục đúng hai số đã nhập. |
 
 Các lỗi tìm thêm trong lúc làm Phase 10:
 

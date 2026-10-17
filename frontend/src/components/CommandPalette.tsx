@@ -3,6 +3,7 @@ import { CornerDownLeft, FileText, Search } from 'lucide-react';
 import { useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import type { InputRef } from 'antd';
 import type { FlatNavItem } from '../layouts/AppShell';
+import { foldVietnamese } from '../utils/search';
 
 interface Command {
   key: string;
@@ -12,14 +13,7 @@ interface Command {
   path: string;
 }
 
-/** Vietnamese-insensitive matching: "hop dong" finds "Hợp đồng". */
-const fold = (s: string) =>
-  s
-    .normalize('NFD')
-    .replace(/\p{Diacritic}/gu, '')
-    .replace(/đ/g, 'd')
-    .replace(/Đ/g, 'D')
-    .toLowerCase();
+const fold = foldVietnamese;
 
 /** Ctrl+K palette (design/App Shell.dc.html): jump to any page of the menu, or search contracts by number / name / supplier. */
 export function CommandPalette({

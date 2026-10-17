@@ -3,6 +3,7 @@ import {
   App,
   Button,
   Card,
+  Checkbox,
   Col,
   DatePicker,
   Empty,
@@ -15,7 +16,7 @@ import {
   Table,
   Typography,
 } from 'antd';
-import { SaveOutlined } from '@ant-design/icons';
+import { SaveOutlined, SearchOutlined } from '@ant-design/icons';
 import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import dayjs from '../../i18n/dayjs';
@@ -36,6 +37,7 @@ import { useFormDraft } from '../../hooks/useFormDraft';
 import { DocHeader, StickyActionBar } from '../../components/layout';
 import { QuantityInput } from '../../components/inputs';
 import { formatMoney, formatQuantity } from '../../utils/format';
+import { candidateLabel, filterCandidates } from './candidateFilter';
 
 interface Header {
   departmentId?: string;
@@ -95,6 +97,8 @@ function ProposalEditor({
   const editing = !!proposal;
   const [form] = Form.useForm<Header>();
   const [entries, setEntries] = useState<Record<string, Entry>>(initialEntries);
+  const [search, setSearch] = useState('');
+  const [onlyChosen, setOnlyChosen] = useState(false);
   const navigate = useNavigate();
   const { message } = App.useApp();
   const onError = useApiError();
@@ -144,6 +148,7 @@ function ProposalEditor({
   const rows = candidates.data?.items ?? [];
   const over = rows.filter((r) => (entries[r.contractItemId]?.qty ?? 0) > r.contractRemaining);
   const chosen = rows.filter((r) => (entries[r.contractItemId]?.qty ?? 0) > 0);
+  const visible = filterCandidates(rows, search, onlyChosen, entries);
   const total = useMemo(
     () => chosen.reduce((s, r) => s + Math.round((entries[r.contractItemId]?.qty ?? 0) * r.unitPrice), 0),
     [chosen, entries],
@@ -229,105 +234,138 @@ function ProposalEditor({
             type="error"
             showIcon
             style={{ marginBottom: 12 }}
-            message={`${over.length} mặt hàng vượt số lượng còn lại của hợp đồng.`}
+            message={`${over.length} mặt hàng vượt số lượng còn lại của hợp đồng: ${over.map((r) => `${r.itemName} (còn ${formatQuantity(r.contractRemaining)})`).join('; ')}.`}
           />
         )}
         {!domain || !warehouseId ? (
           <Empty description="Chọn mảng, kho và kỳ để tải danh sách mặt hàng từ các hợp đồng còn hiệu lực" />
         ) : (
-          <Table<ProposalCandidateDto>
-            rowKey="contractItemId"
-            size="small"
-            loading={candidates.isFetching}
-            dataSource={rows}
-            pagination={false}
-            scroll={{ x: 'max-content', y: 560 }}
-            rowClassName={(r) =>
-              (entries[r.contractItemId]?.qty ?? 0) > r.contractRemaining ? 'row-error' : ''
-            }
-            onRow={(r) => ({
-              style:
-                (entries[r.contractItemId]?.qty ?? 0) > r.contractRemaining
-                  ? { background: '#fff1f0' }
-                  : undefined,
-            })}
-            locale={{
-              emptyText: <Empty description="Không có hợp đồng gọi hàng còn hiệu lực trong mảng này" />,
-            }}
-            columns={[
-              { title: 'Số HĐ', dataIndex: 'contractNumber', width: 150, fixed: 'left' },
-              {
-                title: 'Tên hàng',
-                dataIndex: 'itemName',
-                fixed: 'left',
-                width: 260,
-                render: (v: string, r) => (
-                  <Space direction="vertical" size={0}>
-                    <span>{v}</span>
-                    <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                      {r.supplierName}
-                    </Typography.Text>
-                  </Space>
-                ),
-              },
-              { title: 'ĐVT', dataIndex: 'unit', width: 60 },
-              {
-                title: 'Tồn đầu kỳ',
-                dataIndex: 'openingStock',
-                align: 'right',
-                render: (v: number) => formatQuantity(v),
-              },
-              {
-                title: 'Nhập',
-                dataIndex: 'received',
-                align: 'right',
-                render: (v: number) => formatQuantity(v),
-              },
-              {
-                title: 'Xuất',
-                dataIndex: 'issued',
-                align: 'right',
-                render: (v: number) => formatQuantity(v),
-              },
-              {
-                title: 'Tồn hiện tại',
-                dataIndex: 'currentStock',
-                align: 'right',
-                render: (v: number) => formatQuantity(v),
-              },
-              {
-                title: 'Còn lại HĐ',
-                dataIndex: 'contractRemaining',
-                align: 'right',
-                render: (v: number) => <Typography.Text strong>{formatQuantity(v)}</Typography.Text>,
-              },
-              {
-                title: 'SL đề xuất',
-                key: 'qty',
-                width: 150,
-                render: (_, r) => (
-                  <QuantityInput
-                    size="small"
-                    value={entries[r.contractItemId]?.qty}
-                    status={(entries[r.contractItemId]?.qty ?? 0) > r.contractRemaining ? 'error' : undefined}
-                    onChange={(v) => set(r.contractItemId, { qty: v ?? undefined })}
+          <>
+            <Space wrap style={{ marginBottom: 12 }}>
+              <Input
+                allowClear
+                prefix={<SearchOutlined />}
+                placeholder="Tìm theo tên hàng, số hợp đồng, nhà cung cấp"
+                aria-label="Tìm mặt hàng"
+                style={{ width: 360, maxWidth: '100%' }}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              <Checkbox checked={onlyChosen} onChange={(e) => setOnlyChosen(e.target.checked)}>
+                Chỉ hiện mặt hàng đã nhập số lượng
+              </Checkbox>
+              {visible.length < rows.length && (
+                <Typography.Text type="secondary">
+                  Đang hiện {visible.length} / {rows.length} mặt hàng
+                </Typography.Text>
+              )}
+            </Space>
+            <Table<ProposalCandidateDto>
+              rowKey="contractItemId"
+              size="small"
+              loading={candidates.isFetching}
+              dataSource={visible}
+              pagination={false}
+              scroll={{ x: 'max-content', y: 560 }}
+              rowClassName={(r) =>
+                (entries[r.contractItemId]?.qty ?? 0) > r.contractRemaining ? 'row-error' : ''
+              }
+              onRow={(r) => ({
+                style:
+                  (entries[r.contractItemId]?.qty ?? 0) > r.contractRemaining
+                    ? { background: '#fff1f0' }
+                    : undefined,
+              })}
+              locale={{
+                emptyText: (
+                  <Empty
+                    description={
+                      rows.length > 0
+                        ? 'Không có mặt hàng nào khớp điều kiện lọc'
+                        : 'Không có hợp đồng gọi hàng còn hiệu lực trong mảng này'
+                    }
                   />
                 ),
-              },
-              {
-                title: 'Ghi chú',
-                key: 'note',
-                width: 200,
-                render: (_, r) => (
-                  <Input
-                    size="small"
-                    value={entries[r.contractItemId]?.note}
-                    onChange={(e) => set(r.contractItemId, { note: e.target.value })}
-                  />
-                ),
-              },
-            ]}
-          />
+              }}
+              columns={[
+                { title: 'Số HĐ', dataIndex: 'contractNumber', width: 150, fixed: 'left' },
+                {
+                  title: 'Tên hàng',
+                  dataIndex: 'itemName',
+                  fixed: 'left',
+                  width: 260,
+                  render: (v: string, r) => (
+                    <Space direction="vertical" size={0}>
+                      <span>{v}</span>
+                      <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                        {r.supplierName}
+                      </Typography.Text>
+                    </Space>
+                  ),
+                },
+                { title: 'ĐVT', dataIndex: 'unit', width: 60 },
+                {
+                  title: 'Tồn đầu kỳ',
+                  dataIndex: 'openingStock',
+                  align: 'right',
+                  render: (v: number) => formatQuantity(v),
+                },
+                {
+                  title: 'Nhập',
+                  dataIndex: 'received',
+                  align: 'right',
+                  render: (v: number) => formatQuantity(v),
+                },
+                {
+                  title: 'Xuất',
+                  dataIndex: 'issued',
+                  align: 'right',
+                  render: (v: number) => formatQuantity(v),
+                },
+                {
+                  title: 'Tồn hiện tại',
+                  dataIndex: 'currentStock',
+                  align: 'right',
+                  render: (v: number) => formatQuantity(v),
+                },
+                {
+                  title: 'Còn lại HĐ',
+                  dataIndex: 'contractRemaining',
+                  align: 'right',
+                  render: (v: number) => <Typography.Text strong>{formatQuantity(v)}</Typography.Text>,
+                },
+                {
+                  title: 'SL đề xuất',
+                  key: 'qty',
+                  width: 150,
+                  render: (_, r) => (
+                    <QuantityInput
+                      size="small"
+                      aria-label={`SL đề xuất: ${candidateLabel(r)}`}
+                      value={entries[r.contractItemId]?.qty}
+                      status={
+                        (entries[r.contractItemId]?.qty ?? 0) > r.contractRemaining ? 'error' : undefined
+                      }
+                      onChange={(v) => set(r.contractItemId, { qty: v ?? undefined })}
+                    />
+                  ),
+                },
+                {
+                  title: 'Ghi chú',
+                  key: 'note',
+                  width: 200,
+                  render: (_, r) => (
+                    <Input
+                      size="small"
+                      aria-label={`Ghi chú: ${candidateLabel(r)}`}
+                      value={entries[r.contractItemId]?.note}
+                      onChange={(e) => set(r.contractItemId, { note: e.target.value })}
+                    />
+                  ),
+                },
+              ]}
+            />
+          </>
         )}
       </Card>
       <StickyActionBar total={{ label: 'Tổng giá trị đề xuất', value: formatMoney(total) }}>
