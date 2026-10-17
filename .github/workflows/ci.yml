@@ -7,7 +7,8 @@ on:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # Pushes to main are not cancelled: the run may be deploying to the VM.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   backend:
@@ -131,3 +132,37 @@ jobs:
           ignore-unfixed: true
           format: table
           exit-code: '1'
+
+  # Continuous deployment of main to the VM (14.225.83.93, https://bluecontract.bluestar.com.vn) once every check passed.
+  # The deploy key is pinned on the VM to ~/apps/blueprocure-deploy.sh, which unpacks the archive, rebuilds the
+  # production stack (docker-compose.yml + docker-compose.prod.yml + the VM-only docker-compose.vm.yml) and waits until
+  # every service is healthy. Secrets live only in the VM's .env.
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [backend, frontend, images, dependencies]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment:
+      name: vm
+      url: https://bluecontract.bluestar.com.vn
+    concurrency:
+      group: deploy-vm
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to VM
+        env:
+          VM_SSH_KEY: ${{ secrets.VM_SSH_KEY }}
+          VM_KNOWN_HOSTS: ${{ secrets.VM_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$VM_SSH_KEY" > ~/.ssh/deploy_key && chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$VM_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          git archive --format=tar HEAD | gzip | \
+            ssh -i ~/.ssh/deploy_key -o ServerAliveInterval=30 hung@14.225.83.93 "$GITHUB_SHA"
+      - name: Smoke test
+        run: |
+          for i in $(seq 1 20); do
+            curl -fsS https://bluecontract.bluestar.com.vn/health/ready && exit 0
+            sleep 15
+          done
+          exit 1

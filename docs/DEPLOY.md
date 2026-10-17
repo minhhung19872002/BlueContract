@@ -203,3 +203,21 @@ Nếu bệnh viện muốn dùng tiếp một máy chủ MinIO (hoặc dịch v�
 **Nhiều instance API:** `docker compose up -d --scale api=N api`, rồi `docker compose restart web` để nginx nhận đủ địa chỉ các instance. Redis (container `redis`, biến `REDIS_CONFIGURATION`) giữ trạng thái dùng chung: SignalR và phiên ký. Kiểm tra bằng `scripts/scale-check.ps1` / `.sh`. Nếu đặt `REDIS_CONFIGURATION=` (rỗng) thì chỉ chạy được **một** instance.
 
 API không lưu trạng thái phiên (JWT + refresh token trong cookie) nên chạy được nhiều bản sau load balancer. Khi chạy nhiều bản (ADR-027): chỉ một bản bật `Hangfire__ServerEnabled=true`, cấu hình backplane SignalR (Redis) để thông báo realtime đến mọi bản, và dùng distributed cache chung (Redis) cho trạng thái ký số từ xa / USB token.
+
+## 10. Máy chủ BLUESTAR (14.225.83.93) và triển khai liên tục
+
+`https://bluecontract.bluestar.com.vn` chạy trên VM dùng chung với các ứng dụng khác:
+- Mã nguồn: `~/apps/blueprocure` của user `hung`, commit đang chạy ghi trong `REVISION`. Bí mật nằm trong `.env` (chmod 600), mật khẩu tạm của `admin` là `SEED_ADMIN_PASSWORD` trong đó.
+- Compose: `docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.vm.yml …`. File `docker-compose.vm.yml` chỉ có trên VM: tắt container `tls` và giới hạn RAM.
+- HTTPS do Caddy dùng chung đảm nhận (`~/proxy`, site `~/proxy/sites/blueprocure.caddy`, mạng `blueprocure_default`). ONLYOFFICE chạy dưới đường dẫn `/office` của cùng tên miền (`ONLYOFFICE_PUBLIC_URL=https://bluecontract.bluestar.com.vn/office`), nên không cần tên miền thứ hai.
+
+**CI/CD:** mỗi lần push lên `main`, sau khi `backend`, `frontend`, `images`, `dependencies` đều qua, job `deploy` trong `.github/workflows/ci.yml`:
+1. gửi `git archive` của commit qua SSH;
+2. chạy `~/apps/blueprocure-deploy.sh` trên VM: giải nén, giữ lại `.env` / `docker-compose.vm.yml` / `backups/`, rồi `build` + `up -d --wait`;
+3. kiểm tra `/health/ready`.
+
+Khóa SSH (secret `VM_SSH_KEY`, kèm `VM_KNOWN_HOSTS`) bị ghim vào script đó trong `~/.ssh/authorized_keys` (`restrict,command=…`), nên không mở được shell. Triển khai tay một commit bất kỳ từ máy dev:
+
+```bash
+git archive --format=tar HEAD | gzip | ssh hung@14.225.83.93 "~/apps/blueprocure-deploy.sh $(git rev-parse HEAD)"
+```
